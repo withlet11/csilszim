@@ -19,9 +19,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'dart:io';
 import 'dart:math';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import '../astronomical/time_model.dart';
@@ -60,16 +60,16 @@ class _OrbitViewState extends State<OrbitView> {
 
     _intervalItems = const [
       DropdownMenuItem(value: 1.0, child: Text('1 day')),
-      DropdownMenuItem(value: 5.0, child: Text('5 day')),
-      DropdownMenuItem(value: 10.0, child: Text('10 day')),
-      DropdownMenuItem(value: 20.0, child: Text('20 day')),
-      DropdownMenuItem(value: 30.0, child: Text('30 day')),
-      DropdownMenuItem(value: 50.0, child: Text('50 day')),
-      DropdownMenuItem(value: 100.0, child: Text('100 day')),
-      DropdownMenuItem(value: oneYear * 0.5, child: Text('0.5 year')),
+      DropdownMenuItem(value: 5.0, child: Text('5 days')),
+      DropdownMenuItem(value: 10.0, child: Text('10 days')),
+      DropdownMenuItem(value: 20.0, child: Text('20 days')),
+      DropdownMenuItem(value: 30.0, child: Text('30 days')),
+      DropdownMenuItem(value: 50.0, child: Text('50 days')),
+      DropdownMenuItem(value: 100.0, child: Text('100 days')),
+      DropdownMenuItem(value: oneYear * 0.5, child: Text('0.5 years')),
       DropdownMenuItem(value: oneYear, child: Text('1 year')),
-      DropdownMenuItem(value: oneYear * 5, child: Text('5 year')),
-      DropdownMenuItem(value: oneYear * 10, child: Text('10 year'))
+      DropdownMenuItem(value: oneYear * 5, child: Text('5 years')),
+      DropdownMenuItem(value: oneYear * 10, child: Text('10 years'))
     ];
 
     _repetitionItems = const [
@@ -130,7 +130,8 @@ class _OrbitViewState extends State<OrbitView> {
               children: <Widget>[
                 ClipRect(
                   child:
-                      (Platform.isAndroid ? _makeGestureDetector : _makeListener)(
+                      // (Platform.isAndroid ? _makeGestureDetector : _makeListener)(
+                      (defaultTargetPlatform == TargetPlatform.android ? _makeGestureDetector : _makeListener)(
                           OrbitPlot(
                               // for calling setState()
                               key: UniqueKey(),
@@ -257,12 +258,17 @@ class _OrbitViewState extends State<OrbitView> {
       _previousPosition = null;
     } else {
       if (_previousPosition != null) {
-        setState(() {
-          final lastPosition = _settings.projection.cameraPosition;
-          _settings.projection = GraphicalProjection(lastPosition
-              .rotateZ((position.dx - _previousPosition!.dx) / -100)
-              .rotateToAxisZ((position.dy - _previousPosition!.dy) / 100));
-        });
+        final lastPosition = _settings.projection.cameraPosition;
+        final newPosition = lastPosition
+            .rotateZ((position.dx - _previousPosition!.dx) *
+                ((height / 2 - position.dy) * lastPosition.dz).sign *
+                0.01)
+            .rotateToAxisZ((position.dy - _previousPosition!.dy) * 0.01);
+        if (newPosition.dx != 0 && newPosition.dy != 0) {
+          setState(() {
+            _settings.projection = GraphicalProjection(newPosition);
+          });
+        }
       }
       _previousPosition = position;
       PageStorage.of(context)?.writeState(context, _settings);

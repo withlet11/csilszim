@@ -45,6 +45,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return const MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Csilszim',
       home: HomePage(title: 'Csilszim'),
     );
@@ -82,6 +83,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             return const Center(child: Text('Error'));
           } else if (snapshot.hasData) {
             return MaterialApp(
+              debugShowCheckedModeBanner: false,
               theme: ThemeData.dark(),
               home: Scaffold(
                   appBar: AppBar(
@@ -127,7 +129,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                   'Loading...',
                   style: Theme.of(context)
                       .textTheme
-                      .headline2
+                      .displayMedium
                       ?.copyWith(color: Colors.grey),
                 ),
               )),

@@ -20,8 +20,8 @@
  */
 
 import 'dart:math';
-import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -145,7 +145,13 @@ class _SkyViewState extends ConsumerState<SkyView>
           ),
           Expanded(
               child: ClipRect(
+                /*
                   child: (Platform.isAndroid
+                      ? _makeGestureDetector
+                      : _makeListener)(
+
+                 */
+                  child: (defaultTargetPlatform == TargetPlatform.android
                       ? _makeGestureDetector
                       : _makeListener)(
             SkyMap(

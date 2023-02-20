@@ -69,21 +69,19 @@ class Offset3D {
 
   Offset3D rotateToAxisZ(double angle) {
     final distanceFromAxisZ = sqrt(dx * dx + dy * dy);
-    if (distanceFromAxisZ == 0) {
-      return (dz > 0 && angle < 0)
-          ? Offset3D(0.0, -dz * sin(angle), dz * cos(angle))
-          : (dz < 0 && angle > 0)
-              ? Offset3D(0.0, -dz * sin(angle), dz * cos(angle))
-              : this;
-    }
+    if (distanceFromAxisZ == 0) return this;
 
     final currentAngle = atan(dz / distanceFromAxisZ);
     final newAngle = currentAngle + angle;
     if (newAngle >= halfTurn || newAngle <= -halfTurn) return this;
-    return Offset3D(
+
+    final newPosition = Offset3D(
         dx * cos(angle) - dz * sin(angle) * dx / distanceFromAxisZ,
         dy * cos(angle) - dz * sin(angle) * dy / distanceFromAxisZ,
         distanceFromAxisZ * sin(angle) + dz * cos(angle));
+    return (dx * newPosition.dx > 0 || dy * newPosition.dy > 0)
+        ? newPosition
+        : this;
   }
 
   Offset3D rotateXYZ(double angleX, double angleY, double angleZ) {
