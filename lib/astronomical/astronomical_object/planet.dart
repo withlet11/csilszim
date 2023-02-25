@@ -97,7 +97,7 @@ class Planet implements AstronomicalObject {
         radius = 58232,
         albedo = 0.499,
         absoluteMagnitude = -8.914,
-        phaseIntegral = phaseIntegralOfPlanets,
+        phaseIntegral = phaseIntegralOfSaturn,
         name = "Saturn";
 
   Planet.uranus(double jd, Offset3D heliocentric)
@@ -212,6 +212,20 @@ double phaseIntegralOfJupiter(Vsop87 vsop87) {
                               turn *
                                   (-0.062 + turn * (2.809 + turn * -1.876))))) *
           log10e;
+}
+
+double phaseIntegralOfSaturn(Vsop87 vsop87) {
+  final phaseAngle = vsop87.phaseAngle;
+  return phaseAngle <= 6
+      ? -0.036 + phaseAngle * (-3.7e-4 + phaseAngle * 6.16e-4)
+      : phaseAngle < 150
+          ? 0.026 +
+              phaseAngle *
+                  (2.466e-4 +
+                      phaseAngle *
+                          (2.672e-4 +
+                              phaseAngle * (-1.505e-6 + 4.767e-9 * phaseAngle)))
+          : phaseIntegralOfPlanets(vsop87);
 }
 
 double saturnRingAngle(Offset3D geocentric) {

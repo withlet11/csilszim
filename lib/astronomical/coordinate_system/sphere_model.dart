@@ -44,7 +44,7 @@ class SphereModel {
   const SphereModel._internal(
       this._location, this._gmst, this._lmst, this._cosLat, this._sinLat);
 
-  factory SphereModel({location = Geographic, gmstMicroseconds = int}) {
+  factory SphereModel({location = Geographic, gmstMicroseconds = 0}) {
     return SphereModel._internal(
         location,
         gmstMicroseconds / 86400e6 * fullTurn,

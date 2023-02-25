@@ -70,6 +70,14 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
               Navigator.pop(context);
             },
           ),
+          ListTile(
+            title: const Text('Seasonal'),
+            tileColor: viewSelect == View.seasonal ? Colors.tealAccent : null,
+            onTap: () {
+              ref.read(viewSelectProvider.notifier).state = View.seasonal;
+              Navigator.pop(context);
+            },
+          ),
           SwitchListTile(
             title: const Text('Horizontal coordinate grid'),
             value: displaySetting.isHorizontalGridVisible,

@@ -1,5 +1,5 @@
 /*
- * view_select_provider.dart
+ * configs.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -19,13 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-enum View {
-  clock,
-  sky,
-  orbit,
-  seasonal
-}
-
-final viewSelectProvider = StateProvider<View>((ref) => View.clock);
+const initialScale = 1.0;
+const minScale = 0.5;
+const maxScale = 5.0;
+const defaultDec = 0.0;
+const defaultRa = 12.0;

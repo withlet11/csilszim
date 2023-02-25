@@ -1,5 +1,5 @@
 /*
- * view_select_provider.dart
+ * mercator_projection.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -19,13 +19,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:math';
+import 'dart:ui';
 
-enum View {
-  clock,
-  sky,
-  orbit,
-  seasonal
+import 'package:csilszim/constants.dart';
+
+import '../astronomical/coordinate_system/equatorial_coordinate.dart';
+import 'configs.dart';
+
+class CylindricalProjection {
+  Equatorial centerEquatorial;
+  double scale = initialScale;
+
+  CylindricalProjection(this.centerEquatorial);
+
+  void zoom(double t) {
+    scale = max(min(scale * pow(2, t), maxScale), 1);
+  }
+
+  void zoomIn([double t = 0.5]) {
+    scale *= max(pow(2, t), 1);
+    if (scale > maxScale) scale = maxScale;
+  }
+
+  void zoomOut([double t = 0.5]) {
+    scale /= max(pow(2, t), minScale);
+    if (scale < minScale) scale = minScale;
+  }
+
+  Offset equatorialToXy(
+      Equatorial equatorial, Offset center, double unitLength) {
+    return Offset(halfTurn - equatorial.ra,
+                -log(tan((quarterTurn + equatorial.dec) / 2))) *
+            (scale * unitLength) +
+        center;
+  }
+
+  Equatorial xyToEquatorial(Offset offset) {
+    return Equatorial.fromRadians(
+        dec: atan(exp(-offset.dy / scale)) * 2 - quarterTurn,
+        ra: halfTurn - offset.dx / scale);
+  }
 }
-
-final viewSelectProvider = StateProvider<View>((ref) => View.clock);

@@ -48,4 +48,50 @@ class Equatorial {
   double decInDegrees() => dec / degInRad;
 
   double raInHours() => ra / hourInRad;
+
+  Equatorial operator +(Equatorial other) {
+    var tempRa = ra + other.ra;
+    var tempDec = dec + other.dec;
+
+    if (tempRa > quarterTurn) {
+      tempRa = halfTurn - tempRa;
+      tempDec += halfTurn;
+    } else if (tempRa < -quarterTurn) {
+      tempRa = -halfTurn - tempRa;
+      tempDec += halfTurn;
+    }
+
+    if (tempDec > fullTurn) {
+      tempDec -= fullTurn;
+    } else if (tempDec.isNegative) {
+      tempDec += fullTurn;
+    }
+    return Equatorial.fromRadians(ra: tempRa, dec: tempDec);
+  }
+
+  Equatorial operator -(Equatorial other) {
+    var tempRa = ra - other.ra;
+    var tempDec = dec - other.dec;
+
+    if (tempRa > quarterTurn) {
+      tempRa = halfTurn - tempRa;
+      tempDec += halfTurn;
+    } else if (tempRa < -quarterTurn) {
+      tempRa = -halfTurn - tempRa;
+      tempDec += halfTurn;
+    }
+
+    if (tempDec > fullTurn) {
+      tempDec -= fullTurn;
+    } else if (tempDec.isNegative) {
+      tempDec += fullTurn;
+    }
+    return Equatorial.fromRadians(ra: tempRa, dec: tempDec);
+  }
+
+  Equatorial normalized() {
+    final tempDec = (dec + quarterTurn) % fullTurn;
+    final tempRa = ((tempDec ~/ halfTurn).isEven ? ra : ra + halfTurn) % fullTurn;
+    return Equatorial.fromRadians(dec: tempDec - quarterTurn, ra: tempRa);
+  }
 }

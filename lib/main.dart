@@ -28,6 +28,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'astronomical/star_catalogue.dart';
 import 'clock_view/clock_view.dart';
 import 'orbit_view/orbit_view.dart';
+import 'seasonal_view/seasonal_view.dart';
 import 'setting_view/location_setting_view.dart';
 import 'setting_view/setting_drawer.dart';
 import 'provider/location_provider.dart';
@@ -83,57 +84,58 @@ class _HomePageState extends ConsumerState<HomePage> {
             return const Center(child: Text('Error'));
           } else if (snapshot.hasData) {
             return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme: ThemeData.dark(),
-              home: Scaffold(
-                  appBar: AppBar(
-                    title: Text(widget.title),
-                    actions: <Widget>[
+                debugShowCheckedModeBanner: false,
+                theme: ThemeData.dark(),
+                home: Scaffold(
+                    appBar: AppBar(title: Text(widget.title), actions: <Widget>[
                       IconButton(
-                        icon: const Icon(Icons.settings_rounded),
-                        tooltip: 'Location Setting',
-                        onPressed: () async {
-                          final lat =
-                              DmsAngle.fromDegrees(locationData.latInDegrees());
-                          final long = DmsAngle.fromDegrees(
-                              locationData.longInDegrees());
-                          final newOne =
-                              await pushAndPopLocationData([lat, long]);
-                          saveLocationData(newOne);
-                        },
-                      )
-                    ],
-                  ),
-                  drawer: const SettingDrawer(),
-                  body: //  TabBarView(
-                      // physics: const NeverScrollableScrollPhysics(),
-                      // children: <Widget>[
-                      viewSelect == View.clock
-                          ? const ClockView()
-                          : viewSelect == View.sky
-                              ? SkyView(
-                                  key: const PageStorageKey<String>(
-                                      "key_SkyView"),
-                                  starCatalogue: snapshot.data as StarCatalogue,
-                                )
-                              : const OrbitView(
-                                  key:
-                                      PageStorageKey<String>('key_OrbitView'))),
-            );
+                          icon: const Icon(Icons.settings_rounded),
+                          tooltip: 'Location Setting',
+                          onPressed: () async {
+                            final lat = DmsAngle.fromDegrees(
+                                locationData.latInDegrees());
+                            final long = DmsAngle.fromDegrees(
+                                locationData.longInDegrees());
+                            final newOne =
+                                await pushAndPopLocationData([lat, long]);
+                            saveLocationData(newOne);
+                          })
+                    ]),
+                    drawer: const SettingDrawer(),
+                    body: //  TabBarView(
+                        // physics: const NeverScrollableScrollPhysics(),
+                        // children: <Widget>[
+                        viewSelect == View.clock
+                            ? const ClockView()
+                            : viewSelect == View.sky
+                                ? SkyView(
+                                    key: const PageStorageKey<String>(
+                                        "key_SkyView"),
+                                    starCatalogue:
+                                        snapshot.data as StarCatalogue,
+                                  )
+                                : viewSelect == View.orbit
+                                    ? const OrbitView(
+                                        key: PageStorageKey<String>(
+                                            'key_OrbitView'))
+                                    : SeasonalView(
+                                        key: const PageStorageKey<String>(
+                                            "key_SeasonalView"),
+                                        starCatalogue:
+                                            snapshot.data as StarCatalogue,
+                                      )));
           } else {
             return Theme(
-              data: ThemeData.dark(),
-              child: Scaffold(
-                  body: Center(
-                child: Text(
+                data: ThemeData.dark(),
+                child: Scaffold(
+                    body: Center(
+                        child: Text(
                   'Loading...',
                   style: Theme.of(context)
                       .textTheme
                       .displayMedium
                       ?.copyWith(color: Colors.grey),
-                ),
-              )),
-            );
+                ))));
           }
         });
   }
@@ -170,12 +172,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   Future<List<DmsAngle>> pushAndPopLocationData(List<DmsAngle> location) async {
     RouteSettings settings = RouteSettings(arguments: location);
     await Navigator.push(
-      context,
-      MaterialPageRoute(
-        settings: settings,
-        builder: (context) => const LocationSettingView(),
-      ),
-    ).then((result) {
+        context,
+        MaterialPageRoute(
+          settings: settings,
+          builder: (context) => const LocationSettingView(),
+        )).then((result) {
       location = result as List<DmsAngle>;
       ref
           .read(locationProvider.notifier)
