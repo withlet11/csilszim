@@ -19,8 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'dart:math';
+
 const initialScale = 1.0;
 const minScale = 0.5;
 const maxScale = 5.0;
 const defaultDec = 0.0;
-const defaultRa = 12.0;
+const defaultRa = pi;

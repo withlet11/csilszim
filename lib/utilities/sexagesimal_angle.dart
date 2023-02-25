@@ -62,15 +62,15 @@ class DmsAngle {
       if (sec == 0) {
         if (min == 0) {
           if (deg == 0) {
-            return '${threeDigits.format(0)}°${twoDigits.format(0)}′${twoDigits.format(0)}″';
+            return '${threeDigits.format(0)}\u00b0${twoDigits.format(0)}\u2032${twoDigits.format(0)}\u2033';
           }
-          return '${threeDigits.format(360 - deg)}°${twoDigits.format(0)}′${twoDigits.format(0)}″';
+          return '${threeDigits.format(360 - deg)}\u00b0${twoDigits.format(0)}\u2032${twoDigits.format(0)}\u2033';
         }
-        return '${threeDigits.format(359 - deg)}°${twoDigits.format(60 - min)}′${twoDigits.format(0)}″';
+        return '${threeDigits.format(359 - deg)}\u00b0${twoDigits.format(60 - min)}\u2032${twoDigits.format(0)}\u2033';
       }
-      return '${threeDigits.format(359 - deg)}°${twoDigits.format(59 - min)}′${twoDigits.format(60 - sec)}″';
+      return '${threeDigits.format(359 - deg)}\u00b0${twoDigits.format(59 - min)}\u2032${twoDigits.format(60 - sec)}\u2033';
     }
-    return '${threeDigits.format(deg)}°${twoDigits.format(min)}′${twoDigits.format(sec)}″';
+    return '${threeDigits.format(deg)}\u00b0${twoDigits.format(min)}\u2032${twoDigits.format(sec)}\u2033';
   }
 
   /// Generate a text between '-90° 0′ 0' and '+90° 0′ 0″'.
@@ -78,9 +78,9 @@ class DmsAngle {
   /// Requires [deg] >= -90 and [deg] <= 90.
   String toDmsWithSign() {
     final twoDigits = NumberFormat("00");
-    return '${isNegative ? '-' : '+'}${twoDigits.format(deg)}°'
-        '${twoDigits.format(min)}′'
-        '${twoDigits.format(sec)}″';
+    return '${isNegative ? '-' : '+'}${twoDigits.format(deg)}\u00b0'
+        '${twoDigits.format(min)}\u2032'
+        '${twoDigits.format(sec)}\u2033';
   }
 
   /// Generate a text between '90° 0′ 0'N and '90° 0′ 0″S'.
@@ -89,9 +89,9 @@ class DmsAngle {
   String toDmsWithNS() {
     final oneOrTwoDigit = NumberFormat("#0");
     final twoDigits = NumberFormat("00");
-    return '${oneOrTwoDigit.format(deg.abs())}°'
-        '${twoDigits.format(min)}′'
-        '${twoDigits.format(sec)}″ '
+    return '${oneOrTwoDigit.format(deg.abs())}\u00b0'
+        '${twoDigits.format(min)}\u2032'
+        '${twoDigits.format(sec)}\u2033 '
         '${isNegative ? 'S' : 'N'}';
   }
 
@@ -101,9 +101,9 @@ class DmsAngle {
   String toDmsWithEW() {
     final threeDigits = NumberFormat("##0");
     final twoDigits = NumberFormat("00");
-    return '${threeDigits.format(deg.abs())}°'
-        '${twoDigits.format(min)}′'
-        '${twoDigits.format(sec)}″ '
+    return '${threeDigits.format(deg.abs())}\u00b0'
+        '${twoDigits.format(min)}\u2032'
+        '${twoDigits.format(sec)}\u2033 '
         '${isNegative ? 'W' : 'E'}';
   }
 }

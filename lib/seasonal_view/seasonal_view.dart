@@ -48,7 +48,7 @@ class SeasonalView extends ConsumerStatefulWidget {
 class _SeasonalViewState extends ConsumerState<SeasonalView> {
   final _seasonalViewKey = GlobalKey();
 
-  var projection = CylindricalProjection(
+  var projection = MercatorProjection(
       const Equatorial.fromDegreesAndHours(dec: defaultDec, ra: defaultRa));
   double? _previousScale;
   Offset? _previousPosition;
@@ -57,8 +57,8 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
   @override
   void didChangeDependencies() {
     final pageStorage = PageStorage.of(context);
-    projection = pageStorage?.readState(context) as CylindricalProjection? ??
-        CylindricalProjection(const Equatorial.fromDegreesAndHours(
+    projection = pageStorage?.readState(context) as MercatorProjection? ??
+        MercatorProjection(const Equatorial.fromDegreesAndHours(
             dec: defaultDec, ra: defaultRa));
     super.didChangeDependencies();
   }

@@ -20,6 +20,7 @@
  */
 
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -34,7 +35,7 @@ import 'mercator_projection.dart';
 
 /// A widget that creates a sky map.
 class SeasonalMap extends StatelessWidget {
-  final CylindricalProjection projectionModel;
+  final MercatorProjection projectionModel;
   final SphereModel sphereModel;
   final StarCatalogue starCatalogue;
   final DisplaySettings displaySettings;
@@ -58,7 +59,7 @@ class SeasonalMap extends StatelessWidget {
 }
 
 class _ProjectionRenderer extends CustomPainter {
-  final CylindricalProjection projectionModel;
+  final MercatorProjection projectionModel;
   final SphereModel sphereModel;
   final StarCatalogue starCatalogue;
   final DisplaySettings displaySettings;
@@ -82,16 +83,15 @@ class _ProjectionRenderer extends CustomPainter {
     if (displaySettings.isEquatorialGridVisible) {
       _drawRightAscensionGrid(canvas, center, unitLength);
       _drawDeclinationGrid(canvas, center, unitLength);
-    }
 
-    _drawDirectionSign(canvas, center, unitLength, '00h', 0, 12);
-    _drawDirectionSign(canvas, center, unitLength, '03h', 3, 12);
-    _drawDirectionSign(canvas, center, unitLength, '06h', 6, 12);
-    _drawDirectionSign(canvas, center, unitLength, '09h', 9, 12);
-    _drawDirectionSign(canvas, center, unitLength, '12h', 12, 12);
-    _drawDirectionSign(canvas, center, unitLength, '15h', 15, 12);
-    _drawDirectionSign(canvas, center, unitLength, '18h', 18, 12);
-    _drawDirectionSign(canvas, center, unitLength, '21h', 21, 12);
+      for (var i = -80; i <= 80; i += 10) {
+        _drawDecNumber(canvas, center, unitLength, i, 12);
+      }
+
+      for (var i = 0; i < 24; i += 3) {
+        _drawRaNumber(canvas, center, unitLength, i, 12);
+      }
+    }
 
     _drawStars(canvas, center, unitLength);
 
@@ -128,6 +128,7 @@ class _ProjectionRenderer extends CustomPainter {
         color: Colors.white,
         fontSize: 12,
         fontWeight: FontWeight.normal,
+        fontFeatures: [FontFeature.tabularFigures()],
       ),
       text:
           'dec: ${DmsAngle.fromDegrees(mouseEquatorial.decInDegrees()).toDmsWithSign()}, '
@@ -219,24 +220,22 @@ class _ProjectionRenderer extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+    final width = center.dx * 2;
+    final height = center.dy * 2;
+
     for (var ra = 0; ra < 24; ++ra) {
-      final begin = projectionModel.equatorialToXy(
-              Equatorial.fromDegreesAndHours(dec: -87, ra: ra.toDouble()),
+      final pointOnLine = projectionModel.equatorialToXy(
+          Equatorial.fromDegreesAndHours(dec: 0, ra: ra.toDouble()),
           center,
           unitLength);
-      final path = Path()..moveTo(begin.dx, begin.dy);
-      for (var dec = -87; dec <= 87; dec += 1) {
-        final equatorial = Equatorial.fromDegreesAndHours(
-            dec: dec.toDouble(), ra: ra.toDouble());
-        final position =
-            projectionModel.equatorialToXy(equatorial, center, unitLength);
-        // if (equatorial.alt < 0) {
-        // path.moveTo(position.dx, position.dy);
-        // } else {
-        path.lineTo(position.dx, position.dy);
-        // }
+      for (var x = pointOnLine.dx % lengthOfFullTurn;
+          x < width;
+          x += lengthOfFullTurn) {
+        final path = Path()..moveTo(x, 0);
+        path.lineTo(x, height);
+        canvas.drawPath(path, paint);
       }
-      canvas.drawPath(path, paint);
     }
   }
 
@@ -247,34 +246,30 @@ class _ProjectionRenderer extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final width = center.dx * 2;
+
     for (var dec = -80; dec < 90; dec += 10) {
-      final begin = projectionModel.equatorialToXy(
+      final pointOnLine = projectionModel.equatorialToXy(
           Equatorial.fromDegreesAndHours(dec: dec.toDouble(), ra: 0),
           center,
           unitLength);
-      final path = Path()..moveTo(begin.dx, begin.dy);
-      for (double ra = 0; ra <= 24; ra += 1 / 16) {
-        final equatorial = Equatorial.fromDegreesAndHours(
-                dec: dec.toDouble(), ra: ra.toDouble());
-        final position =
-            projectionModel.equatorialToXy(equatorial, center, unitLength);
-        // if (equatorial.alt < 0) {
-          // path.moveTo(position.dx, position.dy);
-        // } else {
-          path.lineTo(position.dx, position.dy);
-        // }
-      }
+      final y = pointOnLine.dy;
+      final path = Path()..moveTo(0, y);
+      path.lineTo(width, y);
       canvas.drawPath(path, paint);
     }
   }
 
-  void _drawDirectionSign(Canvas canvas, Offset center, double unitLength,
-      String sign, int direction, double fontSize) {
+  void _drawDecNumber(Canvas canvas, Offset center, double unitLength, int dec,
+      double fontSize) {
+    final sign = '${dec.isNegative ? '$dec' : '+$dec'}\u00b0';
+
     final locationTextSpan = TextSpan(
       style: TextStyle(
         color: Colors.white,
         fontSize: fontSize,
         fontWeight: FontWeight.normal,
+        fontFeatures: const [FontFeature.tabularFigures()],
       ),
       text: sign,
     );
@@ -286,14 +281,61 @@ class _ProjectionRenderer extends CustomPainter {
     );
 
     locationTextPainter.layout();
-    final width = locationTextPainter.size.width;
-    final height = locationTextPainter.size.height;
+    final textWidth = locationTextPainter.size.width;
+    final textHeight = locationTextPainter.size.height;
+
+    final width = center.dx * 2;
 
     final position = projectionModel.equatorialToXy(
-            Equatorial.fromDegreesAndHours(dec: 0, ra: direction), center, unitLength) -
-        Offset(width, height) / 2;
+            Equatorial.fromDegreesAndHours(dec: dec, ra: 0),
+            center,
+            unitLength) -
+        Offset(textWidth, textHeight) / 2;
+    final y = position.dy;
 
-    locationTextPainter.paint(canvas, position);
+    locationTextPainter.paint(canvas, Offset(10, y));
+    locationTextPainter.paint(canvas, Offset(width - 10 - textWidth, y));
+  }
+
+  void _drawRaNumber(Canvas canvas, Offset center, double unitLength, int ra,
+      double fontSize) {
+    final sign = '${ra}h'.padLeft(3, '0');
+
+    final locationTextSpan = TextSpan(
+      style: TextStyle(
+        color: Colors.white,
+        fontSize: fontSize,
+        fontWeight: FontWeight.normal,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+      text: sign,
+    );
+
+    final locationTextPainter = TextPainter(
+      text: locationTextSpan,
+      textAlign: TextAlign.left,
+      textDirection: TextDirection.ltr,
+    );
+
+    locationTextPainter.layout();
+    final testWidth = locationTextPainter.size.width;
+    final textHeight = locationTextPainter.size.height;
+
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+    final width = center.dx * 2;
+
+    final position = projectionModel.equatorialToXy(
+            Equatorial.fromDegreesAndHours(dec: 0, ra: ra),
+            center,
+            unitLength) -
+        Offset(testWidth, textHeight) / 2;
+    final y = position.dy;
+
+    for (var x = position.dx % lengthOfFullTurn;
+        x < width;
+        x += lengthOfFullTurn) {
+      locationTextPainter.paint(canvas, Offset(x, y));
+    }
   }
 
   void _drawStars(Canvas canvas, Offset center, double unitLength) {
@@ -309,6 +351,9 @@ class _ProjectionRenderer extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+    final width = center.dx * 2;
+
     for (final star in starCatalogue.starList) {
       if (star.hipNumber > 0) {
         final size = min(
@@ -316,19 +361,23 @@ class _ProjectionRenderer extends CustomPainter {
                 pow(0.63, star.magnitude) *
                 (log(projectionModel.scale) * 1.2 + 1.8),
             8.0);
-        // if (star.magnitude < 8) {
-        if (size > 0.2) {
-          final equatorial = star.position;
-          // if (equatorial.alt > 0) {
-          final xy =
-              projectionModel.equatorialToXy(equatorial, center, unitLength);
-          if (size > 4) {
-            canvas.drawCircle(xy, size, paintBlur);
-            canvas.drawCircle(xy, size - 0.5, paint);
-          } else {
-            canvas.drawCircle(xy, size, paint);
+        if (star.magnitude < 8) {
+          if (size > 0.2) {
+            final xy = projectionModel.equatorialToXy(
+                star.position, center, unitLength);
+            final y = xy.dy;
+            for (var x = xy.dx % lengthOfFullTurn;
+                x < width;
+                x += lengthOfFullTurn) {
+              final position = Offset(x, y);
+              if (size > 4) {
+                canvas.drawCircle(position, size, paintBlur);
+                canvas.drawCircle(position, size - 0.5, paint);
+              } else {
+                canvas.drawCircle(position, size, paint);
+              }
+            }
           }
-          // }
         }
       }
     }
@@ -374,34 +423,58 @@ class _ProjectionRenderer extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+    final width = center.dx * 2;
+
     for (final line in starCatalogue.lineList) {
       final star1 = starCatalogue.starList[line.hipNumber1];
       final star2 = starCatalogue.starList[line.hipNumber2];
-      // final altAz1 = sphereModel.equatorialToHorizontal(star1.position);
-      // final altAz2 = sphereModel.equatorialToHorizontal(star2.position);
 
-      // if (altAz1.alt > 0 && altAz2.alt > 0) {
-      final begin =
+      final position1 =
           projectionModel.equatorialToXy(star1.position, center, unitLength);
-      final end =
+      final position2 =
           projectionModel.equatorialToXy(star2.position, center, unitLength);
-      final path = Path()
-        ..moveTo(begin.dx, begin.dy)
-        ..lineTo(end.dx, end.dy);
-      canvas.drawPath(path, paint);
-      // }
+
+      final double x1, y1, dx, dy;
+      if (position1.dx - position2.dx > lengthOfFullTurn / 2) {
+        x1 = position1.dx % lengthOfFullTurn;
+        y1 = position1.dy;
+        dx = position2.dx - position1.dx + lengthOfFullTurn;
+        dy = position2.dy - position1.dy;
+      } else if (position2.dx - position1.dx > lengthOfFullTurn / 2) {
+        x1 = position2.dx % lengthOfFullTurn;
+        y1 = position2.dy;
+        dx = position1.dx - position2.dx + lengthOfFullTurn;
+        dy = position1.dy - position2.dy;
+      } else if (position1.dx < position2.dx) {
+        x1 = position1.dx % lengthOfFullTurn;
+        y1 = position1.dy;
+        dx = position2.dx - position1.dx;
+        dy = position2.dy - position1.dy;
+      } else {
+        x1 = position2.dx % lengthOfFullTurn;
+        y1 = position2.dy;
+        dx = position1.dx - position2.dx;
+        dy = position1.dy - position2.dy;
+      }
+
+      for (var x = x1; x < width; x += lengthOfFullTurn) {
+        final path = Path()
+          ..moveTo(x, y1)
+          ..lineTo(x + dx, y1 + dy);
+        canvas.drawPath(path, paint);
+      }
     }
   }
 
   void _drawConstellationName(Canvas canvas, Offset center, double unitLength) {
     for (final name in starCatalogue.nameList) {
-      // final altAz = sphereModel.equatorialToHorizontal(name.position);
-      // if (altAz.alt > 0) {
       final locationTextSpan = TextSpan(
         style: const TextStyle(
           color: Colors.lightGreen,
           fontSize: 18,
           fontWeight: FontWeight.normal,
+          fontFeatures: [FontFeature.tabularFigures()],
         ),
         text: name.iauAbbr,
       );
@@ -417,11 +490,17 @@ class _ProjectionRenderer extends CustomPainter {
               locationTextPainter.size.width, locationTextPainter.size.height) /
           2;
 
-      locationTextPainter.paint(
-          canvas,
+      final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+      final width = center.dx * 2;
+
+      final xy =
           projectionModel.equatorialToXy(name.position, center, unitLength) -
-              offset);
-      // }
+              offset;
+      final y = xy.dy;
+
+      for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
+        locationTextPainter.paint(canvas, Offset(x, y));
+      }
     }
   }
 }

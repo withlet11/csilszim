@@ -27,11 +27,11 @@ import 'package:csilszim/constants.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import 'configs.dart';
 
-class CylindricalProjection {
+class MercatorProjection {
   Equatorial centerEquatorial;
   double scale = initialScale;
 
-  CylindricalProjection(this.centerEquatorial);
+  MercatorProjection(this.centerEquatorial);
 
   void zoom(double t) {
     scale = max(min(scale * pow(2, t), maxScale), 1);
@@ -48,16 +48,25 @@ class CylindricalProjection {
   }
 
   Offset equatorialToXy(
-      Equatorial equatorial, Offset center, double unitLength) {
-    return Offset(halfTurn - equatorial.ra,
-                -log(tan((quarterTurn + equatorial.dec) / 2))) *
-            (scale * unitLength) +
-        center;
+      Equatorial equatorial, Offset centerOffset, double unitLength) {
+    final viewCenter = Offset(-centerEquatorial.ra,
+            -log(tan((quarterTurn + centerEquatorial.dec) / 2))) *
+        (scale * unitLength);
+    return Offset(
+                -equatorial.ra, -log(tan((quarterTurn + equatorial.dec) / 2))) *
+            (scale * unitLength) -
+        viewCenter +
+        centerOffset;
   }
 
   Equatorial xyToEquatorial(Offset offset) {
-    return Equatorial.fromRadians(
-        dec: atan(exp(-offset.dy / scale)) * 2 - quarterTurn,
-        ra: halfTurn - offset.dx / scale);
+    final centerOffset = Offset(centerEquatorial.ra,
+        -log(tan((quarterTurn + centerEquatorial.dec) / 2)));
+    final dec =
+        atan(exp(-offset.dy / scale - centerOffset.dy)) * 2 - quarterTurn;
+    final ra = -offset.dx / scale - centerOffset.dx;
+    return Equatorial.fromRadians(dec: dec, ra: ra);
   }
+
+  double lengthOfFullTurn(unitLength) => fullTurn * scale * unitLength;
 }
