@@ -304,7 +304,9 @@ class _ProjectionRenderer extends CustomPainter {
     final height = locationTextPainter.size.height;
 
     final position = projectionModel.horizontalToXy(
-            Horizontal.fromDegrees(alt: 0, az: direction), center, unitLength) -
+            Horizontal.fromDegrees(alt: 0, az: direction.toDouble()),
+            center,
+            unitLength) -
         Offset(width, height) / 2;
 
     locationTextPainter.paint(canvas, position);

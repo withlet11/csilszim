@@ -22,7 +22,7 @@
 import 'dart:math';
 
 const initialScale = 1.0;
-const minScale = 0.5;
-const maxScale = 5.0;
+const minScale = 1.0;
+const maxScale = 20.0;
 const defaultDec = 0.0;
 const defaultRa = pi;

@@ -195,13 +195,14 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
       final scale = height * 0.9 / halfTurn;
       final currentXY = (position - center) / scale;
       final currentEquatorial = projection.xyToEquatorial(currentXY);
-      mouseEquatorial = currentEquatorial;
+      mouseEquatorial = currentEquatorial.normalized();
 
       if (_previousPosition != null) {
         final previousXY = (_previousPosition! - center) / scale;
         final previousEquatorial = projection.xyToEquatorial(previousXY);
         final deltaEquatorial = currentEquatorial - previousEquatorial;
-        projection.centerEquatorial -= deltaEquatorial;
+        projection.centerEquatorial =
+            (projection.centerEquatorial - deltaEquatorial).normalized();
       }
       _previousPosition = position;
       PageStorage.of(context)?.writeState(context, projection);

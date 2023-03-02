@@ -22,9 +22,11 @@
 import 'dart:math';
 import 'dart:ui';
 
+import 'package:csilszim/astronomical/coordinate_system/horizontal_coordinate.dart';
 import 'package:flutter/material.dart';
 
 // import '../astronomical/astronomical_object/planet.dart';
+import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
@@ -33,7 +35,7 @@ import '../utilities/sexagesimal_angle.dart';
 import '../provider/display_setting_provider.dart';
 import 'mercator_projection.dart';
 
-/// A widget that creates a sky map.
+/// A widget that creates a seasonal sky map.
 class SeasonalMap extends StatelessWidget {
   final MercatorProjection projectionModel;
   final SphereModel sphereModel;
@@ -74,21 +76,16 @@ class _ProjectionRenderer extends CustomPainter {
     final center = Offset(size.width, size.height) * half;
     final unitLength = size.height * 0.9 / halfTurn;
 
-    /*
-    if (displaySettings.isHorizontalGridVisible) {
-      _drawAzimuthGrid(canvas, center, unitLength);
-      _drawAltitudeGrid(canvas, center, unitLength);
-    }
-     */
     if (displaySettings.isEquatorialGridVisible) {
       _drawRightAscensionGrid(canvas, center, unitLength);
       _drawDeclinationGrid(canvas, center, unitLength);
+      _drawEcliptic(canvas, center, unitLength);
 
       for (var i = -80; i <= 80; i += 10) {
         _drawDecNumber(canvas, center, unitLength, i, 12);
       }
 
-      for (var i = 0; i < 24; i += 3) {
+      for (var i = 0; i < 24; ++i) {
         _drawRaNumber(canvas, center, unitLength, i, 12);
       }
     }
@@ -102,6 +99,14 @@ class _ProjectionRenderer extends CustomPainter {
     if (displaySettings.isConstellationNameVisible) {
       _drawConstellationName(canvas, center, unitLength);
     }
+
+    const sunPosition =
+        Equatorial.fromRadians(dec: 23.4 * degInRad, ra: quarterTurn);
+    _drawAstronomicalTwilight(canvas, center, unitLength, sunPosition);
+    _drawNauticalTwilight(canvas, center, unitLength, sunPosition);
+    _drawCivilTwilight(canvas, center, unitLength, sunPosition);
+    _drawDay(canvas, center, unitLength, sunPosition);
+    _drawHorizon(canvas, center, unitLength);
 
     /*
     final altAzText = TextSpan(
@@ -150,67 +155,13 @@ class _ProjectionRenderer extends CustomPainter {
 
   void _setBackground(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black
+      ..color = const Color(0xff192029)
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 1;
 
     canvas.drawRect(Rect.fromLTWH(0.0, 0.0, size.width, size.height), paint);
   }
-
-  /*
-  void _drawAzimuthGrid(Canvas canvas, Offset center, double unitLength) {
-    final paint = Paint()
-      ..color = Colors.orange
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 0.5;
-
-    for (var azimuth = 0; azimuth < 360; azimuth += 15) {
-      final begin = projectionModel.equatorialToXy(
-          Horizontal.fromDegrees(alt: 0, az: azimuth.toDouble()),
-          center,
-          unitLength);
-      final path = Path()..moveTo(begin.dx, begin.dy);
-      final maxAltitude = (azimuth % 90 == 0) ? 90 : 80;
-      for (var altitude = 0; altitude <= maxAltitude; altitude += 5) {
-        final position = projectionModel.equatorialToXy(
-            Horizontal.fromDegrees(
-                alt: altitude.toDouble(), az: azimuth.toDouble()),
-            center,
-            unitLength);
-        path.lineTo(position.dx, position.dy);
-      }
-      canvas.drawPath(path, paint);
-    }
-  }
-
-
-  void _drawAltitudeGrid(Canvas canvas, Offset center, double unitLength) {
-    final paint = Paint()
-      ..color = Colors.orange
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 0.5;
-
-    for (var altitude = 0; altitude < 90; altitude += 10) {
-      final begin = projectionModel.equatorialToXy(
-          Horizontal.fromDegrees(alt: altitude.toDouble(), az: 0),
-          center,
-          unitLength);
-      final path = Path()..moveTo(begin.dx, begin.dy);
-      for (var azimuth = 0; azimuth <= 360; azimuth += 3) {
-        final position = projectionModel.equatorialToXy(
-            Horizontal.fromDegrees(
-                alt: altitude.toDouble(), az: azimuth.toDouble()),
-            center,
-            unitLength);
-        path.lineTo(position.dx, position.dy);
-      }
-      canvas.drawPath(path, paint);
-    }
-  }
-   */
 
   void _drawRightAscensionGrid(
       Canvas canvas, Offset center, double unitLength) {
@@ -240,8 +191,14 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawDeclinationGrid(Canvas canvas, Offset center, double unitLength) {
-    final paint = Paint()
+    final greenLine = Paint()
       ..color = Colors.green
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 0.5;
+
+    final redLine = Paint()
+      ..color = Colors.red
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
@@ -256,8 +213,40 @@ class _ProjectionRenderer extends CustomPainter {
       final y = pointOnLine.dy;
       final path = Path()..moveTo(0, y);
       path.lineTo(width, y);
-      canvas.drawPath(path, paint);
+      canvas.drawPath(path, dec == 0 ? redLine : greenLine);
     }
+  }
+
+  void _drawEcliptic(Canvas canvas, Offset center, double unitLength) {
+    final paint = Paint()
+      ..color = Colors.yellow
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 0.5;
+
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+    final width = center.dx * 2;
+
+    var list = <Offset>[];
+    for (var long = -180; long < 180; long += 5) {
+      final ecliptic = Ecliptic.fromDegrees(long: long, lat: 0);
+      final equatorial = ecliptic.toEquatorial();
+      list.add(projectionModel.equatorialToXy(equatorial, center, unitLength));
+    }
+
+    var firstX = list[0].dx;
+    while (firstX < width) {
+      firstX += lengthOfFullTurn;
+    }
+    var shift = firstX - list[0].dx;
+    final path = Path()..moveTo(list[0].dx + shift, list[0].dy);
+
+    for (; list[0].dx + shift > 0; shift -= lengthOfFullTurn) {
+      for (final offset in list) {
+        path.lineTo(offset.dx + shift, offset.dy);
+      }
+    }
+    canvas.drawPath(path, paint);
   }
 
   void _drawDecNumber(Canvas canvas, Offset center, double unitLength, int dec,
@@ -323,19 +312,186 @@ class _ProjectionRenderer extends CustomPainter {
 
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
     final width = center.dx * 2;
+    final height = center.dy * 2;
 
     final position = projectionModel.equatorialToXy(
             Equatorial.fromDegreesAndHours(dec: 0, ra: ra),
             center,
             unitLength) -
         Offset(testWidth, textHeight) / 2;
-    final y = position.dy;
 
     for (var x = position.dx % lengthOfFullTurn;
         x < width;
         x += lengthOfFullTurn) {
-      locationTextPainter.paint(canvas, Offset(x, y));
+      locationTextPainter.paint(canvas, Offset(x, 10));
+      locationTextPainter.paint(canvas, Offset(x, height - 10 - textHeight));
     }
+  }
+
+  void _drawHorizon(Canvas canvas, Offset center, double unitLength) {
+    var list = <Offset>[];
+    final equatorial = sphereModel.horizontalToEquatorial(
+        const Horizontal.fromRadians(alt: 0, az: halfTurn));
+
+    final xy = projectionModel.equatorialToXy(equatorial, center, unitLength);
+
+    list = [Offset(0, xy.dy), Offset(center.dx * 2, xy.dy)];
+
+    if (list.isNotEmpty) {
+      final paint = Paint()
+        ..color = const Color(0xff041014)
+        ..style = PaintingStyle.fill;
+      final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+      final path = _drawZone(list, center, lengthOfFullTurn);
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  void _drawDay(
+      Canvas canvas, Offset center, double unitLength, Equatorial sun) {
+    var list = <Offset>[];
+
+    for (var deg = 90.0; deg >= -90.0; deg -= 0.5) {
+      final dec = deg * degInRad;
+      final ra = sphereModel.raOnEastHorizonAtSunrise(sun: sun, dec: dec);
+      if (ra != null && ra - sun.ra > halfTurn) {
+        list.add(projectionModel.equatorialToXy(
+            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength));
+      }
+    }
+
+    for (var deg = -90.0; deg <= 90.0; deg += 0.5) {
+      final dec = deg * degInRad;
+      final ra = sphereModel.raOnWestHorizonAtSunset(sun: sun, dec: dec);
+      if (ra != null && ra - sun.ra < halfTurn) {
+        list.add(projectionModel.equatorialToXy(
+            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength));
+      }
+    }
+
+    if (list.isNotEmpty) {
+      final paint = Paint()
+        ..color = const Color(0x7fdceaff)
+        ..style = PaintingStyle.fill;
+      final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+      final path = _drawZone(list, center, lengthOfFullTurn);
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  void _drawCivilTwilight(
+      Canvas canvas, Offset center, double unitLength, Equatorial sun) {
+    var list = <Offset>[];
+
+    for (var deg = 90.0; deg >= -90.0; deg -= 0.5) {
+      final dec = deg * degInRad;
+      final ra = sphereModel.raOnEastHorizonAtCivilDawn(sun: sun, dec: dec);
+      if (ra != null && ra - sun.ra > halfTurn) {
+        list.add(projectionModel.equatorialToXy(
+            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength));
+      }
+    }
+
+    for (var deg = -90.0; deg <= 90.0; deg += 0.5) {
+      final dec = deg * degInRad;
+      final ra = sphereModel.raOnWestHorizonAtCivilDusk(sun: sun, dec: dec);
+      if (ra != null && ra - sun.ra < halfTurn) {
+        list.add(projectionModel.equatorialToXy(
+            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength));
+      }
+    }
+
+    if (list.isNotEmpty) {
+      final paint = Paint()
+        ..color = const Color(0x7f88a5d4) // (0x5f5f9fdf)
+        ..style = PaintingStyle.fill;
+      final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+      final path = _drawZone(list, center, lengthOfFullTurn);
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  void _drawNauticalTwilight(
+      Canvas canvas, Offset center, double unitLength, Equatorial sun) {
+    var list = <Offset>[];
+
+    for (var deg = 90.0; deg >= -90.0; deg -= 0.5) {
+      final dec = deg * degInRad;
+      final ra = sphereModel.raOnEastHorizonAtNauticalDawn(sun: sun, dec: dec);
+      if (ra != null && ra - sun.ra > halfTurn) {
+        list.add(projectionModel.equatorialToXy(
+            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength));
+      }
+    }
+
+    for (var deg = -90.0; deg <= 90.0; deg += 0.5) {
+      final dec = deg * degInRad;
+      final ra = sphereModel.raOnWestHorizonAtNauticalDusk(sun: sun, dec: dec);
+      if (ra != null && ra - sun.ra < halfTurn) {
+        list.add(projectionModel.equatorialToXy(
+            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength));
+      }
+    }
+
+    if (list.isNotEmpty) {
+      final paint = Paint()
+        ..color = const Color(0x7f4574bc) // (0x5f5f9fdf)
+        ..style = PaintingStyle.fill;
+      final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+      final path = _drawZone(list, center, lengthOfFullTurn);
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  void _drawAstronomicalTwilight(
+      Canvas canvas, Offset center, double unitLength, Equatorial sun) {
+    var list = <Offset>[];
+
+    for (var deg = 90.0; deg >= -90.0; deg -= 0.5) {
+      final dec = deg * degInRad;
+      final ra =
+          sphereModel.raOnEastHorizonAtAstronomicalDawn(sun: sun, dec: dec);
+      if (ra != null && ra - sun.ra > halfTurn) {
+        list.add(projectionModel.equatorialToXy(
+            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength));
+      }
+    }
+
+    for (var deg = -90.0; deg <= 90.0; deg += 0.5) {
+      final dec = deg * degInRad;
+      final ra =
+          sphereModel.raOnWestHorizonAtAstronomicalDusk(sun: sun, dec: dec);
+      if (ra != null && ra - sun.ra < halfTurn) {
+        list.add(projectionModel.equatorialToXy(
+            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength));
+      }
+    }
+
+    if (list.isNotEmpty) {
+      final paint = Paint()
+        ..color = const Color(0x7f1e365b)
+        ..style = PaintingStyle.fill;
+      final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+      final path = _drawZone(list, center, lengthOfFullTurn);
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  Path _drawZone(List<Offset> list, Offset center, double lengthOfFullTurn) {
+    final width = center.dx * 2;
+    final height = center.dy * 2;
+    final firstX = list[0].dx % lengthOfFullTurn - lengthOfFullTurn;
+    var shift = firstX - list[0].dx;
+    final path = Path()..moveTo(list[0].dx + shift, list[0].dy);
+    for (; list[0].dx + shift < width; shift += lengthOfFullTurn) {
+      for (final offset in list) {
+        path.lineTo(offset.dx + shift, offset.dy);
+      }
+    }
+    path.lineTo(width, list.last.dy);
+    path.lineTo(width, height);
+    path.lineTo(0, height);
+    return path;
   }
 
   void _drawStars(Canvas canvas, Offset center, double unitLength) {

@@ -80,4 +80,198 @@ class SphereModel {
             fullTurn;
     return Equatorial.fromRadians(dec: dec, ra: ra);
   }
+
+  /// Calculates hour angle on west horizon.
+  double? haOnWestHorizon(double dec) {
+    if (_location.lat.abs() >= halfTurn || dec.abs() >= halfTurn) return null;
+    final cosHa = -tan(_location.lat) * tan(dec);
+    return cosHa.abs() > 1 ? null : acos(cosHa);
+  }
+
+  /// Calculates hour angle on east horizon.
+  double? haOnEastHorizon(double dec) {
+    if (_location.lat.abs() >= halfTurn || dec.abs() >= halfTurn) return null;
+    final cosHa = -tan(_location.lat) * tan(dec);
+    return cosHa.abs() > 1 ? null : fullTurn - acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at sunset
+  double? haAtSunset(double dec) {
+    final cosHa = _cosHaAtSunriseOrSunset(dec);
+    return cosHa.abs() > 1 ? null : acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at sunrise
+  double? haAtSunrise(double dec) {
+    final cosHa = _cosHaAtSunriseOrSunset(dec);
+    return cosHa.abs() > 1 ? null : fullTurn - acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at civil dusk
+  double? haAtCivilDusk(double dec) {
+    final cosHa = _cosHaAtCivilDawnOrDusk(dec);
+    return cosHa.abs() > 1 ? null : acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at civil dawn
+  double? haAtCivilDawn(double dec) {
+    final cosHa = _cosHaAtCivilDawnOrDusk(dec);
+    return cosHa.abs() > 1 ? null : fullTurn - acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at nautical dusk
+  double? haAtNauticalDusk(double dec) {
+    final cosHa = _cosHaAtNauticalDawnOrDusk(dec);
+    return cosHa.abs() > 1 ? null : acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at nautical dawn
+  double? haAtNauticalDawn(double dec) {
+    final cosHa = _cosHaAtNauticalDawnOrDusk(dec);
+    return cosHa.abs() > 1 ? null : fullTurn - acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at astronomical dusk
+  double? haAtAstronomicalDusk(double dec) {
+    final cosHa = _cosHaAtAstronomicalDawnOrDusk(dec);
+    return cosHa.abs() > 1 ? null : acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at astronomical dawn
+  double? haAtAstronomicalDawn(double dec) {
+    final cosHa = _cosHaAtAstronomicalDawnOrDusk(dec);
+    return cosHa.abs() > 1 ? null : fullTurn - acos(cosHa);
+  }
+
+  /// Calculates hour angle from declination at sunrise or sunset
+  ///
+  /// At sunset, the altitude of the Sun is -15′.
+  /// sin h = sin φ sin δ + cos φ cos δ cos t
+  double _cosHaAtSunriseOrSunset(double dec) {
+    const alt = -15 / 60 * degInRad;
+    return (sin(alt) - sin(_location.lat) * sin(dec)) /
+        cos(_location.lat) /
+        cos(dec);
+  }
+
+  /// Calculates hour angle from declination at civil dawn or dusk
+  ///
+  /// At dusk, the altitude of the Sun is -6°.
+  /// sin h = sin φ sin δ + cos φ cos δ cos t
+  double _cosHaAtCivilDawnOrDusk(double dec) {
+    const alt = -6 * degInRad;
+    return (sin(alt) - sin(_location.lat) * sin(dec)) /
+        cos(_location.lat) /
+        cos(dec);
+  }
+
+  /// Calculates hour angle from declination at nautical dawn or dusk
+  ///
+  /// At dusk, the altitude of the Sun is -12°.
+  /// sin h = sin φ sin δ + cos φ cos δ cos t
+  double _cosHaAtNauticalDawnOrDusk(double dec) {
+    const alt = -12 * degInRad;
+    return (sin(alt) - sin(_location.lat) * sin(dec)) /
+        cos(_location.lat) /
+        cos(dec);
+  }
+
+  /// Calculates hour angle from declination at astronomical dawn or dusk
+  ///
+  /// At dusk, the altitude of the Sun is -18°.
+  /// sin h = sin φ sin δ + cos φ cos δ cos t
+  double _cosHaAtAstronomicalDawnOrDusk(double dec) {
+    const alt = -18 * degInRad;
+    return (sin(alt) - sin(_location.lat) * sin(dec)) /
+        cos(_location.lat) /
+        cos(dec);
+  }
+
+  /// Calculates α on the west horizon at sunset.
+  ///
+  /// Return value is [ra of the Sun, ra of the Sun + 2π)
+  double? raOnWestHorizonAtSunset(
+      {required Equatorial sun, required double dec}) {
+    final sunHa = haAtSunset(sun.dec);
+    final ha = haOnWestHorizon(dec);
+    if (sunHa == null || ha == null) return null;
+    return (sunHa - ha) % fullTurn + sun.ra;
+  }
+
+  /// Calculates α on the east horizon at sunrise.
+  ///
+  /// Return value is [ra of the Sun, ra of the Sun + 2π)
+  double? raOnEastHorizonAtSunrise(
+      {required Equatorial sun, required double dec}) {
+    final sunHa = haAtSunrise(sun.dec);
+    final ha = haOnEastHorizon(dec);
+    if (sunHa == null || ha == null) return null;
+    return (sunHa - ha) % fullTurn + sun.ra;
+  }
+
+  /// Calculates α on the west horizon at civil dusk.
+  ///
+  /// Return value is [ra of the Sun, ra of the Sun + 2π)
+  double? raOnWestHorizonAtCivilDusk(
+      {required Equatorial sun, required double dec}) {
+    final sunHa = haAtCivilDusk(sun.dec);
+    final ha = haOnWestHorizon(dec);
+    if (sunHa == null || ha == null) return null;
+    return (sunHa - ha) % fullTurn + sun.ra;
+  }
+
+  /// Calculates α on the east horizon at civil dawn.
+  ///
+  /// Return value is [ra of the Sun, ra of the Sun + 2π)
+  double? raOnEastHorizonAtCivilDawn(
+      {required Equatorial sun, required double dec}) {
+    final sunHa = haAtCivilDawn(sun.dec);
+    final ha = haOnEastHorizon(dec);
+    if (sunHa == null || ha == null) return null;
+    return (sunHa - ha) % fullTurn + sun.ra;
+  }
+
+  /// Calculates α on the west horizon at nautical dusk.
+  ///
+  /// Return value is [ra of the Sun, ra of the Sun + 2π)
+  double? raOnWestHorizonAtNauticalDusk(
+      {required Equatorial sun, required double dec}) {
+    final sunHa = haAtNauticalDusk(sun.dec);
+    final ha = haOnWestHorizon(dec);
+    if (sunHa == null || ha == null) return null;
+    return (sunHa - ha) % fullTurn + sun.ra;
+  }
+
+  /// Calculates α on the east horizon at nautical dawn.
+  ///
+  /// Return value is [ra of the Sun, ra of the Sun + 2π)
+  double? raOnEastHorizonAtNauticalDawn(
+      {required Equatorial sun, required double dec}) {
+    final sunHa = haAtNauticalDawn(sun.dec);
+    final ha = haOnEastHorizon(dec);
+    if (sunHa == null || ha == null) return null;
+    return (sunHa - ha) % fullTurn + sun.ra;
+  }
+
+  /// Calculates α on the west horizon at astronomical dusk.
+  ///
+  /// Return value is [ra of the Sun, ra of the Sun + 2π)
+  double? raOnWestHorizonAtAstronomicalDusk(
+      {required Equatorial sun, required double dec}) {
+    final sunHa = haAtAstronomicalDusk(sun.dec);
+    final ha = haOnWestHorizon(dec);
+    if (sunHa == null || ha == null) return null;
+    return (sunHa - ha) % fullTurn + sun.ra;
+  }
+
+  /// Calculates α on the east horizon at astronomical dawn.
+  ///
+  /// Return value is [ra of the Sun, ra of the Sun + 2π)
+  double? raOnEastHorizonAtAstronomicalDawn(
+      {required Equatorial sun, required double dec}) {
+    final sunHa = haAtAstronomicalDawn(sun.dec);
+    final ha = haOnEastHorizon(dec);
+    if (sunHa == null || ha == null) return null;
+    return (sunHa - ha) % fullTurn + sun.ra;
+  }
 }

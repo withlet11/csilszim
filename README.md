@@ -52,6 +52,10 @@ equation 14.
 
 ### Dálya, Gergely (2021). _Bevezetés a Csillagászatba: Az Atommagoktól a Galaxis-szuperhalmazokig_, OOK-Press Kft. ISBN 978-963-8361-58-5
 
+#### Calculates hour angle from declination and latitude
+Equation 4.26  
+sin _h_ = sin _φ_ sin _δ_ + cos _φ_ cos _δ_ cos _t_
+
 ---
 
 ## Terminology

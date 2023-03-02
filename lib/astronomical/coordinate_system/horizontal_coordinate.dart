@@ -27,7 +27,7 @@ class Horizontal {
   /// measured from the north.
   final double alt, az;
 
-  const Horizontal.fromDegrees({alt = double, az = double})
+  const Horizontal.fromDegrees({required double alt, required double az})
       : alt = alt * degInRad,
         az = az * degInRad;
 
