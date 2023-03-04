@@ -53,6 +53,8 @@ class SphereModel {
         sin(location.lat));
   }
 
+  bool get isNorthernHemisphere => _location.lat > 0.0;
+
   /// Converts from equatorial coordinate to local horizontal coordinate.
   Horizontal equatorialToHorizontal(Equatorial equatorial) {
     final ha = equatorial.ra - _lmst;
@@ -191,7 +193,8 @@ class SphereModel {
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnWestHorizonAtSunset(
-      {required Equatorial sun, required double dec}) {
+      //{required Equatorial sun, required double dec}) {
+    Equatorial sun, double dec) {
     final sunHa = haAtSunset(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -202,7 +205,8 @@ class SphereModel {
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnEastHorizonAtSunrise(
-      {required Equatorial sun, required double dec}) {
+      // {required Equatorial sun, required double dec}) {
+    Equatorial sun, double dec) {
     final sunHa = haAtSunrise(sun.dec);
     final ha = haOnEastHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -213,7 +217,8 @@ class SphereModel {
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnWestHorizonAtCivilDusk(
-      {required Equatorial sun, required double dec}) {
+      // {required Equatorial sun, required double dec}) {
+  Equatorial sun, double dec) {
     final sunHa = haAtCivilDusk(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -224,7 +229,8 @@ class SphereModel {
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnEastHorizonAtCivilDawn(
-      {required Equatorial sun, required double dec}) {
+      // {required Equatorial sun, required double dec}) {
+  Equatorial sun, double dec) {
     final sunHa = haAtCivilDawn(sun.dec);
     final ha = haOnEastHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -235,7 +241,8 @@ class SphereModel {
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnWestHorizonAtNauticalDusk(
-      {required Equatorial sun, required double dec}) {
+      // {required Equatorial sun, required double dec}) {
+  Equatorial sun, double dec) {
     final sunHa = haAtNauticalDusk(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -246,7 +253,8 @@ class SphereModel {
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnEastHorizonAtNauticalDawn(
-      {required Equatorial sun, required double dec}) {
+      // {required Equatorial sun, required double dec}) {
+    Equatorial sun, double dec) {
     final sunHa = haAtNauticalDawn(sun.dec);
     final ha = haOnEastHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -257,7 +265,8 @@ class SphereModel {
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnWestHorizonAtAstronomicalDusk(
-      {required Equatorial sun, required double dec}) {
+      // {required Equatorial sun, required double dec}) {
+  Equatorial sun, double dec) {
     final sunHa = haAtAstronomicalDusk(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -268,7 +277,8 @@ class SphereModel {
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnEastHorizonAtAstronomicalDawn(
-      {required Equatorial sun, required double dec}) {
+      // {required Equatorial sun, required double dec}) {
+  Equatorial sun, double dec) {
     final sunHa = haAtAstronomicalDawn(sun.dec);
     final ha = haOnEastHorizon(dec);
     if (sunHa == null || ha == null) return null;

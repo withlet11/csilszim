@@ -22,6 +22,7 @@
 import 'dart:math';
 
 import 'package:csilszim/astronomical/constants/earth.dart';
+import 'package:csilszim/utilities/offset_3d.dart';
 
 import '../../constants.dart';
 import 'equatorial_coordinate.dart';
@@ -49,6 +50,21 @@ class Ecliptic {
         long = long * degInRad;
 
   const Ecliptic.fromRadians({required this.lat, required this.long});
+
+  factory Ecliptic.fromXyz(Offset3D offset) {
+    final x = offset.dx;
+    final y = offset.dy;
+    final z = offset.dz;
+    final distanceFromZAxis = sqrt(x * x + y * y);
+
+    if (distanceFromZAxis == 0.0) {
+      return Ecliptic.fromRadians(
+          lat: z.isNegative ? -quarterTurn : quarterTurn, long: 0.0);
+    }
+
+    return Ecliptic.fromRadians(
+        lat: atan(z / sqrt(x * x + y * y)), long: atan2(y, x));
+  }
 
   double latInDegrees() => lat * radInDeg;
 
