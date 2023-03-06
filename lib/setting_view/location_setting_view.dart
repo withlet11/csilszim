@@ -71,7 +71,8 @@ class _LocationSettingViewState extends State<LocationSettingView> {
         _latitude = args[0];
         _longitude = args[1];
         if (_latitude != null && _longitude != null) {
-          _latDegFieldController.text = _latitude!.deg.toString();
+          _latDegFieldController.text =
+              (_latitude!.isNegative ? '-' : '') + _latitude!.deg.toString();
           _latMinFieldController.text = _latitude!.min.toString();
           _latSecFieldController.text = _latitude!.sec.toString();
           _longDegFieldController.text = _longitude!.deg.toString();

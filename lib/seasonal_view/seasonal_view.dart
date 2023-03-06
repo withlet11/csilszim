@@ -36,7 +36,7 @@ import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../provider/location_provider.dart';
-import '../provider/display_setting_provider.dart';
+import '../provider/seasonal_view_setting_provider.dart';
 import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'date_chooser_dial.dart';
@@ -71,7 +71,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
   @override
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
-    final settingData = ref.watch(displaySettingProvider);
+    final settingData = ref.watch(seasonalViewSettingProvider);
 
     final sphereModel = SphereModel(
         location: Geographic.fromDegrees(

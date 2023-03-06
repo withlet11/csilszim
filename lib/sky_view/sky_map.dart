@@ -29,8 +29,8 @@ import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
+import '../provider/sky_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
-import '../provider/display_setting_provider.dart';
 import 'stereographic_projection.dart';
 
 /// A widget that creates a sky map.
@@ -40,7 +40,7 @@ class SkyMap extends StatelessWidget {
   final double jd;
   final StarCatalogue starCatalogue;
   final List<Planet> planetList;
-  final DisplaySettings displaySettings;
+  final SkyViewSettings displaySettings;
   final Horizontal mouseAltAz;
 
   const SkyMap({
@@ -68,7 +68,7 @@ class _ProjectionRenderer extends CustomPainter {
   final double jd;
   final StarCatalogue starCatalogue;
   final List<Planet> planetList;
-  final DisplaySettings displaySettings;
+  final SkyViewSettings displaySettings;
   final Horizontal mouseAltAz;
 
   const _ProjectionRenderer(
@@ -369,7 +369,7 @@ class _ProjectionRenderer extends CustomPainter {
     // if (altAz.alt > 0) {
     final xy = projectionModel.horizontalToXy(altAz, center, unitLength);
     // const size = 4.0;
-    print('name: ${planet.name}, mag: ${planet.magnitude()}');
+    // print('name: ${planet.name}, mag: ${planet.magnitude()}');
     final size = min(
         3.0 *
             pow(0.63, planet.magnitude() ?? 0) *

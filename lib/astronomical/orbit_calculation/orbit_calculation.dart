@@ -101,7 +101,7 @@ class OrbitCalculationWithMeanMotion {
 ///
 /// [e] Eccentricity
 /// [ma] Mean anomaly
-double calculateEccentricAnomaly({ma = double, e = double}) {
+double calculateEccentricAnomaly({required double ma, required double e}) {
   var e1 = 0.0;
   while (true) {
     var e2 = e * sin(e1 + ma);

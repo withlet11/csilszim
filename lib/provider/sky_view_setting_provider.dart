@@ -1,5 +1,5 @@
 /*
- * display_setting_provider.dart
+ * sky_view_setting_provider.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -22,8 +22,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class DisplaySettingProvider extends StateNotifier<DisplaySettings> {
-  DisplaySettingProvider() : super(const DisplaySettings());
+class SkyViewSettingProvider extends StateNotifier<SkyViewSettings> {
+  SkyViewSettingProvider() : super(const SkyViewSettings());
 
   set horizontalGridVisibility(bool visibility) {
     state = state.copyWith(isHorizontalGridVisible: visibility);
@@ -34,44 +34,47 @@ class DisplaySettingProvider extends StateNotifier<DisplaySettings> {
   }
 
   set constellationLineVisibility(bool visibility) {
-    state = state.copyWith( isConstellationLineVisible: visibility );
+    state = state.copyWith(isConstellationLineVisible: visibility);
   }
 
   set constellationNameVisibility(bool visibility) {
-    state = state.copyWith(isConstellationNameVisible: visibility );
+    state = state.copyWith(isConstellationNameVisible: visibility);
   }
 }
 
 @immutable
-class DisplaySettings {
+class SkyViewSettings {
   final bool isHorizontalGridVisible;
   final bool isEquatorialGridVisible;
   final bool isConstellationLineVisible;
   final bool isConstellationNameVisible;
 
-  const DisplaySettings(
-      {this.isHorizontalGridVisible = false,
-      this.isEquatorialGridVisible = false,
-      this.isConstellationLineVisible = false,
-      this.isConstellationNameVisible = false});
+  const SkyViewSettings({
+    this.isHorizontalGridVisible = false,
+    this.isEquatorialGridVisible = false,
+    this.isConstellationLineVisible = false,
+    this.isConstellationNameVisible = false,
+  });
 
-  DisplaySettings copyWith(
-          {bool? isHorizontalGridVisible,
-          bool? isEquatorialGridVisible,
-          bool? isConstellationLineVisible,
-          bool? isConstellationNameVisible}) =>
-      DisplaySettings(
-          isHorizontalGridVisible:
-              isHorizontalGridVisible ?? this.isHorizontalGridVisible,
-          isEquatorialGridVisible:
-              isEquatorialGridVisible ?? this.isEquatorialGridVisible,
-          isConstellationLineVisible:
-              isConstellationLineVisible ?? this.isConstellationLineVisible,
-          isConstellationNameVisible:
-              isConstellationNameVisible ?? this.isConstellationNameVisible);
+  SkyViewSettings copyWith({
+    bool? isHorizontalGridVisible,
+    bool? isEquatorialGridVisible,
+    bool? isConstellationLineVisible,
+    bool? isConstellationNameVisible,
+  }) =>
+      SkyViewSettings(
+        isHorizontalGridVisible:
+            isHorizontalGridVisible ?? this.isHorizontalGridVisible,
+        isEquatorialGridVisible:
+            isEquatorialGridVisible ?? this.isEquatorialGridVisible,
+        isConstellationLineVisible:
+            isConstellationLineVisible ?? this.isConstellationLineVisible,
+        isConstellationNameVisible:
+            isConstellationNameVisible ?? this.isConstellationNameVisible,
+      );
 }
 
-final displaySettingProvider =
-    StateNotifierProvider<DisplaySettingProvider, DisplaySettings>((ref) {
-  return DisplaySettingProvider();
+final skyViewSettingProvider =
+    StateNotifierProvider<SkyViewSettingProvider, SkyViewSettings>((ref) {
+  return SkyViewSettingProvider();
 });

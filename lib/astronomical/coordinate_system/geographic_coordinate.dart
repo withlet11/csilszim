@@ -30,7 +30,7 @@ class Geographic {
   /// [lat] & [long] are provided latitude and longitude in radians.
   final double lat, long;
 
-  const Geographic.fromDegrees({lat = double, long = double})
+  const Geographic.fromDegrees({required double lat, required double long})
       : lat = lat * degInRad,
         long = long * degInRad;
 

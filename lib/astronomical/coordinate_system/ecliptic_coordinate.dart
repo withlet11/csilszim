@@ -32,20 +32,20 @@ class Ecliptic {
   /// [lat] & [long] are provided latitude and longitude in radians.
   final double lat, long;
 
-  const Ecliptic(
-      {latSign = int,
-      latDeg = int,
-      latMin = int,
-      latSec = double,
-      longDeg = int,
-      longMin = int,
-      longSec = double})
-      : lat = (latSign * 2 - 1) *
+  const Ecliptic({
+    required int latSign,
+    required int latDeg,
+    required int latMin,
+    required double latSec,
+    required int longDeg,
+    required int longMin,
+    required double longSec,
+  })  : lat = (latSign * 2 - 1) *
             (latDeg + latMin / 60 + latSec / 3600) *
             degInRad,
         long = (longDeg + longMin / 60 + longSec / 3600) * degInRad;
 
-  const Ecliptic.fromDegrees({lat = double, long = double})
+  const Ecliptic.fromDegrees({required double lat, required double long})
       : lat = lat * degInRad,
         long = long * degInRad;
 
@@ -75,7 +75,7 @@ class Ecliptic {
   Ecliptic operator -(Ecliptic other) =>
       add(lat: -other.lat, long: -other.long);
 
-  Ecliptic add({lat = double, long = double}) {
+  Ecliptic add({required double lat, required double long}) {
     var tempLong = this.long + long;
     var tempLat = this.lat + lat;
 

@@ -27,19 +27,19 @@ class Equatorial {
   final double dec, ra;
 
   const Equatorial(
-      {decSign = int,
-      decDeg = int,
-      decMin = int,
-      decSec = double,
-      raHour = int,
-      raMin = int,
-      raSec = double})
+      {required int decSign,
+      required int decDeg,
+      required int decMin,
+      required double decSec,
+      required int raHour,
+      required int raMin,
+      required double raSec})
       : dec = (decSign * 2 - 1) *
             (decDeg + decMin / 60 + decSec / 3600) *
             degInRad,
         ra = (raHour + raMin / 60 + raSec / 3600) * hourInRad;
 
-  const Equatorial.fromDegreesAndHours({dec = double, ra = double})
+  const Equatorial.fromDegreesAndHours({required double dec, required double ra})
       : dec = dec * degInRad,
         ra = ra * hourInRad;
 
@@ -54,7 +54,7 @@ class Equatorial {
   Equatorial operator -(Equatorial other) =>
       add(dec: -other.dec, ra: -other.ra);
 
-  Equatorial add({dec = double, ra = double}) {
+  Equatorial add({required double dec, required double ra}) {
     var tempRa = this.ra + ra;
     var tempDec = this.dec + dec;
 

@@ -34,10 +34,10 @@ import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
+import '../provider/sky_view_setting_provider.dart';
 import '../utilities/fps_counter.dart';
 import '../provider/location_provider.dart';
 import '../utilities/offset_3d.dart';
-import '../provider/display_setting_provider.dart';
 import 'configs.dart';
 import 'sky_map.dart';
 import 'stereographic_projection.dart';
@@ -111,7 +111,7 @@ class _SkyViewState extends ConsumerState<SkyView>
   @override
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
-    final settingData = ref.watch(displaySettingProvider);
+    final settingData = ref.watch(skyViewSettingProvider);
     _timeModel = TimeModel.fromLocalTime();
     _earth.update(_timeModel.jd, const Offset3D(0, 0, 0));
     for (final planet in _planetList) {

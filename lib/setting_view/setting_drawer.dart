@@ -22,7 +22,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../provider/display_setting_provider.dart';
+import '../provider/seasonal_view_setting_provider.dart';
+import '../provider/sky_view_setting_provider.dart';
 import '../provider/view_select_provider.dart';
 
 /// A widget of page for setting the observation location.
@@ -36,7 +37,8 @@ class SettingDrawer extends ConsumerStatefulWidget {
 class _SettingDrawerState extends ConsumerState<SettingDrawer> {
   @override
   Widget build(BuildContext context) {
-    final displaySetting = ref.watch(displaySettingProvider);
+    final displaySetting = ref.watch(skyViewSettingProvider);
+    final seasonalViewSetting = ref.watch(seasonalViewSettingProvider);
     final viewSelect = ref.watch(viewSelectProvider);
     return Drawer(
       child: ListView(
@@ -44,14 +46,17 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
           DrawerHeader(
             decoration: BoxDecoration(
                 color: Theme.of(context).appBarTheme.backgroundColor),
-            child: const Text('Settings'),
+            child: const Align(
+              alignment: Alignment.bottomLeft,
+              child: Text('Csilszim'),
+            ),
           ),
           ListTile(
             title: const Text('Clock'),
             tileColor: viewSelect == View.clock ? Colors.tealAccent : null,
             onTap: () {
               ref.read(viewSelectProvider.notifier).state = View.clock;
-              Navigator.pop(context);
+              // Navigator.pop(context);
             },
           ),
           ListTile(
@@ -59,7 +64,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             tileColor: viewSelect == View.sky ? Colors.tealAccent : null,
             onTap: () {
               ref.read(viewSelectProvider.notifier).state = View.sky;
-              Navigator.pop(context);
+              // Navigator.pop(context);
             },
           ),
           ListTile(
@@ -67,7 +72,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             tileColor: viewSelect == View.orbit ? Colors.tealAccent : null,
             onTap: () {
               ref.read(viewSelectProvider.notifier).state = View.orbit;
-              Navigator.pop(context);
+              // Navigator.pop(context);
             },
           ),
           ListTile(
@@ -75,61 +80,114 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             tileColor: viewSelect == View.seasonal ? Colors.tealAccent : null,
             onTap: () {
               ref.read(viewSelectProvider.notifier).state = View.seasonal;
-              Navigator.pop(context);
+              // Navigator.pop(context);
             },
           ),
-          SwitchListTile(
-            title: const Text('Horizontal coordinate grid'),
-            value: displaySetting.isHorizontalGridVisible,
-            onChanged: (bool? value) {
-              setState(() {
-                if (value != null) {
-                  ref
-                      .read(displaySettingProvider.notifier)
-                      .horizontalGridVisibility = value;
-                }
-              });
-            },
-          ),
-          SwitchListTile(
-            title: const Text('Equatorial coordinate grid'),
-            value: displaySetting.isEquatorialGridVisible,
-            onChanged: (bool? value) {
-              setState(() {
-                if (value != null) {
-                  ref
-                      .read(displaySettingProvider.notifier)
-                      .equatorialGridVisibility = value;
-                }
-              });
-            },
-          ),
-          SwitchListTile(
-            title: const Text('Constellation line'),
-            value: displaySetting.isConstellationLineVisible,
-            onChanged: (bool? value) {
-              setState(() {
-                if (value != null) {
-                  ref
-                      .read(displaySettingProvider.notifier)
-                      .constellationLineVisibility = value;
-                }
-              });
-            },
-          ),
-          SwitchListTile(
-            title: const Text('Constellation name'),
-            value: displaySetting.isConstellationNameVisible,
-            onChanged: (bool? value) {
-              setState(() {
-                if (value != null) {
-                  ref
-                      .read(displaySettingProvider.notifier)
-                      .constellationNameVisibility = value;
-                }
-              });
-            },
-          ),
+          if (viewSelect == View.sky)
+            SwitchListTile(
+              title: const Text('Horizontal coordinate grid'),
+              tileColor: Colors.teal,
+              value: displaySetting.isHorizontalGridVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(skyViewSettingProvider.notifier)
+                        .horizontalGridVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.sky)
+            SwitchListTile(
+              title: const Text('Equatorial coordinate grid'),
+              tileColor: Colors.teal,
+              value: displaySetting.isEquatorialGridVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(skyViewSettingProvider.notifier)
+                        .equatorialGridVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.sky)
+            SwitchListTile(
+              title: const Text('Constellation line'),
+              tileColor: Colors.teal,
+              value: displaySetting.isConstellationLineVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(skyViewSettingProvider.notifier)
+                        .constellationLineVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.sky)
+            SwitchListTile(
+              title: const Text('Constellation name'),
+              tileColor: Colors.teal,
+              value: displaySetting.isConstellationNameVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(skyViewSettingProvider.notifier)
+                        .constellationNameVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.seasonal)
+            SwitchListTile(
+              title: const Text('Equatorial coordinate grid'),
+              tileColor: Colors.teal,
+              value: seasonalViewSetting.isEquatorialGridVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(seasonalViewSettingProvider.notifier)
+                        .equatorialGridVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.seasonal)
+            SwitchListTile(
+              title: const Text('Constellation line'),
+              tileColor: Colors.teal,
+              value: seasonalViewSetting.isConstellationLineVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(seasonalViewSettingProvider.notifier)
+                        .constellationLineVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.seasonal)
+            SwitchListTile(
+              title: const Text('Constellation name'),
+              tileColor: Colors.teal,
+              value: seasonalViewSetting.isConstellationNameVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(seasonalViewSettingProvider.notifier)
+                        .constellationNameVisibility = value;
+                  }
+                });
+              },
+            ),
         ],
       ),
     );
