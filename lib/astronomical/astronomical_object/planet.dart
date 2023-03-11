@@ -124,7 +124,7 @@ class Planet implements AstronomicalObject {
       vsop87!.update(jd, earthPosition);
       return vsop87!.toEquatorial();
     }
-    return const Equatorial.fromRadians(dec: 0, ra: 0);
+    return Equatorial.zero;
   }
 
   @override

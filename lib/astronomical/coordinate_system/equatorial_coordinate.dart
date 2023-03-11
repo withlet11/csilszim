@@ -26,6 +26,8 @@ class Equatorial {
   /// [dec] & [ra] are provided declination and right ascension in radians.
   final double dec, ra;
 
+  static const zero = Equatorial.fromRadians(dec: 0.0, ra: 0.0);
+
   const Equatorial(
       {required int decSign,
       required int decDeg,
@@ -39,7 +41,8 @@ class Equatorial {
             degInRad,
         ra = (raHour + raMin / 60 + raSec / 3600) * hourInRad;
 
-  const Equatorial.fromDegreesAndHours({required double dec, required double ra})
+  const Equatorial.fromDegreesAndHours(
+      {required double dec, required double ra})
       : dec = dec * degInRad,
         ra = ra * hourInRad;
 

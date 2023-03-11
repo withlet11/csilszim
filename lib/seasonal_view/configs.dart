@@ -20,9 +20,68 @@
  */
 
 import 'dart:math';
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
 
 const initialScale = 1.0;
 const minScale = 1.0;
 const maxScale = 20.0;
 const defaultDec = 0.0;
 const defaultRa = pi;
+
+const decRaTextStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 12.0,
+    fontWeight: FontWeight.normal,
+    fontFeatures: [FontFeature.tabularFigures()]);
+
+const decTextStyle = TextStyle(
+    color: Colors.grey,
+    fontSize: 12.0,
+    fontWeight: FontWeight.normal,
+    fontFeatures: [FontFeature.tabularFigures()]);
+
+const raTextStyle = decTextStyle;
+
+const constellationNameTextStyle = TextStyle(
+    color: Colors.lightGreen,
+    fontSize: 18.0,
+    fontWeight: FontWeight.normal,
+    fontFeatures: [FontFeature.tabularFigures()]);
+
+final planetEdgePaint = Paint()
+  ..color = Colors.white30
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = 1;
+
+final planetBodyPaint = Paint()
+  ..color = Colors.yellow
+  ..style = PaintingStyle.fill;
+
+final planetPointerPaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = 1;
+
+const planetNameTextStyle = decTextStyle;
+
+const nightSkyColor = Color(0xff1f252d);
+const horizonColor = Color(0xff041014);
+const dayColor = Color(0xffdbe9ff);
+const civilTwilightColor = Color(0xbf9cb4db);
+const nauticalTwilightColor = Color(0xbf5284d7);
+const astronomicalTwilightColor = Color(0x7f2d579f);
+const twilightLineWidth = 1.0;
+
+const decGridColor = Colors.green;
+const decGridWidth = 0.5;
+const raGridColor = Colors.green;
+const raGridWidth = 0.5;
+const equatorialLineColor = Colors.red;
+const equatorialLineWidth = 0.5;
+const eclipticLineColor = Colors.yellow;
+const eclipticLineWidth = 0.5;
+const constellationLineColor = Colors.grey;
+const constellationLineWidth = 0.5;
+

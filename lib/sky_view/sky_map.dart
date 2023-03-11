@@ -31,6 +31,7 @@ import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
 import '../provider/sky_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
+import 'configs.dart';
 import 'stereographic_projection.dart';
 
 /// A widget that creates a sky map.
@@ -83,39 +84,37 @@ class _ProjectionRenderer extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     _setBackground(canvas, size);
-    final center = Offset(size.width, size.height) * half;
-    final unitLength = min(size.width, size.height) * half * 0.9;
 
     if (displaySettings.isHorizontalGridVisible) {
-      _drawAzimuthGrid(canvas, center, unitLength);
-      _drawAltitudeGrid(canvas, center, unitLength);
+      _drawAzimuthGrid(canvas, size);
+      _drawAltitudeGrid(canvas, size);
     }
     if (displaySettings.isEquatorialGridVisible) {
-      _drawRightAscensionGrid(canvas, center, unitLength);
-      _drawDeclinationGrid(canvas, center, unitLength);
+      _drawRightAscensionGrid(canvas, size);
+      _drawDeclinationGrid(canvas, size);
     }
 
-    _drawDirectionSign(canvas, center, unitLength, 'N', 0, 24);
-    _drawDirectionSign(canvas, center, unitLength, 'NE', 45, 18);
-    _drawDirectionSign(canvas, center, unitLength, 'E', 90, 24);
-    _drawDirectionSign(canvas, center, unitLength, 'SE', 135, 18);
-    _drawDirectionSign(canvas, center, unitLength, 'S', 180, 24);
-    _drawDirectionSign(canvas, center, unitLength, 'SW', 225, 18);
-    _drawDirectionSign(canvas, center, unitLength, 'W', 270, 24);
-    _drawDirectionSign(canvas, center, unitLength, 'NW', 315, 18);
+    _drawDirectionSign(canvas, size, 'N', 0, 24);
+    _drawDirectionSign(canvas, size, 'NE', 45, 18);
+    _drawDirectionSign(canvas, size, 'E', 90, 24);
+    _drawDirectionSign(canvas, size, 'SE', 135, 18);
+    _drawDirectionSign(canvas, size, 'S', 180, 24);
+    _drawDirectionSign(canvas, size, 'SW', 225, 18);
+    _drawDirectionSign(canvas, size, 'W', 270, 24);
+    _drawDirectionSign(canvas, size, 'NW', 315, 18);
 
-    _drawStars(canvas, center, unitLength);
+    _drawStars(canvas, size);
 
     for (final planet in planetList) {
-      _drawPlanet(canvas, center, unitLength, planet);
+      _drawPlanet(canvas, size, planet);
     }
 
     if (displaySettings.isConstellationLineVisible) {
-      _drawConstellationLines(canvas, center, unitLength);
+      _drawConstellationLines(canvas, size);
     }
 
     if (displaySettings.isConstellationNameVisible) {
-      _drawConstellationName(canvas, center, unitLength);
+      _drawConstellationName(canvas, size);
     }
 
     final altAzText = TextSpan(
@@ -134,7 +133,7 @@ class _ProjectionRenderer extends CustomPainter {
       textDirection: TextDirection.ltr,
     );
     altAzTextPainter.layout();
-    altAzTextPainter.paint(canvas, const Offset(0, 0));
+    altAzTextPainter.paint(canvas, Offset.zero);
 
     final decRaText = TextSpan(
       style: const TextStyle(
@@ -162,21 +161,24 @@ class _ProjectionRenderer extends CustomPainter {
 
   void _setBackground(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black
+      ..color = backgroundColor
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 1;
 
-    canvas.drawRect(Rect.fromLTWH(0.0, 0.0, size.width, size.height), paint);
+    canvas.drawRect(
+        Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)), paint);
   }
 
-  void _drawAzimuthGrid(Canvas canvas, Offset center, double unitLength) {
+  void _drawAzimuthGrid(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.orange
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     for (var azimuth = 0; azimuth < 360; azimuth += 15) {
       final begin = projectionModel.horizontalToXy(
           Horizontal.fromDegrees(alt: 0, az: azimuth.toDouble()),
@@ -196,13 +198,15 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawAltitudeGrid(Canvas canvas, Offset center, double unitLength) {
+  void _drawAltitudeGrid(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.orange
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     for (var altitude = 0; altitude < 90; altitude += 10) {
       final begin = projectionModel.horizontalToXy(
           Horizontal.fromDegrees(alt: altitude.toDouble(), az: 0),
@@ -221,14 +225,15 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawRightAscensionGrid(
-      Canvas canvas, Offset center, double unitLength) {
+  void _drawRightAscensionGrid(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.green
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     for (var ra = 0; ra < 24; ++ra) {
       final begin = projectionModel.horizontalToXy(
           sphereModel.equatorialToHorizontal(
@@ -252,13 +257,15 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawDeclinationGrid(Canvas canvas, Offset center, double unitLength) {
+  void _drawDeclinationGrid(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.green
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     for (var dec = -80; dec < 90; dec += 10) {
       final begin = projectionModel.horizontalToXy(
           sphereModel.equatorialToHorizontal(
@@ -282,8 +289,8 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawDirectionSign(Canvas canvas, Offset center, double unitLength,
-      String sign, int direction, double fontSize) {
+  void _drawDirectionSign(
+      Canvas canvas, Size size, String sign, int direction, double fontSize) {
     final locationTextSpan = TextSpan(
       style: TextStyle(
         color: Colors.white,
@@ -300,19 +307,19 @@ class _ProjectionRenderer extends CustomPainter {
     );
 
     locationTextPainter.layout();
-    final width = locationTextPainter.size.width;
-    final height = locationTextPainter.size.height;
-
+    final textSize = locationTextPainter.size;
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     final position = projectionModel.horizontalToXy(
             Horizontal.fromDegrees(alt: 0, az: direction.toDouble()),
             center,
             unitLength) -
-        Offset(width, height) / 2;
+        textSize.center(Offset.zero);
 
     locationTextPainter.paint(canvas, position);
   }
 
-  void _drawStars(Canvas canvas, Offset center, double unitLength) {
+  void _drawStars(Canvas canvas, Size size) {
     final paintBlur = Paint()
       ..color = Colors.white30
       ..style = PaintingStyle.stroke
@@ -325,6 +332,8 @@ class _ProjectionRenderer extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     for (final star in starCatalogue.starList) {
       if (star.hipNumber > 0) {
         final size = min(
@@ -350,8 +359,7 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawPlanet(
-      Canvas canvas, Offset center, double unitLength, Planet planet) {
+  void _drawPlanet(Canvas canvas, Size size, Planet planet) {
     final paintBlur = Paint()
       ..color = Colors.yellowAccent
       ..style = PaintingStyle.stroke
@@ -367,27 +375,30 @@ class _ProjectionRenderer extends CustomPainter {
     final equatorial = planet.vsop87!.toEquatorial();
     final altAz = sphereModel.equatorialToHorizontal(equatorial);
     // if (altAz.alt > 0) {
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     final xy = projectionModel.horizontalToXy(altAz, center, unitLength);
     // const size = 4.0;
     // print('name: ${planet.name}, mag: ${planet.magnitude()}');
-    final size = min(
+    final radius = min(
         3.0 *
             pow(0.63, planet.magnitude() ?? 0) *
             (log(projectionModel.scale) * 1.2 + 0.8),
         8.0);
-    canvas.drawCircle(xy, size, paintBlur);
-    canvas.drawCircle(xy, size - 0.5, paint);
+    canvas.drawCircle(xy, radius, paintBlur);
+    canvas.drawCircle(xy, radius - 0.5, paint);
     // }
   }
 
-  void _drawConstellationLines(
-      Canvas canvas, Offset center, double unitLength) {
+  void _drawConstellationLines(Canvas canvas, Size size) {
     final paint = Paint()
       ..color = Colors.grey
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 0.5;
 
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     for (final line in starCatalogue.lineList) {
       final star1 = starCatalogue.starList[line.hipNumber1];
       final star2 = starCatalogue.starList[line.hipNumber2];
@@ -406,7 +417,9 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawConstellationName(Canvas canvas, Offset center, double unitLength) {
+  void _drawConstellationName(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
     for (final name in starCatalogue.nameList) {
       final altAz = sphereModel.equatorialToHorizontal(name.position);
       if (altAz.alt > 0) {
@@ -426,13 +439,15 @@ class _ProjectionRenderer extends CustomPainter {
         );
 
         locationTextPainter.layout();
-        final offset = Offset(locationTextPainter.size.width,
-                locationTextPainter.size.height) /
-            2;
-
-        locationTextPainter.paint(canvas,
-            projectionModel.horizontalToXy(altAz, center, unitLength) - offset);
+        final textSize = locationTextPainter.size;
+        final textCenter = textSize.center(Offset.zero);
+        locationTextPainter.paint(
+            canvas,
+            projectionModel.horizontalToXy(altAz, center, unitLength) -
+                textCenter);
       }
     }
   }
 }
+
+double _getUnitLength(Size size) => min(size.width, size.height) * half * 0.9;

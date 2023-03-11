@@ -35,8 +35,8 @@ const lightDayInAu = auInKm / lightSpeed / 86400;
 
 abstract class Vsop87 {
   var jd = 0.0;
-  var heliocentric = const Offset3D(0, 0, 0);
-  var geocentric = const Offset3D(0, 0, 0);
+  var heliocentric = Offset3D.zero;
+  var geocentric = Offset3D.zero;
   var distanceFromEarth = 0.0;
   var phaseAngle = 0.0;
 

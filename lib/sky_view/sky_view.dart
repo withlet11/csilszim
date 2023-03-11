@@ -69,7 +69,7 @@ class _SkyViewState extends ConsumerState<SkyView>
 
   @override
   void initState() {
-    _earth = Vsop87Earth(_timeModel.jd, const Offset3D(0, 0, 0));
+    _earth = Vsop87Earth(_timeModel.jd, Offset3D.zero);
     _planetList
       ..add(Planet.mercury(_timeModel.jd, _earth.heliocentric))
       ..add(Planet.venus(_timeModel.jd, _earth.heliocentric))
@@ -113,7 +113,7 @@ class _SkyViewState extends ConsumerState<SkyView>
     final locationData = ref.watch(locationProvider);
     final settingData = ref.watch(skyViewSettingProvider);
     _timeModel = TimeModel.fromLocalTime();
-    _earth.update(_timeModel.jd, const Offset3D(0, 0, 0));
+    _earth.update(_timeModel.jd, Offset3D.zero);
     for (final planet in _planetList) {
       planet.vsop87!.update(_timeModel.jd, _earth.heliocentric);
     }
@@ -226,7 +226,7 @@ class _SkyViewState extends ConsumerState<SkyView>
       final size = _skyViewKey.currentContext!.size;
       final width = size?.width ?? 0.0;
       final height = size?.height ?? 0.0;
-      final center = Offset(width, height) * half;
+      final center = size?.center(Offset.zero) ?? Offset.zero;
       final scale = min(width, height) * half * 0.9;
       final offset = (position - center) / scale;
 
@@ -248,7 +248,7 @@ class _SkyViewState extends ConsumerState<SkyView>
         position.dy >= height) {
       _previousPosition = null;
     } else {
-      final center = Offset(width, height) * half;
+      final center = size?.center(Offset.zero) ?? Offset.zero;
       final scale = min(width, height) * half * 0.9;
       final currentXY = (position - center) / scale;
       final currentAltAz = projection.xyToHorizontal(currentXY);

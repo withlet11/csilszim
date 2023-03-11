@@ -25,6 +25,7 @@ import '../constants.dart';
 
 class Offset3D {
   final double dx, dy, dz;
+  static const zero = Offset3D(0.0, 0.0, 0.0);
 
   const Offset3D(this.dx, this.dy, this.dz);
 

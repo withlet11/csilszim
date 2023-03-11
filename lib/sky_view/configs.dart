@@ -19,8 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'dart:ui';
+
 const initialScale = 16.0;
 const minScale = 1.0;
 const maxScale = 128.0;
 const defaultAlt = 35.0;
 const defaultAz = 0.0;
+
+const backgroundColor = Color(0xff192029);

@@ -56,15 +56,33 @@ class SeasonalView extends ConsumerStatefulWidget {
 class _SeasonalViewState extends ConsumerState<SeasonalView> {
   final _seasonalViewKey = GlobalKey();
   var _settings = _Settings.defaultValue();
-  var _mouseEquatorial = const Equatorial.fromRadians(dec: 0.0, ra: 0.0);
+  var _sunEquatorial = Equatorial.zero;
+  var _planetEquatorialList = {
+    'mercury': Equatorial.zero,
+    'venus': Equatorial.zero,
+    'mars': Equatorial.zero,
+    'jupiter': Equatorial.zero,
+    'saturn': Equatorial.zero,
+    'uranus': Equatorial.zero,
+    'neptune': Equatorial.zero,
+  };
+  var _mouseEquatorial = Equatorial.zero;
   double? _scale;
   Offset? _pointerPosition;
+
+  @override
+  void initState() {
+    _updateSunPosition();
+    super.initState();
+  }
 
   @override
   void didChangeDependencies() {
     final pageStorage = PageStorage.of(context);
     _settings = pageStorage?.readState(context) as _Settings? ??
         _Settings.defaultValue();
+
+    _updateSunPosition();
     super.didChangeDependencies();
   }
 
@@ -78,6 +96,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
             lat: locationData.latInDegrees(),
             long: locationData.longInDegrees()));
 
+    _updateSunPosition();
     return Stack(fit: StackFit.expand, children: [
       ClipRect(
           child: (defaultTargetPlatform == TargetPlatform.android
@@ -91,7 +110,8 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
             starCatalogue: widget.starCatalogue,
             displaySettings: settingData.copyWith(),
             mouseEquatorial: _mouseEquatorial,
-            sunEquatorial: _settings.sunEquatorial),
+            sunEquatorial: _sunEquatorial,
+            planetEquatorialList: _planetEquatorialList),
       )),
       Align(
         alignment: Alignment.topRight,
@@ -139,9 +159,8 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
   void _showPosition(Offset position) {
     setState(() {
       final size = _seasonalViewKey.currentContext!.size;
-      final width = size?.width ?? 0.0;
       final height = size?.height ?? 0.0;
-      final center = Offset(width, height) * half;
+      final center = size?.center(Offset.zero) ?? Offset.zero;
       final scale = height * 0.9 / halfTurn;
       final offset = (position - center) / scale;
 
@@ -165,7 +184,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
       _pointerPosition = null;
     } else {
       setState(() {
-        final center = Offset(width, height) * half;
+        final center = size?.center(Offset.zero) ?? Offset.zero;
         final scale = height * 0.9 / halfTurn;
         final currentXY = (position - center) / scale;
         final currentEquatorial =
@@ -213,13 +232,6 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
         (lengthOfYear * angle / fullTurn + yearBegin).round());
     _settings.isLeapYear = lengthOfYear == 366 * 86400 * 1000;
     _settings.dialAngle = angle;
-    final time = TimeModel.fromLocalTime(_settings.date);
-    final orbitCalculation = OrbitCalculationWithMeanLongitude(time);
-    final earthXyz =
-        orbitCalculation.calculatePosition(SolarSystem.planets['earth']!);
-    final sunXyz = const Offset3D(0.0, 0.0, 0.0) - earthXyz;
-    final sunEcliptic = Ecliptic.fromXyz(sunXyz);
-    _settings.sunEquatorial = sunEcliptic.toEquatorial();
 
     PageStorage.of(context)?.writeState(context, _settings);
   }
@@ -249,6 +261,30 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
     }
     _scale = details.scale;
   }
+
+  void _updateSunPosition() {
+    final time = TimeModel.fromLocalTime(_settings.date);
+    final orbitCalculation = OrbitCalculationWithMeanLongitude(time);
+    final earthXyz =
+        orbitCalculation.calculatePosition(SolarSystem.planets['earth']!);
+    const sunXyz = Offset3D.zero;
+    final sunEcliptic = Ecliptic.fromXyz(sunXyz - earthXyz);
+    _sunEquatorial = sunEcliptic.toEquatorial();
+    _planetEquatorialList =
+        _planetEquatorialList.map((String name, Equatorial _) {
+      final xyz =
+          orbitCalculation.calculatePosition(SolarSystem.planets[name]!);
+      final ecliptic = Ecliptic.fromXyz(xyz - earthXyz);
+      return MapEntry<String, Equatorial>(name, ecliptic.toEquatorial());
+    });
+    /*
+    final jupiterXyz =
+        orbitCalculation.calculatePosition(SolarSystem.planets['jupiter']!);
+    final jupiterEcliptic = Ecliptic.fromXyz(jupiterXyz - earthXyz);
+    _sunEquatorial = sunEcliptic.toEquatorial();
+    _planetEquatorialList = jupiterEcliptic.toEquatorial();
+     */
+  }
 }
 
 class _Settings {
@@ -256,14 +292,13 @@ class _Settings {
   DateTime date;
   bool isLeapYear;
   double dialAngle;
-  Equatorial sunEquatorial;
 
-  _Settings(
-      {required this.projection,
-      required this.date,
-      required this.isLeapYear,
-      required this.dialAngle,
-      required this.sunEquatorial});
+  _Settings({
+    required this.projection,
+    required this.date,
+    required this.isLeapYear,
+    required this.dialAngle,
+  });
 
   static _Settings defaultValue() {
     final date = DateTime.now();
@@ -272,20 +307,12 @@ class _Settings {
     final yearEnd = DateTime(year + 1).millisecondsSinceEpoch;
     final lengthOfYear = yearEnd - yearBegin;
 
-    final time = TimeModel.fromLocalTime(date);
-    final orbitCalculation = OrbitCalculationWithMeanLongitude(time);
-    final earthXyz =
-        orbitCalculation.calculatePosition(SolarSystem.planets['earth']!);
-    final sunXyz = const Offset3D(0.0, 0.0, 0.0) - earthXyz;
-    final sunEcliptic = Ecliptic.fromXyz(sunXyz);
-
     return _Settings(
         projection: MercatorProjection(const Equatorial.fromDegreesAndHours(
             dec: defaultDec, ra: defaultRa)),
         date: date,
         dialAngle:
             (date.millisecondsSinceEpoch - yearBegin) / lengthOfYear * fullTurn,
-        isLeapYear: lengthOfYear == 366 * 86400 * 1000,
-        sunEquatorial: sunEcliptic.toEquatorial());
+        isLeapYear: lengthOfYear == 366 * 86400 * 1000);
   }
 }

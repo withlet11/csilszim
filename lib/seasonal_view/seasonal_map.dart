@@ -20,7 +20,6 @@
  */
 
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
@@ -32,46 +31,8 @@ import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
 import '../provider/seasonal_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
+import 'configs.dart';
 import 'mercator_projection.dart';
-
-const decRaTextStyle = TextStyle(
-    color: Colors.white,
-    fontSize: 12.0,
-    fontWeight: FontWeight.normal,
-    fontFeatures: [FontFeature.tabularFigures()]);
-
-const decTextStyle = TextStyle(
-    color: Colors.grey,
-    fontSize: 12.0,
-    fontWeight: FontWeight.normal,
-    fontFeatures: [FontFeature.tabularFigures()]);
-
-const raTextStyle = decTextStyle;
-
-const constellationNameTextStyle = TextStyle(
-    color: Colors.lightGreen,
-    fontSize: 18.0,
-    fontWeight: FontWeight.normal,
-    fontFeatures: [FontFeature.tabularFigures()]);
-
-const nightSkyColor = Color(0xff192029);
-const horizonColor = Color(0xff041014);
-const dayColor = Color(0x7fdceaff);
-const civilTwilightColor = Color(0x7f88a5d4);
-const nauticalTwilightColor = Color(0x7f4574bc);
-const astronomicalTwilightColor = Color(0x7f1e365b);
-const twilightLineWidth = 1.0;
-
-const decGridColor = Colors.green;
-const decGridWidth = 0.5;
-const raGridColor = Colors.green;
-const raGridWidth = 0.5;
-const equatorialLineColor = Colors.red;
-const equatorialLineWidth = 0.5;
-const eclipticLineColor = Colors.yellow;
-const eclipticLineWidth = 0.5;
-const constellationLineColor = Colors.grey;
-const constellationLineWidth = 0.5;
 
 /// A widget that creates a seasonal sky map.
 class SeasonalMap extends StatelessWidget {
@@ -81,6 +42,7 @@ class SeasonalMap extends StatelessWidget {
   final SeasonalViewSettings displaySettings;
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
+  final Map<String, Equatorial> planetEquatorialList;
 
   const SeasonalMap({
     super.key,
@@ -90,13 +52,20 @@ class SeasonalMap extends StatelessWidget {
     required this.displaySettings,
     required this.mouseEquatorial,
     required this.sunEquatorial,
+    required this.planetEquatorialList,
   });
 
   @override
   Widget build(BuildContext context) {
     return CustomPaint(
-        painter: _ProjectionRenderer(projectionModel, mouseEquatorial,
-            sphereModel, starCatalogue, displaySettings, sunEquatorial));
+        painter: _ProjectionRenderer(
+            projectionModel,
+            mouseEquatorial,
+            sphereModel,
+            starCatalogue,
+            displaySettings,
+            sunEquatorial,
+            planetEquatorialList));
   }
 }
 
@@ -107,14 +76,17 @@ class _ProjectionRenderer extends CustomPainter {
   final SeasonalViewSettings displaySettings;
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
+  final Map<String, Equatorial> planetEquatorialList;
 
   const _ProjectionRenderer(
-      this.projectionModel,
-      this.mouseEquatorial,
-      this.sphereModel,
-      this.starCatalogue,
-      this.displaySettings,
-      this.sunEquatorial);
+    this.projectionModel,
+    this.mouseEquatorial,
+    this.sphereModel,
+    this.starCatalogue,
+    this.displaySettings,
+    this.sunEquatorial,
+    this.planetEquatorialList,
+  );
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -143,6 +115,8 @@ class _ProjectionRenderer extends CustomPainter {
     if (displaySettings.isConstellationNameVisible) {
       _drawConstellationName(canvas, size);
     }
+
+    _drawPlanet(canvas, size);
 
     _drawAstronomicalTwilight(canvas, size, sunEquatorial);
     _drawNauticalTwilight(canvas, size, sunEquatorial);
@@ -635,6 +609,42 @@ class _ProjectionRenderer extends CustomPainter {
         locationTextPainter.paint(canvas, Offset(x, y));
       }
     }
+  }
+
+  void _drawPlanet(Canvas canvas, Size size) {
+    final width = size.width;
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+
+    const radius = 3.0;
+    planetEquatorialList.forEach((String name, Equatorial equatorial) {
+      final xy = projectionModel.equatorialToXy(equatorial, center, unitLength);
+      final y = xy.dy;
+      for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
+        final position = Offset(x, y);
+        canvas.drawCircle(position, radius, planetEdgePaint);
+        canvas.drawCircle(position, radius - 0.5, planetBodyPaint);
+        final path = Path()
+          ..moveTo(position.dx + 4, position.dy - 4)
+          ..relativeLineTo(12.0, -12.0)
+          ..relativeLineTo(20.0, 0.0);
+        canvas.drawPath(path, planetPointerPaint);
+
+        final locationTextSpan =
+            TextSpan(style: planetNameTextStyle, text: name.toUpperCase());
+
+        final nameTextPainter = TextPainter(
+          text: locationTextSpan,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr,
+        );
+
+        nameTextPainter.layout();
+        final textPosition = position + const Offset(40.0, -22.0);
+        nameTextPainter.paint(canvas, textPosition);
+      }
+    });
   }
 }
 

@@ -46,12 +46,12 @@ class ClockRenderer extends CustomPainter {
     final bezelSize = settings.bezelSize;
     final baseStroke = settings.baseStroke;
 
-    drawBezel(canvas, center, bezelSize, baseStroke);
-    drawGrid(canvas, center, bezelSize, baseStroke);
-    drawHourNumber(canvas, center, bezelSize);
-    drawSign(canvas, center, bezelSize);
-    drawUpperLabel(canvas, center, bezelSize);
-    drawLowerLabel(canvas, center, bezelSize);
+    drawBezel(canvas, size, bezelSize, baseStroke);
+    drawGrid(canvas, size, bezelSize, baseStroke);
+    drawHourNumber(canvas, size, bezelSize);
+    drawSign(canvas, size, bezelSize);
+    drawUpperLabel(canvas, size, bezelSize);
+    drawLowerLabel(canvas, size, bezelSize);
 
     drawHourHand(
         canvas,
@@ -66,23 +66,24 @@ class ClockRenderer extends CustomPainter {
     drawSecondHand(canvas, second, center, bezelSize, baseStroke * 2);
   }
 
-  void drawBezel(Canvas canvas, Offset center, double size, double stroke) {
+  void drawBezel(Canvas canvas, Size size, double bezelSize, double stroke) {
+    final center = size.center(Offset.zero);
     final panelPaint = Paint()
       ..color = Colors.black38
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round
       ..strokeWidth = stroke;
-    canvas.drawCircle(center, size, panelPaint);
+    canvas.drawCircle(center, bezelSize, panelPaint);
 
     final framePaint = Paint()
       ..color = Colors.grey
       ..style = PaintingStyle.stroke
       ..strokeCap = StrokeCap.round
       ..strokeWidth = stroke;
-    canvas.drawCircle(center, size, framePaint);
+    canvas.drawCircle(center, bezelSize, framePaint);
   }
 
-  void drawGrid(Canvas canvas, Offset center, double bezelSize, double stroke) {
+  void drawGrid(Canvas canvas, Size size, double bezelSize, double stroke) {
     final majorGridPaint = Paint()
       ..color = Colors.lightGreen
       ..style = PaintingStyle.stroke
@@ -96,17 +97,18 @@ class ClockRenderer extends CustomPainter {
     final gridCount = count * 5;
     for (var i = 0; i < gridCount; i++) {
       final radian = i / gridCount * fullTurn;
-      final begin = center + Offset.fromDirection(radian, settings.innerEnd);
-      final end = center + Offset.fromDirection(radian, settings.outerEnd);
+      final begin =
+          size.center(Offset.fromDirection(radian, settings.innerEnd));
+      final end = size.center(Offset.fromDirection(radian, settings.outerEnd));
       canvas.drawLine(begin, end, i % 5 == 0 ? majorGridPaint : minorGridPaint);
     }
   }
 
-  void drawHourNumber(Canvas canvas, Offset center, double bezelSize) {
+  void drawHourNumber(Canvas canvas, Size size, double bezelSize) {
     for (var i = 1; i <= count; i++) {
       final radian = (i / count) * fullTurn - quarterTurn;
       final position =
-          center + Offset.fromDirection(radian, settings.numberPosition);
+          size.center(Offset.fromDirection(radian, settings.numberPosition));
       final textSpan = TextSpan(
         style: TextStyle(
           color: Colors.lightGreen,
@@ -125,15 +127,14 @@ class ClockRenderer extends CustomPainter {
       );
 
       painter.layout();
-
-      final offset = Offset(painter.size.width, painter.size.height) / 2;
+      final offset = painter.size.center(Offset.zero);
       painter.paint(canvas, position - offset);
     }
   }
 
-  void drawUpperLabel(Canvas canvas, Offset center, double bezelSize) {
+  void drawUpperLabel(Canvas canvas, Size size, double bezelSize) {
     if (upperLabel != null) {
-      final position = center + Offset(0, bezelSize * -0.25);
+      final position = size.center(Offset(0, bezelSize * -0.25));
       final textSpan = TextSpan(
         style: TextStyle(
           color: Colors.grey,
@@ -150,15 +151,14 @@ class ClockRenderer extends CustomPainter {
       );
 
       painter.layout();
-
-      final offset = Offset(painter.size.width, painter.size.height) / 2;
+      final offset = painter.size.center(Offset.zero);
       painter.paint(canvas, position - offset);
     }
   }
 
-  void drawLowerLabel(Canvas canvas, Offset center, double bezelSize) {
+  void drawLowerLabel(Canvas canvas, Size size, double bezelSize) {
     if (lowerLabel != null) {
-      final position = center + Offset(0, bezelSize * 0.30);
+      final position = size.center(Offset(0, bezelSize * 0.30));
       final textSpan = TextSpan(
         style: TextStyle(
             color: Colors.grey,
@@ -175,18 +175,17 @@ class ClockRenderer extends CustomPainter {
       );
 
       painter.layout();
-
-      final offset = Offset(painter.size.width, painter.size.height) / 2;
+      final offset = painter.size.center(Offset.zero);
       painter.paint(canvas, position - offset);
     }
   }
 
-  void drawSign(Canvas canvas, Offset center, double bezelSize) {
+  void drawSign(Canvas canvas, Size size, double bezelSize) {
     if (signList != null) {
       signList!.asMap().forEach((i, sign) {
         final radian = (i / 12) * fullTurn - quarterTurn;
         final position =
-            center + Offset.fromDirection(radian, settings.symbolPosition);
+            size.center(Offset.fromDirection(radian, settings.symbolPosition));
         final textSpan = TextSpan(
           style: TextStyle(
             color: Colors.lightGreen,
@@ -203,8 +202,7 @@ class ClockRenderer extends CustomPainter {
         );
 
         painter.layout();
-
-        final offset = Offset(painter.size.width, painter.size.height) / 2;
+        final offset = painter.size.center(Offset.zero);
         painter.paint(canvas, position - offset);
       });
     }

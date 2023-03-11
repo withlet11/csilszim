@@ -74,6 +74,7 @@ flutter:
     - assets/hip_lite_b.txt
     - assets/hip_constellation_line.csv
     - assets/constellation_name.csv
+    - assets/messier.csv
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

@@ -9,11 +9,11 @@ import 'package:test/test.dart';
 void main() {
   final start = DateTime(2009, 9, 5, 12);
   final time = TimeModel.fromLocalTime(start);
-  final earth = Vsop87Earth(time.jd, const Offset3D(0, 0, 0));
+  final earth = Vsop87Earth(time.jd, Offset3D.zero);
   for (int i = 0; i < 30; ++i) {
     final time = TimeModel.fromLocalTime(
         start.add(const Duration(/*days: 365, hours: 6*/hours: 1) * i));
-    earth.forceUpdate(time.jd, const Offset3D(0, 0, 0));
+    earth.forceUpdate(time.jd, Offset3D.zero);
     final saturn = Vsop87Saturn(time.jd, earth.heliocentric);
     final geocentric = saturn.geocentric;
     print("year: ${earth.jd}, ring: ${saturnRingAngle(geocentric)}");

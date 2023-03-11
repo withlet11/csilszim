@@ -24,15 +24,13 @@ import '../coordinate_system/equatorial_coordinate.dart';
 import 'astronomical_object.dart';
 
 class DeepSkyObject implements AstronomicalObject {
-  final int hipNumber;
   final int? messierNumber;
   final int? ngcNumber;
   final Equatorial position;
-  final double magnitude;
+  final String magnitude;
   final List<String> name;
 
   const DeepSkyObject({
-    required this.hipNumber,
     this.messierNumber,
     this.ngcNumber,
     required this.position,

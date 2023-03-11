@@ -68,7 +68,7 @@ class _ProjectionRenderer extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final center = Offset(size.width, size.height) * half;
+    final center = size.center(Offset.zero);
     final scale = min(size.width, size.height) * half * zoom;
 
     _setBackground(canvas, size);
@@ -93,12 +93,13 @@ class _ProjectionRenderer extends CustomPainter {
 
   void _setBackground(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.black
+      ..color = backgroundColor
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 1;
 
-    canvas.drawRect(Rect.fromLTWH(0.0, 0.0, size.width, size.height), paint);
+    canvas.drawRect(
+        Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)), paint);
   }
 
   void _calculatePlanetPosition(TimeModel time, double interval, int repetition,
@@ -209,7 +210,7 @@ class _ProjectionRenderer extends CustomPainter {
     locationTextPainter.layout();
     final height = locationTextPainter.size.height;
 
-    locationTextPainter.paint(canvas, pos + Offset(height * 0.5, 0));
+    locationTextPainter.paint(canvas, pos.translate(height * 0.5, 0));
   }
 
   void _drawOrbitOfPlanet(Canvas canvas, Offset center, double scale) {

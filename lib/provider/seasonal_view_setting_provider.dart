@@ -45,8 +45,8 @@ class SeasonalViewSettings {
   final bool isConstellationNameVisible;
 
   const SeasonalViewSettings({
-    this.isEquatorialGridVisible = false,
-    this.isConstellationLineVisible = false,
+    this.isEquatorialGridVisible = true,
+    this.isConstellationLineVisible = true,
     this.isConstellationNameVisible = false,
   });
 

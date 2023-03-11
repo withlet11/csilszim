@@ -31,7 +31,7 @@ class Settings {
 
   const Settings(this.screenSize);
 
-  Offset get center => Offset(screenSize.width, screenSize.height) * half;
+  Offset get center => screenSize.center(Offset.zero);
 
   double get bezelSize => min(screenSize.width, screenSize.height) * 0.45;
 

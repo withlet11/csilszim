@@ -28,6 +28,8 @@ const initialRepetition = 10;
 const zoomingRate1 = 1.2589254117941673; // pow(10, 0.1)
 const zoomingRate2 = 1.01157945426; // pow(10, 0.001)
 
+const backgroundColor = Color(0xff192029);
+
 const planetColor = {
   'mercury': Color(0xffffd7a0),
   'venus': Color(0xfffaaf3c),

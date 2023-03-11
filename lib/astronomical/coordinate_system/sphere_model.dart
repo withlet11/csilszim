@@ -194,7 +194,8 @@ class SphereModel {
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
   double? raOnWestHorizonAtSunset(
       //{required Equatorial sun, required double dec}) {
-    Equatorial sun, double dec) {
+      Equatorial sun,
+      double dec) {
     final sunHa = haAtSunset(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -204,9 +205,7 @@ class SphereModel {
   /// Calculates α on the east horizon at sunrise.
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
-  double? raOnEastHorizonAtSunrise(
-      // {required Equatorial sun, required double dec}) {
-    Equatorial sun, double dec) {
+  double? raOnEastHorizonAtSunrise(Equatorial sun, double dec) {
     final sunHa = haAtSunrise(sun.dec);
     final ha = haOnEastHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -216,9 +215,7 @@ class SphereModel {
   /// Calculates α on the west horizon at civil dusk.
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
-  double? raOnWestHorizonAtCivilDusk(
-      // {required Equatorial sun, required double dec}) {
-  Equatorial sun, double dec) {
+  double? raOnWestHorizonAtCivilDusk(Equatorial sun, double dec) {
     final sunHa = haAtCivilDusk(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -228,9 +225,7 @@ class SphereModel {
   /// Calculates α on the east horizon at civil dawn.
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
-  double? raOnEastHorizonAtCivilDawn(
-      // {required Equatorial sun, required double dec}) {
-  Equatorial sun, double dec) {
+  double? raOnEastHorizonAtCivilDawn(Equatorial sun, double dec) {
     final sunHa = haAtCivilDawn(sun.dec);
     final ha = haOnEastHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -240,9 +235,7 @@ class SphereModel {
   /// Calculates α on the west horizon at nautical dusk.
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
-  double? raOnWestHorizonAtNauticalDusk(
-      // {required Equatorial sun, required double dec}) {
-  Equatorial sun, double dec) {
+  double? raOnWestHorizonAtNauticalDusk(Equatorial sun, double dec) {
     final sunHa = haAtNauticalDusk(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -252,9 +245,7 @@ class SphereModel {
   /// Calculates α on the east horizon at nautical dawn.
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
-  double? raOnEastHorizonAtNauticalDawn(
-      // {required Equatorial sun, required double dec}) {
-    Equatorial sun, double dec) {
+  double? raOnEastHorizonAtNauticalDawn(Equatorial sun, double dec) {
     final sunHa = haAtNauticalDawn(sun.dec);
     final ha = haOnEastHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -264,9 +255,7 @@ class SphereModel {
   /// Calculates α on the west horizon at astronomical dusk.
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
-  double? raOnWestHorizonAtAstronomicalDusk(
-      // {required Equatorial sun, required double dec}) {
-  Equatorial sun, double dec) {
+  double? raOnWestHorizonAtAstronomicalDusk(Equatorial sun, double dec) {
     final sunHa = haAtAstronomicalDusk(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;
@@ -276,9 +265,7 @@ class SphereModel {
   /// Calculates α on the east horizon at astronomical dawn.
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
-  double? raOnEastHorizonAtAstronomicalDawn(
-      // {required Equatorial sun, required double dec}) {
-  Equatorial sun, double dec) {
+  double? raOnEastHorizonAtAstronomicalDawn(Equatorial sun, double dec) {
     final sunHa = haAtAstronomicalDawn(sun.dec);
     final ha = haOnEastHorizon(dec);
     if (sunHa == null || ha == null) return null;
