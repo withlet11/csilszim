@@ -31,7 +31,7 @@ import 'info_table.dart';
 import 'orbit_plot.dart';
 import 'configs.dart';
 
-/// A view that shows a sky map.
+/// A view that shows a momentary sky map.
 class OrbitView extends StatefulWidget {
   const OrbitView({super.key});
 

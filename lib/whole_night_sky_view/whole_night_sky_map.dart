@@ -1,5 +1,5 @@
 /*
- * seasonal_map.dart
+ * whole_night_sky_map.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -21,31 +21,31 @@
 
 import 'dart:math';
 
-import 'package:csilszim/astronomical/astronomical_object/deep_sky_object.dart';
 import 'package:flutter/material.dart';
 
+import '../astronomical/astronomical_object/deep_sky_object.dart';
 import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
-import '../provider/seasonal_view_setting_provider.dart';
+import '../provider/whole_night_sky_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'configs.dart';
 import 'mercator_projection.dart';
 
-/// A widget that creates a seasonal sky map.
-class SeasonalMap extends StatelessWidget {
+/// A widget that creates a whole night sky map.
+class WholeNightSkyMap extends StatelessWidget {
   final MercatorProjection projectionModel;
   final SphereModel sphereModel;
   final StarCatalogue starCatalogue;
-  final SeasonalViewSettings displaySettings;
+  final WholeNightSkyViewSettings displaySettings;
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
   final Map<String, Equatorial> planetEquatorialList;
 
-  const SeasonalMap({
+  const WholeNightSkyMap({
     super.key,
     required this.projectionModel,
     required this.sphereModel,
@@ -74,7 +74,7 @@ class _ProjectionRenderer extends CustomPainter {
   final MercatorProjection projectionModel;
   final SphereModel sphereModel;
   final StarCatalogue starCatalogue;
-  final SeasonalViewSettings displaySettings;
+  final WholeNightSkyViewSettings displaySettings;
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
   final Map<String, Equatorial> planetEquatorialList;

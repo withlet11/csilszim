@@ -1,5 +1,5 @@
 /*
- * seasonal_view_setting_provider.dart
+ * whole_night_sky_view_setting_provider.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -22,8 +22,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SeasonalViewSettingProvider extends StateNotifier<SeasonalViewSettings> {
-  SeasonalViewSettingProvider() : super(const SeasonalViewSettings());
+class WholeNightSkyViewSettingProvider
+    extends StateNotifier<WholeNightSkyViewSettings> {
+  WholeNightSkyViewSettingProvider() : super(const WholeNightSkyViewSettings());
 
   set equatorialGridVisibility(bool visibility) {
     state = state.copyWith(isEquatorialGridVisible: visibility);
@@ -39,23 +40,23 @@ class SeasonalViewSettingProvider extends StateNotifier<SeasonalViewSettings> {
 }
 
 @immutable
-class SeasonalViewSettings {
+class WholeNightSkyViewSettings {
   final bool isEquatorialGridVisible;
   final bool isConstellationLineVisible;
   final bool isConstellationNameVisible;
 
-  const SeasonalViewSettings({
+  const WholeNightSkyViewSettings({
     this.isEquatorialGridVisible = true,
     this.isConstellationLineVisible = true,
     this.isConstellationNameVisible = false,
   });
 
-  SeasonalViewSettings copyWith({
+  WholeNightSkyViewSettings copyWith({
     bool? isEquatorialGridVisible,
     bool? isConstellationLineVisible,
     bool? isConstellationNameVisible,
   }) =>
-      SeasonalViewSettings(
+      WholeNightSkyViewSettings(
         isEquatorialGridVisible:
             isEquatorialGridVisible ?? this.isEquatorialGridVisible,
         isConstellationLineVisible:
@@ -65,8 +66,7 @@ class SeasonalViewSettings {
       );
 }
 
-final seasonalViewSettingProvider =
-    StateNotifierProvider<SeasonalViewSettingProvider, SeasonalViewSettings>(
-        (ref) {
-  return SeasonalViewSettingProvider();
+final wholeNightSkyViewSettingProvider = StateNotifierProvider<
+    WholeNightSkyViewSettingProvider, WholeNightSkyViewSettings>((ref) {
+  return WholeNightSkyViewSettingProvider();
 });

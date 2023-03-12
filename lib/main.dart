@@ -21,20 +21,20 @@
 
 // import 'dart:html';
 
-import 'package:csilszim/provider/view_select_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'astronomical/star_catalogue.dart';
 import 'clock_view/clock_view.dart';
+import 'momentary_sky_view/momentary_sky_view.dart';
 import 'orbit_view/orbit_view.dart';
-import 'seasonal_view/seasonal_view.dart';
+import 'provider/view_select_provider.dart';
 import 'setting_view/location_setting_view.dart';
 import 'setting_view/setting_drawer.dart';
 import 'provider/location_provider.dart';
-import 'sky_view/sky_view.dart';
 
 import 'utilities/sexagesimal_angle.dart';
+import 'whole_night_sky_view/whole_night_sky_view.dart';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -107,10 +107,10 @@ class _HomePageState extends ConsumerState<HomePage> {
                         // children: <Widget>[
                         viewSelect == View.clock
                             ? const ClockView()
-                            : viewSelect == View.sky
-                                ? SkyView(
+                            : viewSelect == View.momentary
+                                ? MomentarySkyView(
                                     key: const PageStorageKey<String>(
-                                        "key_SkyView"),
+                                        "key_MomentarySkyView"),
                                     starCatalogue:
                                         snapshot.data as StarCatalogue,
                                   )
@@ -118,9 +118,9 @@ class _HomePageState extends ConsumerState<HomePage> {
                                     ? const OrbitView(
                                         key: PageStorageKey<String>(
                                             'key_OrbitView'))
-                                    : SeasonalView(
+                                    : WholeNightSkyView(
                                         key: const PageStorageKey<String>(
-                                            "key_SeasonalView"),
+                                            'key_WholeNightSkyView'),
                                         starCatalogue:
                                             snapshot.data as StarCatalogue,
                                       )));

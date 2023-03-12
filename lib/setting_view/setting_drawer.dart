@@ -22,9 +22,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../provider/seasonal_view_setting_provider.dart';
-import '../provider/sky_view_setting_provider.dart';
+import '../provider/momentary_sky_view_setting_provider.dart';
 import '../provider/view_select_provider.dart';
+import '../provider/whole_night_sky_view_setting_provider.dart';
 
 /// A widget of page for setting the observation location.
 class SettingDrawer extends ConsumerStatefulWidget {
@@ -37,8 +37,9 @@ class SettingDrawer extends ConsumerStatefulWidget {
 class _SettingDrawerState extends ConsumerState<SettingDrawer> {
   @override
   Widget build(BuildContext context) {
-    final displaySetting = ref.watch(skyViewSettingProvider);
-    final seasonalViewSetting = ref.watch(seasonalViewSettingProvider);
+    final displaySetting = ref.watch(momentarySkyViewSettingProvider);
+    final wholeNightSkyViewSetting =
+        ref.watch(wholeNightSkyViewSettingProvider);
     final viewSelect = ref.watch(viewSelectProvider);
     return Drawer(
       child: ListView(
@@ -61,9 +62,9 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
           ),
           ListTile(
             title: const Text('Sky'),
-            tileColor: viewSelect == View.sky ? Colors.tealAccent : null,
+            tileColor: viewSelect == View.momentary ? Colors.tealAccent : null,
             onTap: () {
-              ref.read(viewSelectProvider.notifier).state = View.sky;
+              ref.read(viewSelectProvider.notifier).state = View.momentary;
               // Navigator.pop(context);
             },
           ),
@@ -76,14 +77,14 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             },
           ),
           ListTile(
-            title: const Text('Seasonal'),
-            tileColor: viewSelect == View.seasonal ? Colors.tealAccent : null,
+            title: const Text('Whole night'),
+            tileColor: viewSelect == View.wholeNight ? Colors.tealAccent : null,
             onTap: () {
-              ref.read(viewSelectProvider.notifier).state = View.seasonal;
+              ref.read(viewSelectProvider.notifier).state = View.wholeNight;
               // Navigator.pop(context);
             },
           ),
-          if (viewSelect == View.sky)
+          if (viewSelect == View.momentary)
             SwitchListTile(
               title: const Text('Horizontal coordinate grid'),
               tileColor: Colors.teal,
@@ -92,13 +93,13 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 setState(() {
                   if (value != null) {
                     ref
-                        .read(skyViewSettingProvider.notifier)
+                        .read(momentarySkyViewSettingProvider.notifier)
                         .horizontalGridVisibility = value;
                   }
                 });
               },
             ),
-          if (viewSelect == View.sky)
+          if (viewSelect == View.momentary)
             SwitchListTile(
               title: const Text('Equatorial coordinate grid'),
               tileColor: Colors.teal,
@@ -107,13 +108,13 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 setState(() {
                   if (value != null) {
                     ref
-                        .read(skyViewSettingProvider.notifier)
+                        .read(momentarySkyViewSettingProvider.notifier)
                         .equatorialGridVisibility = value;
                   }
                 });
               },
             ),
-          if (viewSelect == View.sky)
+          if (viewSelect == View.momentary)
             SwitchListTile(
               title: const Text('Constellation line'),
               tileColor: Colors.teal,
@@ -122,13 +123,13 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 setState(() {
                   if (value != null) {
                     ref
-                        .read(skyViewSettingProvider.notifier)
+                        .read(momentarySkyViewSettingProvider.notifier)
                         .constellationLineVisibility = value;
                   }
                 });
               },
             ),
-          if (viewSelect == View.sky)
+          if (viewSelect == View.momentary)
             SwitchListTile(
               title: const Text('Constellation name'),
               tileColor: Colors.teal,
@@ -137,52 +138,52 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 setState(() {
                   if (value != null) {
                     ref
-                        .read(skyViewSettingProvider.notifier)
+                        .read(momentarySkyViewSettingProvider.notifier)
                         .constellationNameVisibility = value;
                   }
                 });
               },
             ),
-          if (viewSelect == View.seasonal)
+          if (viewSelect == View.wholeNight)
             SwitchListTile(
               title: const Text('Equatorial coordinate grid'),
               tileColor: Colors.teal,
-              value: seasonalViewSetting.isEquatorialGridVisible,
+              value: wholeNightSkyViewSetting.isEquatorialGridVisible,
               onChanged: (bool? value) {
                 setState(() {
                   if (value != null) {
                     ref
-                        .read(seasonalViewSettingProvider.notifier)
+                        .read(wholeNightSkyViewSettingProvider.notifier)
                         .equatorialGridVisibility = value;
                   }
                 });
               },
             ),
-          if (viewSelect == View.seasonal)
+          if (viewSelect == View.wholeNight)
             SwitchListTile(
               title: const Text('Constellation line'),
               tileColor: Colors.teal,
-              value: seasonalViewSetting.isConstellationLineVisible,
+              value: wholeNightSkyViewSetting.isConstellationLineVisible,
               onChanged: (bool? value) {
                 setState(() {
                   if (value != null) {
                     ref
-                        .read(seasonalViewSettingProvider.notifier)
+                        .read(wholeNightSkyViewSettingProvider.notifier)
                         .constellationLineVisibility = value;
                   }
                 });
               },
             ),
-          if (viewSelect == View.seasonal)
+          if (viewSelect == View.wholeNight)
             SwitchListTile(
               title: const Text('Constellation name'),
               tileColor: Colors.teal,
-              value: seasonalViewSetting.isConstellationNameVisible,
+              value: wholeNightSkyViewSetting.isConstellationNameVisible,
               onChanged: (bool? value) {
                 setState(() {
                   if (value != null) {
                     ref
-                        .read(seasonalViewSettingProvider.notifier)
+                        .read(wholeNightSkyViewSettingProvider.notifier)
                         .constellationNameVisibility = value;
                   }
                 });

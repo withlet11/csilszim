@@ -1,5 +1,5 @@
 /*
- * seasonal_view.dart
+ * whole_night_sky_view.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -36,25 +36,25 @@ import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../provider/location_provider.dart';
-import '../provider/seasonal_view_setting_provider.dart';
+import '../provider/whole_night_sky_view_setting_provider.dart';
 import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'date_chooser_dial.dart';
-import 'seasonal_map.dart';
 import 'mercator_projection.dart';
+import 'whole_night_sky_map.dart';
 
-/// A view that shows a seasonal map.
-class SeasonalView extends ConsumerStatefulWidget {
+/// A view that shows a whole night sky map.
+class WholeNightSkyView extends ConsumerStatefulWidget {
   final StarCatalogue starCatalogue;
 
-  const SeasonalView({super.key, required this.starCatalogue});
+  const WholeNightSkyView({super.key, required this.starCatalogue});
 
   @override
-  ConsumerState createState() => _SeasonalViewState();
+  ConsumerState createState() => _WholeNightSkyViewState();
 }
 
-class _SeasonalViewState extends ConsumerState<SeasonalView> {
-  final _seasonalViewKey = GlobalKey();
+class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
+  final _wholeNightSkyViewKey = GlobalKey();
   var _settings = _Settings.defaultValue();
   var _sunEquatorial = Equatorial.zero;
   var _planetEquatorialList = {
@@ -89,7 +89,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
   @override
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
-    final settingData = ref.watch(seasonalViewSettingProvider);
+    final settingData = ref.watch(wholeNightSkyViewSettingProvider);
 
     final sphereModel = SphereModel(
         location: Geographic.fromDegrees(
@@ -102,7 +102,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
           child: (defaultTargetPlatform == TargetPlatform.android
               ? _makeGestureDetector
               : _makeListener)(
-        SeasonalMap(
+        WholeNightSkyMap(
             // key is necessary for calling setState()
             key: UniqueKey(),
             projectionModel: _settings.projection,
@@ -129,7 +129,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
 
   Widget _makeGestureDetector(Widget child) {
     return GestureDetector(
-      key: _seasonalViewKey,
+      key: _wholeNightSkyViewKey,
       behavior: HitTestBehavior.opaque,
       onTapDown: (details) => _showPosition(details.localPosition),
       onScaleStart: (details) {
@@ -147,7 +147,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
 
   Widget _makeListener(Widget child) {
     return Listener(
-      key: _seasonalViewKey,
+      key: _wholeNightSkyViewKey,
       onPointerDown: (event) => _showPosition(event.localPosition),
       onPointerHover: (event) => _showPosition(event.localPosition),
       onPointerMove: (event) => _moveViewPoint(event.localPosition),
@@ -158,7 +158,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
 
   void _showPosition(Offset position) {
     setState(() {
-      final size = _seasonalViewKey.currentContext!.size;
+      final size = _wholeNightSkyViewKey.currentContext!.size;
       final height = size?.height ?? 0.0;
       final center = size?.center(Offset.zero) ?? Offset.zero;
       final scale = height * 0.9 / halfTurn;
@@ -173,7 +173,7 @@ class _SeasonalViewState extends ConsumerState<SeasonalView> {
   }
 
   void _moveViewPoint(Offset position) {
-    final size = _seasonalViewKey.currentContext!.size;
+    final size = _wholeNightSkyViewKey.currentContext!.size;
     final width = size?.width ?? 0.0;
     final height = size?.height ?? 0.0;
 

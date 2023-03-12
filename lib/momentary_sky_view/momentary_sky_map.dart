@@ -1,5 +1,5 @@
 /*
- * sky_map.dart
+ * momentary_sky_map.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -29,22 +29,22 @@ import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
-import '../provider/sky_view_setting_provider.dart';
+import '../provider/momentary_sky_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'configs.dart';
 import 'stereographic_projection.dart';
 
-/// A widget that creates a sky map.
-class SkyMap extends StatelessWidget {
+/// A widget that creates a momentary sky map.
+class MomentarySkyMap extends StatelessWidget {
   final StereographicProjection projectionModel;
   final SphereModel sphereModel;
   final double jd;
   final StarCatalogue starCatalogue;
   final List<Planet> planetList;
-  final SkyViewSettings displaySettings;
+  final MomentarySkyViewSettings displaySettings;
   final Horizontal mouseAltAz;
 
-  const SkyMap({
+  const MomentarySkyMap({
     super.key,
     required this.projectionModel,
     required this.sphereModel,
@@ -69,7 +69,7 @@ class _ProjectionRenderer extends CustomPainter {
   final double jd;
   final StarCatalogue starCatalogue;
   final List<Planet> planetList;
-  final SkyViewSettings displaySettings;
+  final MomentarySkyViewSettings displaySettings;
   final Horizontal mouseAltAz;
 
   const _ProjectionRenderer(

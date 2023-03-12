@@ -12,13 +12,18 @@ An astronomical simulator (hu: Csillagászati szimulátor) project.
 * Local Mean Time
 * Sidereal Time
 
-### Sky view
+### Momentary sky view
 
 ### Orbits of Planets
 * Planets  
   Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune 
 * Dwarf planets  
   Ceres, Pluto, Haumea, Makemake, Eris
+
+### Whole night sky view
+* Civil, nautical and astronomical twilight
+* Planets
+* Messier objects
 
 ---
 

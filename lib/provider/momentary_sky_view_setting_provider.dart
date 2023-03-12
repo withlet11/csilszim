@@ -1,5 +1,5 @@
 /*
- * sky_view_setting_provider.dart
+ * momentary_sky_view_setting_provider.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -22,8 +22,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class SkyViewSettingProvider extends StateNotifier<SkyViewSettings> {
-  SkyViewSettingProvider() : super(const SkyViewSettings());
+class MomentarySkyViewSettingProvider
+    extends StateNotifier<MomentarySkyViewSettings> {
+  MomentarySkyViewSettingProvider() : super(const MomentarySkyViewSettings());
 
   set horizontalGridVisibility(bool visibility) {
     state = state.copyWith(isHorizontalGridVisible: visibility);
@@ -43,26 +44,26 @@ class SkyViewSettingProvider extends StateNotifier<SkyViewSettings> {
 }
 
 @immutable
-class SkyViewSettings {
+class MomentarySkyViewSettings {
   final bool isHorizontalGridVisible;
   final bool isEquatorialGridVisible;
   final bool isConstellationLineVisible;
   final bool isConstellationNameVisible;
 
-  const SkyViewSettings({
+  const MomentarySkyViewSettings({
     this.isHorizontalGridVisible = false,
     this.isEquatorialGridVisible = false,
     this.isConstellationLineVisible = false,
     this.isConstellationNameVisible = false,
   });
 
-  SkyViewSettings copyWith({
+  MomentarySkyViewSettings copyWith({
     bool? isHorizontalGridVisible,
     bool? isEquatorialGridVisible,
     bool? isConstellationLineVisible,
     bool? isConstellationNameVisible,
   }) =>
-      SkyViewSettings(
+      MomentarySkyViewSettings(
         isHorizontalGridVisible:
             isHorizontalGridVisible ?? this.isHorizontalGridVisible,
         isEquatorialGridVisible:
@@ -74,7 +75,7 @@ class SkyViewSettings {
       );
 }
 
-final skyViewSettingProvider =
-    StateNotifierProvider<SkyViewSettingProvider, SkyViewSettings>((ref) {
-  return SkyViewSettingProvider();
+final momentarySkyViewSettingProvider = StateNotifierProvider<
+    MomentarySkyViewSettingProvider, MomentarySkyViewSettings>((ref) {
+  return MomentarySkyViewSettingProvider();
 });

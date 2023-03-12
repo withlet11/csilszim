@@ -23,9 +23,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 enum View {
   clock,
-  sky,
+  momentary,
   orbit,
-  seasonal
+  wholeNight
 }
 
 final viewSelectProvider = StateProvider<View>((ref) => View.clock);

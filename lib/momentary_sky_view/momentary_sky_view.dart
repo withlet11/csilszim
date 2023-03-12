@@ -1,5 +1,5 @@
 /*
- * sky_view.dart
+ * momentary_sky_view.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -34,27 +34,27 @@ import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
-import '../provider/sky_view_setting_provider.dart';
+import '../provider/momentary_sky_view_setting_provider.dart';
 import '../utilities/fps_counter.dart';
 import '../provider/location_provider.dart';
 import '../utilities/offset_3d.dart';
 import 'configs.dart';
-import 'sky_map.dart';
+import 'momentary_sky_map.dart';
 import 'stereographic_projection.dart';
 
-/// A view that shows a sky map.
-class SkyView extends ConsumerStatefulWidget {
+/// A view that shows a momentary sky map.
+class MomentarySkyView extends ConsumerStatefulWidget {
   final StarCatalogue starCatalogue;
 
-  const SkyView({super.key, required this.starCatalogue});
+  const MomentarySkyView({super.key, required this.starCatalogue});
 
   @override
-  ConsumerState createState() => _SkyViewState();
+  ConsumerState createState() => _MomentarySkyViewState();
 }
 
-class _SkyViewState extends ConsumerState<SkyView>
+class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     with SingleTickerProviderStateMixin {
-  final _skyViewKey = GlobalKey();
+  final _momentarySkyViewKey = GlobalKey();
   final _fpsCounter = FpsCounter();
   late Ticker _ticker;
   var _timeModel = TimeModel.fromLocalTime();
@@ -111,7 +111,7 @@ class _SkyViewState extends ConsumerState<SkyView>
   @override
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
-    final settingData = ref.watch(skyViewSettingProvider);
+    final settingData = ref.watch(momentarySkyViewSettingProvider);
     _timeModel = TimeModel.fromLocalTime();
     _earth.update(_timeModel.jd, Offset3D.zero);
     for (final planet in _planetList) {
@@ -145,7 +145,7 @@ class _SkyViewState extends ConsumerState<SkyView>
           ),
           Expanded(
               child: ClipRect(
-                /*
+                  /*
                   child: (Platform.isAndroid
                       ? _makeGestureDetector
                       : _makeListener)(
@@ -154,7 +154,7 @@ class _SkyViewState extends ConsumerState<SkyView>
                   child: (defaultTargetPlatform == TargetPlatform.android
                       ? _makeGestureDetector
                       : _makeListener)(
-            SkyMap(
+            MomentarySkyMap(
                 key: UniqueKey(),
                 // for calling setState()
                 projectionModel: projection,
@@ -170,7 +170,7 @@ class _SkyViewState extends ConsumerState<SkyView>
 
   Widget _makeGestureDetector(Widget child) {
     return GestureDetector(
-      key: _skyViewKey,
+      key: _momentarySkyViewKey,
       behavior: HitTestBehavior.opaque,
       onTapDown: (details) => _showPosition(details.localPosition),
       onScaleStart: (details) {
@@ -199,7 +199,7 @@ class _SkyViewState extends ConsumerState<SkyView>
 
   Widget _makeListener(Widget child) {
     return Listener(
-      key: _skyViewKey,
+      key: _momentarySkyViewKey,
       onPointerDown: (event) => _showPosition(event.localPosition),
       onPointerHover: (event) => _showPosition(event.localPosition),
       onPointerMove: (event) => setState(() {
@@ -223,7 +223,7 @@ class _SkyViewState extends ConsumerState<SkyView>
 
   void _showPosition(Offset position) {
     setState(() {
-      final size = _skyViewKey.currentContext!.size;
+      final size = _momentarySkyViewKey.currentContext!.size;
       final width = size?.width ?? 0.0;
       final height = size?.height ?? 0.0;
       final center = size?.center(Offset.zero) ?? Offset.zero;
@@ -238,7 +238,7 @@ class _SkyViewState extends ConsumerState<SkyView>
   }
 
   void _moveViewPoint(Offset position) {
-    final size = _skyViewKey.currentContext!.size;
+    final size = _momentarySkyViewKey.currentContext!.size;
     final width = size?.width ?? 0.0;
     final height = size?.height ?? 0.0;
 
