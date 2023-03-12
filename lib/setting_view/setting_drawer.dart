@@ -20,6 +20,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../provider/momentary_sky_view_setting_provider.dart';
@@ -53,7 +54,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ),
           ),
           ListTile(
-            title: const Text('Clock'),
+            title: Text(AppLocalizations.of(context)!.clock),
             tileColor: viewSelect == View.clock ? Colors.tealAccent : null,
             onTap: () {
               ref.read(viewSelectProvider.notifier).state = View.clock;
@@ -61,7 +62,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             },
           ),
           ListTile(
-            title: const Text('Sky'),
+            title: Text(AppLocalizations.of(context)!.momentarySkyView),
             tileColor: viewSelect == View.momentary ? Colors.tealAccent : null,
             onTap: () {
               ref.read(viewSelectProvider.notifier).state = View.momentary;
@@ -69,24 +70,24 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             },
           ),
           ListTile(
-            title: const Text('Orbit'),
-            tileColor: viewSelect == View.orbit ? Colors.tealAccent : null,
-            onTap: () {
-              ref.read(viewSelectProvider.notifier).state = View.orbit;
-              // Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: const Text('Whole night'),
+            title: Text(AppLocalizations.of(context)!.wholeNightSkyView),
             tileColor: viewSelect == View.wholeNight ? Colors.tealAccent : null,
             onTap: () {
               ref.read(viewSelectProvider.notifier).state = View.wholeNight;
               // Navigator.pop(context);
             },
           ),
+          ListTile(
+            title: Text(AppLocalizations.of(context)!.orbit),
+            tileColor: viewSelect == View.orbit ? Colors.tealAccent : null,
+            onTap: () {
+              ref.read(viewSelectProvider.notifier).state = View.orbit;
+              // Navigator.pop(context);
+            },
+          ),
           if (viewSelect == View.momentary)
             SwitchListTile(
-              title: const Text('Horizontal coordinate grid'),
+              title: Text(AppLocalizations.of(context)!.azimuthalGrid),
               tileColor: Colors.teal,
               value: displaySetting.isHorizontalGridVisible,
               onChanged: (bool? value) {
@@ -101,7 +102,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ),
           if (viewSelect == View.momentary)
             SwitchListTile(
-              title: const Text('Equatorial coordinate grid'),
+              title: Text(AppLocalizations.of(context)!.equatorialGrid),
               tileColor: Colors.teal,
               value: displaySetting.isEquatorialGridVisible,
               onChanged: (bool? value) {
@@ -116,7 +117,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ),
           if (viewSelect == View.momentary)
             SwitchListTile(
-              title: const Text('Constellation line'),
+              title: Text(AppLocalizations.of(context)!.constellationLines),
               tileColor: Colors.teal,
               value: displaySetting.isConstellationLineVisible,
               onChanged: (bool? value) {
@@ -131,7 +132,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ),
           if (viewSelect == View.momentary)
             SwitchListTile(
-              title: const Text('Constellation name'),
+              title: Text(AppLocalizations.of(context)!.constellationLabels),
               tileColor: Colors.teal,
               value: displaySetting.isConstellationNameVisible,
               onChanged: (bool? value) {
@@ -146,7 +147,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ),
           if (viewSelect == View.wholeNight)
             SwitchListTile(
-              title: const Text('Equatorial coordinate grid'),
+              title: Text(AppLocalizations.of(context)!.equatorialGrid),
               tileColor: Colors.teal,
               value: wholeNightSkyViewSetting.isEquatorialGridVisible,
               onChanged: (bool? value) {
@@ -161,7 +162,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ),
           if (viewSelect == View.wholeNight)
             SwitchListTile(
-              title: const Text('Constellation line'),
+              title: Text(AppLocalizations.of(context)!.constellationLines),
               tileColor: Colors.teal,
               value: wholeNightSkyViewSetting.isConstellationLineVisible,
               onChanged: (bool? value) {
@@ -176,7 +177,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ),
           if (viewSelect == View.wholeNight)
             SwitchListTile(
-              title: const Text('Constellation name'),
+              title: Text(AppLocalizations.of(context)!.constellationLabels),
               tileColor: Colors.teal,
               value: wholeNightSkyViewSetting.isConstellationNameVisible,
               onChanged: (bool? value) {

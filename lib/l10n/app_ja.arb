@@ -1,0 +1,13 @@
+{
+  "@@locale":"ja",
+  "dec": "赤緯",
+  "ra": "赤経",
+  "clock": "時計",
+  "momentarySkyView": "ある時点の夜空",
+  "wholeNightSkyView": "一晩の夜空",
+  "orbit": "軌道",
+  "azimuthalGrid": "方位角・高度",
+  "equatorialGrid": "赤経・赤緯",
+  "constellationLines": "星座線",
+  "constellationLabels": "星座名"
+}

@@ -1,0 +1,13 @@
+{
+  "@@locale": "en",
+  "dec": "Dec",
+  "ra": "RA",
+  "clock": "Clock",
+  "momentarySkyView": "Momentary sky view",
+  "wholeNightSkyView": "Whole night sky view",
+  "orbit": "Orbit",
+  "azimuthalGrid": "Horizontal coordinate grid",
+  "equatorialGrid": "Equatorial coordinate grid",
+  "constellationLines": "Constellation line",
+  "constellationLabels": "Constellation name"
+}

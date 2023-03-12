@@ -1,0 +1,13 @@
+{
+  "@@locale":"hu",
+  "dec": "Dec",
+  "ra": "RA",
+  "clock": "Óra",
+  "momentarySkyView": "Átmeneti égbolt",
+  "wholeNightSkyView": "Egész ejszakai égbolt",
+  "orbit": "Pálya",
+  "azimuthalGrid": "Azimutháló",
+  "equatorialGrid": "Egyenlítői háló",
+  "constellationLines": "Csillagkép vonalak",
+  "constellationLabels": "Csillagkép feliratok"
+}
