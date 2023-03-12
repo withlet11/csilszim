@@ -21,6 +21,7 @@
 
 import 'dart:math';
 
+import 'package:csilszim/astronomical/astronomical_object/deep_sky_object.dart';
 import 'package:flutter/material.dart';
 
 import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
@@ -116,6 +117,7 @@ class _ProjectionRenderer extends CustomPainter {
       _drawConstellationName(canvas, size);
     }
 
+    _drawMessierObject(canvas, size);
     _drawPlanet(canvas, size);
 
     _drawAstronomicalTwilight(canvas, size, sunEquatorial);
@@ -611,6 +613,62 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
+  void _drawMessierObject(Canvas canvas, Size size) {
+    final width = size.width;
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+
+    for (DeepSkyObject object in starCatalogue.messierList) {
+      final locationTextSpan = TextSpan(
+        style: decTextStyle,
+        text: 'M${object.messierNumber}',
+      );
+
+      final locationTextPainter = TextPainter(
+        text: locationTextSpan,
+        textAlign: TextAlign.left,
+        textDirection: TextDirection.ltr,
+      );
+      locationTextPainter.layout();
+      final xy =
+          projectionModel.equatorialToXy(object.position, center, unitLength);
+      final y = xy.dy;
+
+      for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
+        if (object.type == 'Open cluster') {
+          _drawOpenCluster(canvas, Offset(x, y));
+        } else if (object.type == 'Globular cluster') {
+          _drawGlobularCluster(canvas, Offset(x, y));
+        } else if (object.type.toLowerCase().contains('nebula')) {
+          if (object.type == 'Planetary nebula') {
+            _drawPlanetaryNebula(canvas, Offset(x, y));
+          } else {
+            _drawNebula(canvas, Offset(x, y));
+          }
+        } else if (object.type.contains('galaxy')) {
+          _drawGalaxy(canvas, Offset(x, y));
+        } else {
+          switch (object.messierNumber) {
+            case 1:
+              _drawNebula(canvas, Offset(x, y));
+              break;
+            case 24:
+            case 73:
+              _drawOpenCluster(canvas, Offset(x, y));
+              break;
+            case 40:
+              _drawDoubleStar(canvas, Offset(x, y));
+              break;
+            default:
+              break;
+          }
+        }
+        locationTextPainter.paint(canvas, Offset(x + 8.0, y - 6.0));
+      }
+    }
+  }
+
   void _drawPlanet(Canvas canvas, Size size) {
     final width = size.width;
     final center = size.center(Offset.zero);
@@ -645,6 +703,83 @@ class _ProjectionRenderer extends CustomPainter {
         nameTextPainter.paint(canvas, textPosition);
       }
     });
+  }
+
+  void _drawOpenCluster(Canvas canvas, Offset offset) {
+    const radius = 6.0;
+    const stepAngle = fullTurn / 12;
+    const sweepAngle = stepAngle / 2;
+    final paint = Paint()
+      ..color = Colors.grey
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.5;
+    for (var angle = 0.0; angle < fullTurn; angle += stepAngle) {
+      canvas.drawArc(Rect.fromCircle(center: offset, radius: radius), angle,
+          sweepAngle, false, paint);
+    }
+  }
+
+  void _drawGlobularCluster(Canvas canvas, Offset offset) {
+    const radius = 6.0;
+    final paint = Paint()
+      ..color = Colors.grey
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(offset, radius, paint);
+    canvas.drawLine(
+        offset.translate(0.0, -radius), offset.translate(0.0, radius), paint);
+    canvas.drawLine(
+        offset.translate(-radius, 0.0), offset.translate(radius, 0.0), paint);
+  }
+
+  void _drawPlanetaryNebula(Canvas canvas, Offset offset) {
+    const radius = 3.0;
+    final paint = Paint()
+      ..color = Colors.grey
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawCircle(offset, radius, paint);
+    canvas.drawLine(offset.translate(0.0, -radius * 2),
+        offset.translate(0.0, -radius), paint);
+    canvas.drawLine(offset.translate(0.0, radius * 2),
+        offset.translate(0.0, radius), paint);
+    canvas.drawLine(offset.translate(-radius * 2, 0.0),
+        offset.translate(-radius, 0.0), paint);
+    canvas.drawLine(offset.translate(radius * 2, 0.0),
+        offset.translate(radius, 0.0), paint);
+  }
+
+  void _drawNebula(Canvas canvas, Offset offset) {
+    const length = 12.0;
+    final paint = Paint()
+      ..color = Colors.grey
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawRect(
+        Rect.fromCenter(center: offset, width: length, height: length), paint);
+  }
+
+  void _drawGalaxy(Canvas canvas, Offset offset) {
+    const width = 12.0;
+    const height = width / 2;
+    final paint = Paint()
+      ..color = Colors.grey
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1.0;
+    canvas.drawOval(
+        Rect.fromCenter(center: offset, width: width, height: height), paint);
+  }
+
+  void _drawDoubleStar(Canvas canvas, Offset offset) {
+    const radius = 1.5;
+    final paint = Paint()
+      ..color = Colors.grey
+      ..style = PaintingStyle.fill;
+    canvas.drawCircle(offset.translate(-radius * 3, 0.0), radius, paint);
+    canvas.drawCircle(offset.translate(radius * 3, 0.0), radius, paint);
+    canvas.drawRect(
+        Rect.fromCenter(center: offset, width: 9.0, height: 3.0), paint);
+    canvas.drawCircle(offset, radius, paint);
   }
 }
 

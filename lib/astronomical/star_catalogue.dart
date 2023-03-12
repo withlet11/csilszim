@@ -19,6 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'package:csilszim/astronomical/astronomical_object/deep_sky_object.dart';
+import 'package:csilszim/constants.dart';
 import 'package:flutter/services.dart';
 
 import 'constellation/constellation_line.dart';
@@ -31,6 +33,7 @@ class StarCatalogue {
   List starList = <Star>[];
   List lineList = <ConstellationLine>[];
   List nameList = <ConstellationName>[];
+  List messierList = <DeepSkyObject>[];
 
   static Future<StarCatalogue> make() async {
     final starCatalogue = StarCatalogue();
@@ -39,6 +42,7 @@ class StarCatalogue {
     await starCatalogue
         ._loadConstellationLineData('hip_constellation_line.csv');
     await starCatalogue._loadConstellationNameData('constellation_name.csv');
+    await starCatalogue._loadDeepSkyObjectData('messier.csv');
 
     return Future.value(starCatalogue);
   }
@@ -100,6 +104,54 @@ class StarCatalogue {
                 ra: int.parse(e[1]) + int.parse(e[2]) / 60,
                 dec: double.parse(e[3])),
             name: e[4]));
+      }
+    }
+  }
+
+  Future<void> _loadDeepSkyObjectData(String filename) async {
+    final text = await rootBundle.loadString('assets/$filename');
+    final numReg = RegExp(r'[0-9]+(\.[0-9]+)?');
+
+    for (final line in text.split('\n')) {
+      final e = line.split('\t');
+      if (e.length >= 10) {
+        final messier = e[0].substring(0, 1) == 'M'
+            ? int.tryParse(e[0].substring(1))
+            : null;
+        if (messier == null) continue;
+        final ngc = e[1].length > 4 && e[1].substring(0, 3) == 'NGC'
+            ? int.tryParse(e[1].substring(4))
+            : null;
+        final commonName = e[2];
+        final type = e[4];
+        final distance = e[5];
+        final constellation = e[6];
+        final magnitude = e[7];
+        final raStr = numReg.allMatches(e[8]).toList();
+        final raHour =
+            raStr.isNotEmpty ? int.parse(raStr[0].group(0) ?? '0') : 0;
+        final raMin =
+            raStr.length > 1 ? double.parse(raStr[1].group(0) ?? '0.0') : 0.0;
+        final raSec =
+            raStr.length > 2 ? double.parse(raStr[2].group(0) ?? '0.0') : 0.0;
+        final ra = (raHour + (raMin + raSec / 60.0) / 60.0) * hourInRad;
+        final decStr = numReg.allMatches(e[9]).toList();
+        final decDeg =
+            decStr.isNotEmpty ? int.parse(decStr[0].group(0) ?? '0') : 0;
+        final decMin =
+            decStr.length > 1 ? double.parse(decStr[1].group(0) ?? '0.0') : 0.0;
+        final decSec =
+            decStr.length > 2 ? double.parse(decStr[2].group(0) ?? '0.0') : 0.0;
+        final dec = (e[9][0] == '\u2212' ? -1 : 1) * (decDeg + (decMin + decSec / 60.0) / 60.0) *
+            degInRad;
+
+        messierList.add(DeepSkyObject(
+            messierNumber: messier,
+            ngcNumber: ngc,
+            position: Equatorial.fromRadians(dec: dec, ra: ra),
+            magnitude: magnitude,
+            type: type,
+            name: commonName.split(',')));
       }
     }
   }

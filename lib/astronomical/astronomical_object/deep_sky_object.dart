@@ -28,6 +28,7 @@ class DeepSkyObject implements AstronomicalObject {
   final int? ngcNumber;
   final Equatorial position;
   final String magnitude;
+  final String type;
   final List<String> name;
 
   const DeepSkyObject({
@@ -35,6 +36,7 @@ class DeepSkyObject implements AstronomicalObject {
     this.ngcNumber,
     required this.position,
     required this.magnitude,
+    required this.type,
     this.name = const [],
   });
 
