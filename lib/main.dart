@@ -19,8 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-// import 'dart:html';
-
+import 'package:csilszim/provider/language_select_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -35,8 +34,23 @@ import 'setting_view/location_setting_view.dart';
 import 'setting_view/setting_drawer.dart';
 import 'provider/location_provider.dart';
 
+import 'utilities/language_selection.dart';
 import 'utilities/sexagesimal_angle.dart';
 import 'whole_night_sky_view/whole_night_sky_view.dart';
+
+const _keyMomentarySkyView = 'key_MomentarySkyView';
+const _keyOrbitView = 'key_OrbitView';
+const _keyWholeNightSkyView = 'key_WholeNightSkyView';
+const _keyIsSouth = 'isSouth';
+const _keyLatDeg = 'latDeg';
+const _keyLatMin = 'latMin';
+const _keyLatSec = 'latSec';
+const _keyLongDeg = 'longDeg';
+const _keyLongMin = 'longMin';
+const _keyLongSec = 'longSec';
+const _keyLang = 'lang';
+const _messageLoading = 'Loading...';
+const _messageError = 'Error';
 
 void main() {
   runApp(const ProviderScope(child: MyApp()));
@@ -79,12 +93,15 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
     final viewSelect = ref.watch(viewSelectProvider);
+    final locale = ref.watch(languageSelectProvider);
     return FutureBuilder<StarCatalogue>(
         future: starCatalogue,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
-            return const Center(child: Text('Error'));
+            return const Center(child: Text(_messageError));
           } else if (snapshot.hasData) {
+            final languageSelection = LanguageSelection();
+            final localeList = languageSelection.localeList();
             return MaterialApp(
                 localizationsDelegates: const [
                   AppLocalizations.delegate,
@@ -92,11 +109,8 @@ class _HomePageState extends ConsumerState<HomePage> {
                   GlobalWidgetsLocalizations.delegate,
                   GlobalCupertinoLocalizations.delegate,
                 ],
-                supportedLocales: const [
-                  Locale('en', ''),
-                  Locale('ja', ''),
-                  Locale('hu', '')
-                ],
+                supportedLocales: localeList,
+                locale: locale,
                 debugShowCheckedModeBanner: false,
                 theme: ThemeData.dark(),
                 home: Scaffold(
@@ -123,17 +137,17 @@ class _HomePageState extends ConsumerState<HomePage> {
                             : viewSelect == View.momentary
                                 ? MomentarySkyView(
                                     key: const PageStorageKey<String>(
-                                        "key_MomentarySkyView"),
+                                        _keyMomentarySkyView),
                                     starCatalogue:
                                         snapshot.data as StarCatalogue,
                                   )
                                 : viewSelect == View.orbit
                                     ? const OrbitView(
                                         key: PageStorageKey<String>(
-                                            'key_OrbitView'))
+                                            _keyOrbitView))
                                     : WholeNightSkyView(
                                         key: const PageStorageKey<String>(
-                                            'key_WholeNightSkyView'),
+                                            _keyWholeNightSkyView),
                                         starCatalogue:
                                             snapshot.data as StarCatalogue,
                                       )));
@@ -143,7 +157,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                 child: Scaffold(
                     body: Center(
                         child: Text(
-                  'Loading...',
+                  _messageLoading,
                   style: Theme.of(context)
                       .textTheme
                       .displayMedium
@@ -155,15 +169,17 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> loadLocationData() async {
     final prefs = await SharedPreferences.getInstance();
-    final isSouth = prefs.getBool('isSouth') ?? false;
-    final latDeg = prefs.getInt('latDeg') ?? 45;
-    final latMin = prefs.getInt('latMin') ?? 0;
-    final latSec = prefs.getInt('latSec') ?? 0;
-    final longDeg = prefs.getInt('longDeg') ?? 0;
-    final longMin = prefs.getInt('longMin') ?? 0;
-    final longSec = prefs.getInt('longSec') ?? 0;
+    final isSouth = prefs.getBool(_keyIsSouth) ?? false;
+    final latDeg = prefs.getInt(_keyLatDeg) ?? 45;
+    final latMin = prefs.getInt(_keyLatMin) ?? 0;
+    final latSec = prefs.getInt(_keyLatSec) ?? 0;
+    final longDeg = prefs.getInt(_keyLongDeg) ?? 0;
+    final longMin = prefs.getInt(_keyLongMin) ?? 0;
+    final longSec = prefs.getInt(_keyLongSec) ?? 0;
+    final lang = prefs.getString(_keyLang) ?? 'en';
 
     setState(() {
+      ref.read(languageSelectProvider.notifier).state = Locale(lang);
       ref.read(locationProvider.notifier).setLocation(
           lat: DmsAngle(isSouth, latDeg, latMin, latSec),
           long: DmsAngle(false, longDeg, longMin, longSec));
@@ -172,13 +188,13 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   void saveLocationData(List<DmsAngle> location) async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setBool('isSouth', location[0].isNegative);
-    prefs.setInt('latDeg', location[0].deg);
-    prefs.setInt('latMin', location[0].min);
-    prefs.setInt('latSec', location[0].sec);
-    prefs.setInt('longDeg', location[1].deg);
-    prefs.setInt('longMin', location[1].min);
-    prefs.setInt('longSec', location[1].sec);
+    prefs.setBool(_keyIsSouth, location[0].isNegative);
+    prefs.setInt(_keyLatDeg, location[0].deg);
+    prefs.setInt(_keyLatMin, location[0].min);
+    prefs.setInt(_keyLatSec, location[0].sec);
+    prefs.setInt(_keyLongDeg, location[1].deg);
+    prefs.setInt(_keyLongMin, location[1].min);
+    prefs.setInt(_keyLongSec, location[1].sec);
     setState(() {});
   }
 

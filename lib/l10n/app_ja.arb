@@ -9,5 +9,14 @@
   "azimuthalGrid": "方位角・高度",
   "equatorialGrid": "赤経・赤緯",
   "constellationLines": "星座線",
-  "constellationLabels": "星座名"
+  "constellationLabels": "星座名",
+  "shortIntroduction" : "天文シミュレーター",
+  "universalTime" : "世界時",
+  "standardTime" : "標準時",
+  "timeZone" : "タイムゾーン",
+  "timeOffset" : "オフセット",
+  "meanSolarTime" : "平均太陽時",
+  "siderealTime" : "恒星時",
+  "latitude" : "緯度",
+  "longitude" : "経度"
 }

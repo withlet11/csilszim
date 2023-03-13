@@ -21,6 +21,7 @@
 
 import 'dart:math';
 
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -90,8 +91,8 @@ class _ClockViewState extends ConsumerState<ClockView>
             children: <Widget>[
               _localMeanTimeClock(
                   localMeanTime,
-                  'Latitude: ${model.latToString()}\n'
-                  'Longitude: ${model.longToString()}',
+                  '${AppLocalizations.of(context)!.latitude}: ${model.latToString()}\n'
+                  '${AppLocalizations.of(context)!.longitude}: ${model.longToString()}',
                   clockSize),
               _localMeanSiderealTimeClock(lmst, clockSize),
             ]),
@@ -105,7 +106,7 @@ class _ClockViewState extends ConsumerState<ClockView>
       hour: utc.hour,
       minute: utc.minute,
       second: utc.second,
-      upperLabel: 'UTC',
+      upperLabel: AppLocalizations.of(context)!.universalTime,
       lowerLabel: '${utc.toString().replaceFirst(RegExp(r'\.[0-9]*Z$'), '')}\n'
           'JDN: ${timeModel.jdn}\n'
           'JD: ${timeModel.jd.toStringAsFixed(6)}\n'
@@ -121,11 +122,11 @@ class _ClockViewState extends ConsumerState<ClockView>
         hour: localTime.hour,
         minute: localTime.minute,
         second: localTime.second,
-        upperLabel: 'Local Time',
+        upperLabel: AppLocalizations.of(context)!.standardTime,
         lowerLabel:
             '${localTime.toString().replaceFirst(RegExp(r'\.[0-9]*$'), '')}\n'
-            'Time Zone: ${timeModel.localTime.timeZoneName}\n'
-            'Offset: ${timeModel.localTime.timeZoneOffset.toString().replaceFirst(RegExp(r'\.[0-9]*$'), '')}',
+            '${AppLocalizations.of(context)!.timeZone}: ${timeModel.localTime.timeZoneName}\n'
+            '${AppLocalizations.of(context)!.timeOffset}: ${timeModel.localTime.timeZoneOffset.toString().replaceFirst(RegExp(r'\.[0-9]*$'), '')}',
         is24hours: false,
         width: clockSize,
         height: clockSize);
@@ -137,7 +138,7 @@ class _ClockViewState extends ConsumerState<ClockView>
       hour: localMeanTime.hour,
       minute: localMeanTime.minute,
       second: localMeanTime.second,
-      upperLabel: 'Local Mean Time',
+      upperLabel: AppLocalizations.of(context)!.meanSolarTime,
       lowerLabel:
           '${localMeanTime.toString().replaceFirst(RegExp(r'\.[0-9]*Z$'), ' ')}\n$location',
       is24hours: false,
@@ -151,7 +152,7 @@ class _ClockViewState extends ConsumerState<ClockView>
       hour: lmst.hour,
       minute: lmst.minute,
       second: lmst.second,
-      upperLabel: 'Sidereal Time',
+      upperLabel: AppLocalizations.of(context)!.siderealTime,
       lowerLabel: lmst
           .toString()
           .replaceFirst(RegExp(r'^[0-9-]* '), ' ')

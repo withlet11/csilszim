@@ -22,10 +22,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
+import '../provider/language_select_provider.dart';
 import '../provider/momentary_sky_view_setting_provider.dart';
 import '../provider/view_select_provider.dart';
 import '../provider/whole_night_sky_view_setting_provider.dart';
+import '../utilities/language_selection.dart';
+
+const _keyLang = 'lang';
 
 /// A widget of page for setting the observation location.
 class SettingDrawer extends ConsumerStatefulWidget {
@@ -42,23 +47,43 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
     final wholeNightSkyViewSetting =
         ref.watch(wholeNightSkyViewSettingProvider);
     final viewSelect = ref.watch(viewSelectProvider);
+    final languageSelect = ref.watch(languageSelectProvider);
     return Drawer(
       child: ListView(
         children: <Widget>[
           DrawerHeader(
-            decoration: BoxDecoration(
-                color: Theme.of(context).appBarTheme.backgroundColor),
-            child: const Align(
-              alignment: Alignment.bottomLeft,
-              child: Text('Csilszim'),
-            ),
-          ),
+              // decoration: BoxDecoration(
+              // color: Theme.of(context).appBarTheme.backgroundColor),
+              child: Column(
+            children: [
+              const Text('Csilszim', style: TextStyle(fontSize: 24.0)),
+              Text(AppLocalizations.of(context)!.shortIntroduction,
+                  style: const TextStyle(fontSize: 12.0)),
+              Theme(
+                data: Theme.of(context).copyWith(canvasColor: null),
+                child: DropdownButtonHideUnderline(
+                    child: DropdownButton<String>(
+                        items: [
+                      for (final e in LanguageSelection().languageMap.entries)
+                        DropdownMenuItem<String>(
+                            value: e.key, child: Text(e.value)),
+                    ],
+                        onChanged: (String? value) {
+                          if (value != null) {
+                            ref.read(languageSelectProvider.notifier).state =
+                                Locale(value);
+                            saveLanguageData(value);
+                          }
+                        },
+                        value: languageSelect.languageCode)),
+              )
+            ],
+          )),
           ListTile(
             title: Text(AppLocalizations.of(context)!.clock),
             tileColor: viewSelect == View.clock ? Colors.tealAccent : null,
             onTap: () {
               ref.read(viewSelectProvider.notifier).state = View.clock;
-              // Navigator.pop(context);
             },
           ),
           ListTile(
@@ -193,5 +218,10 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
         ],
       ),
     );
+  }
+
+  void saveLanguageData(String language) async {
+    final prefs = await SharedPreferences.getInstance();
+    prefs.setString(_keyLang, language);
   }
 }

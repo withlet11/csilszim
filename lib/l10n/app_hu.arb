@@ -9,5 +9,14 @@
   "azimuthalGrid": "Azimutháló",
   "equatorialGrid": "Egyenlítői háló",
   "constellationLines": "Csillagkép vonalak",
-  "constellationLabels": "Csillagkép feliratok"
+  "constellationLabels": "Csillagkép feliratok",
+  "shortIntroduction" : "Csillagászati szimulátor",
+  "universalTime" : "Világidő",
+  "standardTime" : "Zónaidő",
+  "timeZone" : "Időzóna",
+  "timeOffset" : "Időeltolódás",
+  "meanSolarTime" : "Középszoláris idő",
+  "siderealTime" : "Csillagidő",
+  "latitude" : "Szélesség",
+  "longitude" : "Hosszúság"
 }

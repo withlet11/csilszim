@@ -9,5 +9,14 @@
   "azimuthalGrid": "Horizontal coordinate grid",
   "equatorialGrid": "Equatorial coordinate grid",
   "constellationLines": "Constellation line",
-  "constellationLabels": "Constellation name"
+  "constellationLabels": "Constellation name",
+  "shortIntroduction" : "An astronomical simulator",
+  "universalTime" : "Universal Time",
+  "standardTime" : "Standard Time",
+  "timeZone" : "Time zone",
+  "timeOffset" : "Offset",
+  "meanSolarTime" : "Mean Solar Time",
+  "siderealTime" : "Sidereal Time",
+  "latitude" : "Latitude",
+  "longitude" : "Longitude"
 }
