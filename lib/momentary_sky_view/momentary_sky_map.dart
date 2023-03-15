@@ -94,14 +94,14 @@ class _ProjectionRenderer extends CustomPainter {
       _drawDeclinationGrid(canvas, size);
     }
 
-    _drawDirectionSign(canvas, size, 'N', 0, 24);
-    _drawDirectionSign(canvas, size, 'NE', 45, 18);
-    _drawDirectionSign(canvas, size, 'E', 90, 24);
-    _drawDirectionSign(canvas, size, 'SE', 135, 18);
-    _drawDirectionSign(canvas, size, 'S', 180, 24);
-    _drawDirectionSign(canvas, size, 'SW', 225, 18);
-    _drawDirectionSign(canvas, size, 'W', 270, 24);
-    _drawDirectionSign(canvas, size, 'NW', 315, 18);
+    _drawDirectionSign(canvas, size, 'N', 0, true);
+    _drawDirectionSign(canvas, size, 'NE', 45, false);
+    _drawDirectionSign(canvas, size, 'E', 90, true);
+    _drawDirectionSign(canvas, size, 'SE', 135, false);
+    _drawDirectionSign(canvas, size, 'S', 180, true);
+    _drawDirectionSign(canvas, size, 'SW', 225, false);
+    _drawDirectionSign(canvas, size, 'W', 270, true);
+    _drawDirectionSign(canvas, size, 'NW', 315, false);
 
     _drawStars(canvas, size);
 
@@ -118,11 +118,7 @@ class _ProjectionRenderer extends CustomPainter {
     }
 
     final altAzText = TextSpan(
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight: FontWeight.normal,
-      ),
+      style: altAzTextStyle,
       text:
           'alt: ${DmsAngle.fromDegrees(mouseAltAz.altInDegrees()).toDmsWithSign()}, '
           'az: ${DmsAngle.fromDegrees(mouseAltAz.azInDegrees()).toDmsWithoutSign()}',
@@ -136,11 +132,7 @@ class _ProjectionRenderer extends CustomPainter {
     altAzTextPainter.paint(canvas, Offset.zero);
 
     final decRaText = TextSpan(
-      style: const TextStyle(
-        color: Colors.white,
-        fontSize: 12,
-        fontWeight: FontWeight.normal,
-      ),
+      style: decRaTextStyle,
       text:
           'dec: ${DmsAngle.fromDegrees(sphereModel.horizontalToEquatorial(mouseAltAz).decInDegrees()).toDmsWithSign()}, '
           'ra: ${HmsAngle.fromHours(sphereModel.horizontalToEquatorial(mouseAltAz).raInHours()).toHms()}',
@@ -290,13 +282,10 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawDirectionSign(
-      Canvas canvas, Size size, String sign, int direction, double fontSize) {
+      Canvas canvas, Size size, String sign, int direction, bool isLarge) {
     final locationTextSpan = TextSpan(
-      style: TextStyle(
-        color: Colors.white,
-        fontSize: fontSize,
-        fontWeight: FontWeight.normal,
-      ),
+      style:
+          isLarge ? largeDirectionSignTextStyle : smallDirectionSignTextStyle,
       text: sign,
     );
 
@@ -424,11 +413,7 @@ class _ProjectionRenderer extends CustomPainter {
       final altAz = sphereModel.equatorialToHorizontal(name.position);
       if (altAz.alt > 0) {
         final locationTextSpan = TextSpan(
-          style: const TextStyle(
-            color: Colors.lightGreen,
-            fontSize: 18,
-            fontWeight: FontWeight.normal,
-          ),
+          style: constellationLabelTextStyle,
           text: name.iauAbbr,
         );
 

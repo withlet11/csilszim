@@ -22,6 +22,7 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../astronomical/orbit_calculation/orbit_calculation.dart';
 import '../astronomical/solar_system.dart';
@@ -50,9 +51,25 @@ class OrbitPlot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context)!;
+    final nameList = {
+      'mercury': localizations.mercury,
+      'venus': localizations.venus,
+      'earth': localizations.earth,
+      'mars': localizations.mars,
+      'jupiter': localizations.jupiter,
+      'saturn': localizations.saturn,
+      'uranus': localizations.uranus,
+      'neptune': localizations.neptune,
+      'ceres': localizations.ceres,
+      'pluto': localizations.pluto,
+      'haumea': localizations.haumea,
+      'makemake': localizations.makemake,
+      'eris': localizations.eris,
+    };
     return CustomPaint(
         painter: _ProjectionRenderer(
-            projection, zoom, timeModel, interval, repetition));
+            projection, zoom, timeModel, interval, repetition, nameList));
   }
 }
 
@@ -62,9 +79,10 @@ class _ProjectionRenderer extends CustomPainter {
   final TimeModel timeModel;
   final double interval;
   final int repetition;
+  final Map<String, String> nameList;
 
   const _ProjectionRenderer(this.projection, this.zoom, this.timeModel,
-      this.interval, this.repetition);
+      this.interval, this.repetition, this.nameList);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -193,12 +211,8 @@ class _ProjectionRenderer extends CustomPainter {
 
   void _drawLabel(Canvas canvas, Offset pos, String name) {
     final labelSpan = TextSpan(
-      style: const TextStyle(
-        color: Colors.grey,
-        fontSize: 18,
-        fontWeight: FontWeight.normal,
-      ),
-      text: name.toUpperCase(),
+      style: labelTextStyle,
+      text: nameList[name],
     );
 
     final locationTextPainter = TextPainter(

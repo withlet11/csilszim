@@ -56,15 +56,28 @@ void main() {
   runApp(const ProviderScope(child: MyApp()));
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends ConsumerWidget {
   const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return const MaterialApp(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final locale = ref.watch(languageSelectProvider);
+    final languageSelection = LanguageSelection();
+    final localeList = languageSelection.localeList();
+
+    return MaterialApp(
+      localizationsDelegates: const [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
+      locale: locale,
+      supportedLocales: localeList,
+      theme: ThemeData.dark(),
       debugShowCheckedModeBanner: false,
       title: 'Csilszim',
-      home: HomePage(title: 'Csilszim'),
+      home: const HomePage(title: 'Csilszim'),
     );
   }
 }
@@ -85,7 +98,6 @@ class _HomePageState extends ConsumerState<HomePage> {
   void initState() {
     super.initState();
     starCatalogue = StarCatalogue.make();
-
     loadLocationData();
   }
 
@@ -93,64 +105,45 @@ class _HomePageState extends ConsumerState<HomePage> {
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
     final viewSelect = ref.watch(viewSelectProvider);
-    final locale = ref.watch(languageSelectProvider);
+
     return FutureBuilder<StarCatalogue>(
         future: starCatalogue,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return const Center(child: Text(_messageError));
           } else if (snapshot.hasData) {
-            final languageSelection = LanguageSelection();
-            final localeList = languageSelection.localeList();
-            return MaterialApp(
-                localizationsDelegates: const [
-                  AppLocalizations.delegate,
-                  GlobalMaterialLocalizations.delegate,
-                  GlobalWidgetsLocalizations.delegate,
-                  GlobalCupertinoLocalizations.delegate,
-                ],
-                supportedLocales: localeList,
-                locale: locale,
-                debugShowCheckedModeBanner: false,
-                theme: ThemeData.dark(),
-                home: Scaffold(
-                    appBar: AppBar(title: Text(widget.title), actions: <Widget>[
-                      IconButton(
-                          icon: const Icon(Icons.settings_rounded),
-                          tooltip: 'Location Setting',
-                          onPressed: () async {
-                            final lat = DmsAngle.fromDegrees(
-                                locationData.latInDegrees());
-                            final long = DmsAngle.fromDegrees(
-                                locationData.longInDegrees());
-                            final newOne =
-                                await pushAndPopLocationData([lat, long]);
-                            saveLocationData(newOne);
-                          })
-                    ]),
-                    drawer: const SettingDrawer(),
-                    body: //  TabBarView(
-                        // physics: const NeverScrollableScrollPhysics(),
-                        // children: <Widget>[
-                        viewSelect == View.clock
-                            ? const ClockView()
-                            : viewSelect == View.momentary
-                                ? MomentarySkyView(
-                                    key: const PageStorageKey<String>(
-                                        _keyMomentarySkyView),
-                                    starCatalogue:
-                                        snapshot.data as StarCatalogue,
-                                  )
-                                : viewSelect == View.orbit
-                                    ? const OrbitView(
-                                        key: PageStorageKey<String>(
-                                            _keyOrbitView))
-                                    : WholeNightSkyView(
-                                        key: const PageStorageKey<String>(
-                                            _keyWholeNightSkyView),
-                                        starCatalogue:
-                                            snapshot.data as StarCatalogue,
-                                      )));
+            return Scaffold(
+                appBar: AppBar(title: Text(widget.title), actions: <Widget>[
+                  IconButton(
+                      icon: const Icon(Icons.settings_rounded),
+                      tooltip: AppLocalizations.of(context)!.locationSetting,
+                      onPressed: () async {
+                        final lat =
+                            DmsAngle.fromDegrees(locationData.latInDegrees());
+                        final long =
+                            DmsAngle.fromDegrees(locationData.longInDegrees());
+                        final newOne =
+                            await pushAndPopLocationData([lat, long]);
+                        saveLocationData(newOne);
+                      })
+                ]),
+                drawer: const SettingDrawer(),
+                body: viewSelect == View.clock
+                    ? const ClockView()
+                    : viewSelect == View.momentary
+                        ? MomentarySkyView(
+                            key: const PageStorageKey<String>(
+                                _keyMomentarySkyView),
+                            starCatalogue: snapshot.data as StarCatalogue,
+                          )
+                        : viewSelect == View.orbit
+                            ? const OrbitView(
+                                key: PageStorageKey<String>(_keyOrbitView))
+                            : WholeNightSkyView(
+                                key: const PageStorageKey<String>(
+                                    _keyWholeNightSkyView),
+                                starCatalogue: snapshot.data as StarCatalogue,
+                              ));
           } else {
             return Theme(
                 data: ThemeData.dark(),

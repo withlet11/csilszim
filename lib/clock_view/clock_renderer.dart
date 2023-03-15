@@ -110,13 +110,9 @@ class ClockRenderer extends CustomPainter {
       final position =
           size.center(Offset.fromDirection(radian, settings.numberPosition));
       final textSpan = TextSpan(
-        style: TextStyle(
-          color: Colors.lightGreen,
-          fontSize: (count == 24 || i % 3 > 0)
-              ? settings.smallLetter
-              : settings.largeLetter,
-          fontWeight: FontWeight.normal,
-        ),
+        style: (count == 24 || i % 3 > 0)
+            ? settings.smallHourNumberTextStyle
+            : settings.largeHourNumberTextStyle,
         text: i.toString(),
       );
 
@@ -136,11 +132,7 @@ class ClockRenderer extends CustomPainter {
     if (upperLabel != null) {
       final position = size.center(Offset(0, bezelSize * -0.25));
       final textSpan = TextSpan(
-        style: TextStyle(
-          color: Colors.grey,
-          fontSize: settings.smallLetter,
-          fontWeight: FontWeight.bold,
-        ),
+        style: settings.upperLabelTextStyle,
         text: upperLabel,
       );
 
@@ -160,11 +152,7 @@ class ClockRenderer extends CustomPainter {
     if (lowerLabel != null) {
       final position = size.center(Offset(0, bezelSize * 0.30));
       final textSpan = TextSpan(
-        style: TextStyle(
-            color: Colors.grey,
-            fontSize: settings.extraSmallLetter,
-            fontWeight: FontWeight.bold,
-            fontFeatures: const [FontFeature.tabularFigures()]),
+        style: settings.lowerLabelTextStyle,
         text: lowerLabel,
       );
 
@@ -187,11 +175,7 @@ class ClockRenderer extends CustomPainter {
         final position =
             size.center(Offset.fromDirection(radian, settings.symbolPosition));
         final textSpan = TextSpan(
-          style: TextStyle(
-            color: Colors.lightGreen,
-            fontSize: settings.largeLetter,
-            fontWeight: FontWeight.normal,
-          ),
+          style: settings.signTextStyle,
           text: sign,
         );
 

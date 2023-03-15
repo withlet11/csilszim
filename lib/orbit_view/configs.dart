@@ -49,3 +49,8 @@ const dwarfPlanetColor = {
   'makemake': Color(0xffb9beb4),
 };
 
+const labelTextStyle = TextStyle(
+  color: Colors.grey,
+  fontSize: 18.0,
+  fontWeight: FontWeight.normal,
+);

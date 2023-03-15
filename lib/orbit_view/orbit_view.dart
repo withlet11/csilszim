@@ -24,6 +24,7 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../astronomical/time_model.dart';
 import '../utilities/offset_3d.dart';
 import 'graphical_projection/graphical_projection.dart';
@@ -42,7 +43,7 @@ class OrbitView extends StatefulWidget {
 class _OrbitViewState extends State<OrbitView> {
   final _orbitViewKey = GlobalKey();
   late _Settings _settings;
-  late final List<DropdownMenuItem<double>> _intervalItems;
+  var _intervalItems = <DropdownMenuItem<double>>[];
   late final List<DropdownMenuItem<int>> _repetitionItems;
   Offset? _previousPosition;
   double? _previousScale;
@@ -57,20 +58,6 @@ class _OrbitViewState extends State<OrbitView> {
         zoom: initialZoom,
         interval: initialInterval,
         repetition: initialRepetition);
-
-    _intervalItems = const [
-      DropdownMenuItem(value: 1.0, child: Text('1 day')),
-      DropdownMenuItem(value: 5.0, child: Text('5 days')),
-      DropdownMenuItem(value: 10.0, child: Text('10 days')),
-      DropdownMenuItem(value: 20.0, child: Text('20 days')),
-      DropdownMenuItem(value: 30.0, child: Text('30 days')),
-      DropdownMenuItem(value: 50.0, child: Text('50 days')),
-      DropdownMenuItem(value: 100.0, child: Text('100 days')),
-      DropdownMenuItem(value: oneYear * 0.5, child: Text('0.5 years')),
-      DropdownMenuItem(value: oneYear, child: Text('1 year')),
-      DropdownMenuItem(value: oneYear * 5, child: Text('5 years')),
-      DropdownMenuItem(value: oneYear * 10, child: Text('10 years'))
-    ];
 
     _repetitionItems = const [
       DropdownMenuItem(value: 1, child: Text('1')),
@@ -111,6 +98,35 @@ class _OrbitViewState extends State<OrbitView> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
+
+    _intervalItems = [
+      DropdownMenuItem(
+          value: 1.0, child: Text(AppLocalizations.of(context)!.nDays(1))),
+      DropdownMenuItem(
+          value: 5.0, child: Text(AppLocalizations.of(context)!.nDays(5))),
+      DropdownMenuItem(
+          value: 10.0, child: Text(AppLocalizations.of(context)!.nDays(10))),
+      DropdownMenuItem(
+          value: 20.0, child: Text(AppLocalizations.of(context)!.nDays(20))),
+      DropdownMenuItem(
+          value: 30.0, child: Text(AppLocalizations.of(context)!.nDays(30))),
+      DropdownMenuItem(
+          value: 50.0, child: Text(AppLocalizations.of(context)!.nDays(50))),
+      DropdownMenuItem(
+          value: 100.0, child: Text(AppLocalizations.of(context)!.nDays(100))),
+      DropdownMenuItem(
+          value: oneYear * 0.5,
+          child: Text(AppLocalizations.of(context)!.nYears(0.5))),
+      DropdownMenuItem(
+          value: oneYear, child: Text(AppLocalizations.of(context)!.nYears(1))),
+      DropdownMenuItem(
+          value: oneYear * 5,
+          child: Text(AppLocalizations.of(context)!.nYears(5))),
+      DropdownMenuItem(
+          value: oneYear * 10,
+          child: Text(AppLocalizations.of(context)!.nYears(10)))
+    ];
+
     return Center(
         child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -152,7 +168,7 @@ class _OrbitViewState extends State<OrbitView> {
     return [
       Row(children: [
         Text(
-            'Start (UTC): ${_settings.timeModel.utc.toIso8601String().substring(0, 10)}'),
+            AppLocalizations.of(context)!.startUTC(_settings.timeModel.utc)),
         IconButton(
           icon: const Icon(Icons.calendar_month),
           onPressed: () {
@@ -162,7 +178,7 @@ class _OrbitViewState extends State<OrbitView> {
         ),
       ]),
       Row(children: [
-        const Text('Interval: '),
+        Text(AppLocalizations.of(context)!.interval),
         DropdownButton(
           items: _intervalItems,
           value: _settings.interval,
@@ -175,7 +191,7 @@ class _OrbitViewState extends State<OrbitView> {
         ),
       ]),
       Row(children: [
-        const Text('Repetition: '),
+        Text(AppLocalizations.of(context)!.repetition),
         DropdownButton(
           items: _repetitionItems,
           value: _settings.repetition,

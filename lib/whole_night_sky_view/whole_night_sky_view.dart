@@ -25,6 +25,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
@@ -66,6 +67,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     'uranus': Equatorial.zero,
     'neptune': Equatorial.zero,
   };
+  late Map<String, String> _planetNameList;
   var _mouseEquatorial = Equatorial.zero;
   double? _scale;
   Offset? _pointerPosition;
@@ -90,6 +92,22 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
     final settingData = ref.watch(wholeNightSkyViewSettingProvider);
+    final localizations = AppLocalizations.of(context)!;
+    _planetNameList = {
+      'mercury': localizations.mercury,
+      'venus': localizations.venus,
+      'earth': localizations.earth,
+      'mars': localizations.mars,
+      'jupiter': localizations.jupiter,
+      'saturn': localizations.saturn,
+      'uranus': localizations.uranus,
+      'neptune': localizations.neptune,
+      'ceres': localizations.ceres,
+      'pluto': localizations.pluto,
+      'haumea': localizations.haumea,
+      'makemake': localizations.makemake,
+      'eris': localizations.eris,
+    };
 
     final sphereModel = SphereModel(
         location: Geographic.fromDegrees(
@@ -103,15 +121,17 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
               ? _makeGestureDetector
               : _makeListener)(
         WholeNightSkyMap(
-            // key is necessary for calling setState()
-            key: UniqueKey(),
-            projectionModel: _settings.projection,
-            sphereModel: sphereModel,
-            starCatalogue: widget.starCatalogue,
-            displaySettings: settingData.copyWith(),
-            mouseEquatorial: _mouseEquatorial,
-            sunEquatorial: _sunEquatorial,
-            planetEquatorialList: _planetEquatorialList),
+          // key is necessary for calling setState()
+          key: UniqueKey(),
+          projectionModel: _settings.projection,
+          sphereModel: sphereModel,
+          starCatalogue: widget.starCatalogue,
+          displaySettings: settingData.copyWith(),
+          mouseEquatorial: _mouseEquatorial,
+          sunEquatorial: _sunEquatorial,
+          planetEquatorialList: _planetEquatorialList,
+          planetNameList: _planetNameList,
+        ),
       )),
       Align(
         alignment: Alignment.topRight,
@@ -208,10 +228,10 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
 
   void _rotateDial(Offset position) {
     setState(() {
-      final offset = position - dialCenter;
+      final offset = position - DateChooserDial.dialCenter;
       final distance = offset.distance;
-      if (distance < dialInnerBorderSize * 0.125 ||
-          distance > dialOuterBorderSize * 0.75) return;
+      if (distance < DateChooserDial.dialInnerBorderSize * 0.125 ||
+          distance > DateChooserDial.dialOuterBorderSize * 0.75) return;
       final angle = (atan2(offset.dx, -offset.dy) + fullTurn) % fullTurn;
       final overYear = (angle - _settings.dialAngle > 0.75 * fullTurn)
           ? -1
@@ -277,13 +297,6 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
       final ecliptic = Ecliptic.fromXyz(xyz - earthXyz);
       return MapEntry<String, Equatorial>(name, ecliptic.toEquatorial());
     });
-    /*
-    final jupiterXyz =
-        orbitCalculation.calculatePosition(SolarSystem.planets['jupiter']!);
-    final jupiterEcliptic = Ecliptic.fromXyz(jupiterXyz - earthXyz);
-    _sunEquatorial = sunEcliptic.toEquatorial();
-    _planetEquatorialList = jupiterEcliptic.toEquatorial();
-     */
   }
 }
 

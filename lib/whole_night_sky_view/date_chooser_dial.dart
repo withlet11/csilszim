@@ -25,24 +25,37 @@ import 'package:flutter/material.dart';
 
 import '../constants.dart';
 
-const dialOuterBorderSize = 110.0;
-const dialInnerBorderSize = 100.0;
-const dialInnerBorderWidth = 3.0;
-const dialOuterBorderWidth = 2.0;
-const gridPosition = -60.0;
-const mainGridWidth = 1.5;
-const mainGridHeight = 5.0;
-const subGridWidth = 1.0;
-const subGridHeight = 2.0;
-const monthNumberPosition = -66.0;
-const monthNumberSize = 10.0;
-const dateFontSize = 14.0;
-const marginForLabel = 25.0;
-const markerPosition = -40.0;
-const dialSize = dialOuterBorderSize + marginForLabel * 2;
-const dialCenter = Offset(dialSize / 2, dialSize / 2);
+const _dialOuterBorderSize = 110.0;
+const _dialInnerBorderSize = 100.0;
+const _dialInnerBorderWidth = 3.0;
+const _dialOuterBorderWidth = 2.0;
+const _gridPosition = -60.0;
+const _mainGridWidth = 1.5;
+const _mainGridHeight = 5.0;
+const _subGridWidth = 1.0;
+const _subGridHeight = 2.0;
+const _monthNumberPosition = -66.0;
+const _monthNumberSize = 10.0;
+const _dateFontSize = 14.0;
+const _marginForLabel = 25.0;
+const _markerPosition = -40.0;
+const _dialSize = _dialOuterBorderSize + _marginForLabel * 2;
+const _dialCenter = Offset(_dialSize / 2, _dialSize / 2);
 
-const dayOffsetOfMonthInNormalYear = [
+const _monthNumberTextStyle = TextStyle(
+    fontSize: _monthNumberSize,
+    color: Colors.amber,
+    fontWeight: FontWeight.bold);
+
+const _indexTextStyle =
+    TextStyle(fontSize: _monthNumberSize, color: Colors.amber);
+
+const _dateTextStyle = TextStyle(
+    fontSize: _dateFontSize,
+    color: Colors.amber,
+    fontFeatures: [FontFeature.tabularFigures()]);
+
+const _dayOffsetOfMonthInNormalYear = [
   0, // January
   31, // February
   59, // March
@@ -57,7 +70,7 @@ const dayOffsetOfMonthInNormalYear = [
   334 // December
 ];
 
-const dayOffsetOfMonthInLeapYear = [
+const _dayOffsetOfMonthInLeapYear = [
   0, // January
   31, // February
   60, // March
@@ -73,6 +86,9 @@ const dayOffsetOfMonthInLeapYear = [
 ];
 
 class DateChooserDial extends StatelessWidget {
+  static const dialOuterBorderSize = _dialOuterBorderSize;
+  static const dialInnerBorderSize = _dialInnerBorderSize;
+  static const dialCenter = _dialCenter;
   final String dateString;
   final double angle;
   final bool isLeapYear;
@@ -89,13 +105,13 @@ class DateChooserDial extends StatelessWidget {
       Container(
         width: dialOuterBorderSize,
         height: dialOuterBorderSize,
-        margin: const EdgeInsets.all(marginForLabel),
+        margin: const EdgeInsets.all(_marginForLabel),
         decoration: BoxDecoration(
             color: null,
             shape: BoxShape.circle,
             border: Border.all(
               color: Colors.amber,
-              width: dialOuterBorderWidth,
+              width: _dialOuterBorderWidth,
             )),
       ),
       Container(
@@ -106,48 +122,48 @@ class DateChooserDial extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(
               color: Colors.amber,
-              width: dialInnerBorderWidth,
+              width: _dialInnerBorderWidth,
             )),
       ),
       for (final startDay in isLeapYear
-          ? dayOffsetOfMonthInLeapYear
-          : dayOffsetOfMonthInNormalYear)
+          ? _dayOffsetOfMonthInLeapYear
+          : _dayOffsetOfMonthInNormalYear)
         Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()
             ..rotateZ(startDay / (isLeapYear ? 366 : 365) * fullTurn)
-            ..translate(0.0, gridPosition),
+            ..translate(0.0, _gridPosition),
           child: Container(
-            width: mainGridWidth,
-            height: mainGridHeight,
+            width: _mainGridWidth,
+            height: _mainGridHeight,
             color: Colors.amber,
           ),
         ),
       for (final startDay in isLeapYear
-          ? dayOffsetOfMonthInLeapYear
-          : dayOffsetOfMonthInNormalYear)
+          ? _dayOffsetOfMonthInLeapYear
+          : _dayOffsetOfMonthInNormalYear)
         Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()
             ..rotateZ((startDay + 10) / (isLeapYear ? 366 : 365) * fullTurn)
-            ..translate(0.0, gridPosition),
+            ..translate(0.0, _gridPosition),
           child: Container(
-            width: subGridWidth,
-            height: subGridHeight,
+            width: _subGridWidth,
+            height: _subGridHeight,
             color: Colors.amber,
           ),
         ),
       for (final startDay in isLeapYear
-          ? dayOffsetOfMonthInLeapYear
-          : dayOffsetOfMonthInNormalYear)
+          ? _dayOffsetOfMonthInLeapYear
+          : _dayOffsetOfMonthInNormalYear)
         Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()
             ..rotateZ((startDay + 20) / (isLeapYear ? 366 : 365) * fullTurn)
-            ..translate(0.0, gridPosition),
+            ..translate(0.0, _gridPosition),
           child: Container(
-            width: subGridWidth,
-            height: subGridHeight,
+            width: _subGridWidth,
+            height: _subGridHeight,
             color: Colors.amber,
           ),
         ),
@@ -155,18 +171,14 @@ class DateChooserDial extends StatelessWidget {
         Transform(
           alignment: Alignment.center,
           transform: Matrix4.identity()
-            ..rotateZ((dayOffsetOfMonthInLeapYear[i - 1] + 15) / 366 * fullTurn)
-            ..translate(0.0, monthNumberPosition),
+            ..rotateZ(
+                (_dayOffsetOfMonthInLeapYear[i - 1] + 15) / 366 * fullTurn)
+            ..translate(0.0, _monthNumberPosition),
           child: Container(
-            width: monthNumberSize * 2,
-            height: monthNumberSize,
+            width: _monthNumberSize * 2,
+            height: _monthNumberSize,
             alignment: Alignment.center,
-            child: Text(i.toString(),
-                style: const TextStyle(
-                    fontSize: monthNumberSize,
-                    color: Colors.amber,
-                    fontWeight: FontWeight.bold,
-                )),
+            child: Text(i.toString(), style: _monthNumberTextStyle),
           ),
         ),
       Transform(
@@ -174,24 +186,15 @@ class DateChooserDial extends StatelessWidget {
         transform: Matrix4.identity()
           // ..rotateZ(elapsedYear * fullTurn)
           ..rotateZ(angle)
-          ..translate(0.0, markerPosition),
+          ..translate(0.0, _markerPosition),
         child: Container(
           width: 20,
           height: 20,
           alignment: Alignment.center,
-          child: const Text('▲',
-              style: TextStyle(
-                fontSize: monthNumberSize,
-                color: Colors.amber,
-              )),
+          child: const Text('▲', style: _indexTextStyle),
         ),
       ),
-      Text(dateString,
-          style: const TextStyle(
-            fontSize: dateFontSize,
-            color: Colors.amber,
-            fontFeatures: [FontFeature.tabularFigures()],
-          )),
+      Text(dateString, style: _dateTextStyle),
       // ),
       // ),
     ]);

@@ -44,6 +44,7 @@ class WholeNightSkyMap extends StatelessWidget {
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
   final Map<String, Equatorial> planetEquatorialList;
+  final Map<String, String> planetNameList;
 
   const WholeNightSkyMap({
     super.key,
@@ -54,6 +55,7 @@ class WholeNightSkyMap extends StatelessWidget {
     required this.mouseEquatorial,
     required this.sunEquatorial,
     required this.planetEquatorialList,
+    required this.planetNameList,
   });
 
   @override
@@ -66,7 +68,8 @@ class WholeNightSkyMap extends StatelessWidget {
             starCatalogue,
             displaySettings,
             sunEquatorial,
-            planetEquatorialList));
+            planetEquatorialList,
+            planetNameList));
   }
 }
 
@@ -78,6 +81,7 @@ class _ProjectionRenderer extends CustomPainter {
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
   final Map<String, Equatorial> planetEquatorialList;
+  final Map<String, String> planetNameList;
 
   const _ProjectionRenderer(
     this.projectionModel,
@@ -87,6 +91,7 @@ class _ProjectionRenderer extends CustomPainter {
     this.displaySettings,
     this.sunEquatorial,
     this.planetEquatorialList,
+    this.planetNameList,
   );
 
   @override
@@ -690,7 +695,7 @@ class _ProjectionRenderer extends CustomPainter {
         canvas.drawPath(path, planetPointerPaint);
 
         final locationTextSpan =
-            TextSpan(style: planetNameTextStyle, text: name.toUpperCase());
+            TextSpan(style: planetNameTextStyle, text: planetNameList[name]);
 
         final nameTextPainter = TextPainter(
           text: locationTextSpan,

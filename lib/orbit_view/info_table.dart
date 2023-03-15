@@ -20,6 +20,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../astronomical/time_model.dart';
 import 'configs.dart';
@@ -31,25 +32,25 @@ class InfoTable extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text('Date and Time: ${timeModel.utc.toIso8601String()}'),
-          legend('Sun', Colors.orange),
-          legend('Mercury', planetColor['mercury']!),
-          legend('Venus', planetColor['venus']!),
-          legend('Earth', planetColor['earth']!),
-          legend('Mars', planetColor['mars']!),
-          legend('Jupiter', planetColor['jupiter']!),
-          legend('Saturn', planetColor['saturn']!),
-          legend('Uranus', planetColor['uranus']!),
-          legend('Neptune', planetColor['neptune']!),
-          legend('Ceres', dwarfPlanetColor['ceres']!),
-          legend('Pluto', dwarfPlanetColor['pluto']!),
-          legend('Eris', dwarfPlanetColor['eris']!),
-          legend('Haumea', dwarfPlanetColor['haumea']!),
-          legend('Makemake', dwarfPlanetColor['makemake']!),
-        ]);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: <
+        Widget>[
+      Text('Date and Time: ${timeModel.utc.toIso8601String()}'),
+      legend(AppLocalizations.of(context)!.sun, Colors.orange),
+      legend(AppLocalizations.of(context)!.mercury, planetColor['mercury']!),
+      legend(AppLocalizations.of(context)!.venus, planetColor['venus']!),
+      legend(AppLocalizations.of(context)!.earth, planetColor['earth']!),
+      legend(AppLocalizations.of(context)!.mars, planetColor['mars']!),
+      legend(AppLocalizations.of(context)!.jupiter, planetColor['jupiter']!),
+      legend(AppLocalizations.of(context)!.saturn, planetColor['saturn']!),
+      legend(AppLocalizations.of(context)!.uranus, planetColor['uranus']!),
+      legend(AppLocalizations.of(context)!.neptune, planetColor['neptune']!),
+      legend(AppLocalizations.of(context)!.ceres, dwarfPlanetColor['ceres']!),
+      legend(AppLocalizations.of(context)!.pluto, dwarfPlanetColor['pluto']!),
+      legend(AppLocalizations.of(context)!.eris, dwarfPlanetColor['eris']!),
+      legend(AppLocalizations.of(context)!.haumea, dwarfPlanetColor['haumea']!),
+      legend(AppLocalizations.of(context)!.makemake,
+          dwarfPlanetColor['makemake']!),
+    ]);
   }
 
   Widget legend(String name, Color color) {

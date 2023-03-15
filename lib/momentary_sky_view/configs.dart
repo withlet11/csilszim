@@ -21,6 +21,8 @@
 
 import 'dart:ui';
 
+import 'package:flutter/material.dart';
+
 const initialScale = 16.0;
 const minScale = 1.0;
 const maxScale = 128.0;
@@ -28,3 +30,30 @@ const defaultAlt = 35.0;
 const defaultAz = 0.0;
 
 const backgroundColor = Color(0xff192029);
+
+const altAzTextStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 12.0,
+    fontWeight: FontWeight.normal,
+    fontFeatures: [FontFeature.tabularFigures()]);
+
+const decRaTextStyle = TextStyle(
+    color: Colors.white,
+    fontSize: 12.0,
+    fontWeight: FontWeight.normal,
+    fontFeatures: [FontFeature.tabularFigures()]);
+
+const constellationLabelTextStyle = TextStyle(
+    color: Colors.lightGreen, fontSize: 18.0, fontWeight: FontWeight.normal);
+
+const largeDirectionSignTextStyle = TextStyle(
+  color: Colors.white,
+  fontSize: 24.0,
+  fontWeight: FontWeight.normal,
+);
+
+const smallDirectionSignTextStyle = TextStyle(
+  color: Colors.white,
+  fontSize: 18.0,
+  fontWeight: FontWeight.normal,
+);

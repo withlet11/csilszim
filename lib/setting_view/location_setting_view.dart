@@ -20,6 +20,7 @@
  */
 
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../utilities/sexagesimal_angle.dart';
 
@@ -40,11 +41,6 @@ class _LocationSettingViewState extends State<LocationSettingView> {
   final _longDegFieldController = TextEditingController();
   final _longMinFieldController = TextEditingController();
   final _longSecFieldController = TextEditingController();
-
-  @override
-  void initState() {
-    super.initState();
-  }
 
   @override
   void dispose() {
@@ -83,163 +79,52 @@ class _LocationSettingViewState extends State<LocationSettingView> {
     }
 
     return Theme(
-        data: ThemeData.dark(),
-        child: WillPopScope(
-            onWillPop: () async {
-              Navigator.pop(context, <DmsAngle>[
-                _latitude ?? const DmsAngle(),
-                _longitude ?? const DmsAngle()
-              ]);
-              return Future.value(false);
-            },
-            child: Scaffold(
-              appBar: AppBar(
-                title: const Text("Location Setting"),
-              ),
-              body: Column(
-                children: <Widget>[
-                  Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: <Widget>[
-                        SizedBox(
-                          width: 50,
-                          child: TextFormField(
-                            controller: _latDegFieldController,
-                            textAlign: TextAlign.end,
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
-                            keyboardType: const TextInputType.numberWithOptions(
-                                signed: true, decimal: false),
-                            decoration: const InputDecoration(
-                              // hintText: "+45",
-                              labelText: "latitude",
-                              suffix: Text('°'),
-                            ),
-                            maxLength: 3,
-                            validator: validatorTwoDigitWithSign,
-                            onChanged: (String value) {
-                              if (RegExp(checkTwoDigitWithSign)
-                                  .hasMatch(value)) {
-                                setState(() {
-                                  final latDeg = int.tryParse(value);
-                                  if (latDeg != null &&
-                                      latDeg >= -90 &&
-                                      latDeg <= 90) {
-                                    _latitude = DmsAngle(
-                                        latDeg.isNegative,
-                                        latDeg.abs(),
-                                        _latitude?.min ?? 0,
-                                        _latitude?.sec ?? 0);
-                                  }
-                                });
-                              }
-                            },
-                          ),
-                        ),
-                        SizedBox(
-                          width: 50,
-                          child: TextFormField(
-                              controller: _latMinFieldController,
-                              textAlign: TextAlign.end,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      signed: false, decimal: false),
-                              decoration: const InputDecoration(
-                                // hintText: "45",
-                                labelText: ' ',
-                                suffix: Text('′'),
-                              ),
-                              maxLength: 2,
-                              validator: validatorTwoDigitWithoutSign,
-                              onChanged: (String value) {
-                                if (RegExp(checkTwoDigitWithoutSign)
-                                    .hasMatch(value)) {
-                                  setState(() {
-                                    final latMin = int.tryParse(value);
-                                    if (latMin != null &&
-                                        latMin >= 0 &&
-                                        latMin < 60) {
-                                      _latitude = DmsAngle(
-                                          _latitude?.isNegative ?? false,
-                                          _latitude?.deg ?? 0,
-                                          latMin,
-                                          _latitude?.sec ?? 0);
-                                    }
-                                  });
-                                }
-                              }),
-                        ),
-                        SizedBox(
-                          width: 50,
-                          child: TextFormField(
-                              controller: _latSecFieldController,
-                              textAlign: TextAlign.end,
-                              autovalidateMode:
-                                  AutovalidateMode.onUserInteraction,
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                      signed: false, decimal: false),
-                              decoration: const InputDecoration(
-                                // hintText: "45",
-                                labelText: ' ',
-                                suffix: Text('″'),
-                              ),
-                              maxLength: 2,
-                              validator: validatorTwoDigitWithoutSign,
-                              onChanged: (String value) {
-                                if (RegExp(checkTwoDigitWithoutSign)
-                                    .hasMatch(value)) {
-                                  setState(() {
-                                    final latSec = int.tryParse(value);
-                                    if (latSec != null &&
-                                        latSec >= 0 &&
-                                        latSec < 60) {
-                                      _latitude = DmsAngle(
-                                          _latitude?.isNegative ?? false,
-                                          _latitude?.deg ?? 0,
-                                          _latitude?.min ?? 0,
-                                          latSec);
-                                    }
-                                  });
-                                }
-                              }),
-                        ),
-                      ]),
-                  Row(
+      data: ThemeData.dark(),
+      child: WillPopScope(
+          onWillPop: () async {
+            Navigator.pop(context, <DmsAngle>[
+              _latitude ?? const DmsAngle(),
+              _longitude ?? const DmsAngle()
+            ]);
+            return Future.value(false);
+          },
+          child: Scaffold(
+            appBar: AppBar(
+              title: Text(AppLocalizations.of(context)!.locationSetting),
+            ),
+            body: Column(
+              children: <Widget>[
+                Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.center,
                     children: <Widget>[
                       SizedBox(
                         width: 50,
                         child: TextFormField(
-                          controller: _longDegFieldController,
+                          controller: _latDegFieldController,
                           textAlign: TextAlign.end,
                           autovalidateMode: AutovalidateMode.onUserInteraction,
                           keyboardType: const TextInputType.numberWithOptions(
                               signed: true, decimal: false),
-                          decoration: const InputDecoration(
-                            // hintText: "+123",
-                            labelText: "longitude",
-                            suffix: Text('°'),
+                          decoration: InputDecoration(
+                            // hintText: "+45",
+                            labelText: AppLocalizations.of(context)!.latitude,
+                            suffix: const Text('\u00b0'),
                           ),
-                          maxLength: 4,
-                          validator: validatorThreeDigitWithSign,
+                          maxLength: 3,
+                          validator: validatorTwoDigitWithSign,
                           onChanged: (String value) {
-                            if (RegExp(checkThreeDigitWithSign)
-                                .hasMatch(value)) {
+                            if (RegExp(checkTwoDigitWithSign).hasMatch(value)) {
                               setState(() {
-                                final longDeg = int.tryParse(value);
-                                if (longDeg != null &&
-                                    longDeg >= -180 &&
-                                    longDeg <= 180) {
-                                  _longitude = DmsAngle(
-                                      longDeg.isNegative,
-                                      longDeg,
-                                      _longitude?.min ?? 0,
-                                      _longitude?.sec ?? 0);
+                                final latDeg = int.tryParse(value);
+                                if (latDeg != null &&
+                                    latDeg >= -90 &&
+                                    latDeg <= 90) {
+                                  _latitude = DmsAngle(
+                                      latDeg.isNegative,
+                                      latDeg.abs(),
+                                      _latitude?.min ?? 0,
+                                      _latitude?.sec ?? 0);
                                 }
                               });
                             }
@@ -249,76 +134,183 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                       SizedBox(
                         width: 50,
                         child: TextFormField(
-                          controller: _longMinFieldController,
-                          textAlign: TextAlign.end,
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              signed: false, decimal: false),
-                          decoration: const InputDecoration(
-                            // hintText: "12",
-                            labelText: ' ',
-                            suffix: Text('′'),
-                          ),
-                          maxLength: 2,
-                          validator: validatorTwoDigitWithoutSign,
-                          onChanged: (String value) {
-                            if (RegExp(checkTwoDigitWithoutSign)
-                                .hasMatch(value)) {
-                              setState(() {
-                                final longMin = int.tryParse(value);
-                                if (longMin != null &&
-                                    longMin >= 0 &&
-                                    longMin < 60) {
-                                  _longitude = DmsAngle(
-                                      _longitude?.isNegative ?? false,
-                                      _longitude?.deg ?? 0,
-                                      longMin,
-                                      _longitude?.sec ?? 0);
-                                }
-                              });
-                            }
-                          },
-                        ),
+                            controller: _latMinFieldController,
+                            textAlign: TextAlign.end,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                signed: false, decimal: false),
+                            decoration: const InputDecoration(
+                              // hintText: "45",
+                              labelText: ' ',
+                              suffix: Text('\u2032'),
+                            ),
+                            maxLength: 2,
+                            validator: validatorTwoDigitWithoutSign,
+                            onChanged: (String value) {
+                              if (RegExp(checkTwoDigitWithoutSign)
+                                  .hasMatch(value)) {
+                                setState(() {
+                                  final latMin = int.tryParse(value);
+                                  if (latMin != null &&
+                                      latMin >= 0 &&
+                                      latMin < 60) {
+                                    _latitude = DmsAngle(
+                                        _latitude?.isNegative ?? false,
+                                        _latitude?.deg ?? 0,
+                                        latMin,
+                                        _latitude?.sec ?? 0);
+                                  }
+                                });
+                              }
+                            }),
                       ),
                       SizedBox(
                         width: 50,
                         child: TextFormField(
-                          controller: _longSecFieldController,
-                          textAlign: TextAlign.end,
-                          autovalidateMode: AutovalidateMode.onUserInteraction,
-                          keyboardType: const TextInputType.numberWithOptions(
-                              signed: false, decimal: false),
-                          decoration: const InputDecoration(
-                            // hintText: "00",
-                            labelText: ' ',
-                            suffix: Text('″'),
-                          ),
-                          maxLength: 2,
-                          validator: validatorTwoDigitWithoutSign,
-                          onChanged: (String value) {
-                            if (RegExp(checkTwoDigitWithoutSign)
-                                .hasMatch(value)) {
-                              setState(() {
-                                final longSec = int.tryParse(value);
-                                if (longSec != null &&
-                                    longSec >= 0 &&
-                                    longSec < 60) {
-                                  _longitude = DmsAngle(
-                                      _longitude?.isNegative ?? false,
-                                      _longitude?.deg ?? 0,
-                                      _longitude?.min ?? 0,
-                                      longSec);
-                                }
-                              });
-                            }
-                          },
-                        ),
+                            controller: _latSecFieldController,
+                            textAlign: TextAlign.end,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            keyboardType: const TextInputType.numberWithOptions(
+                                signed: false, decimal: false),
+                            decoration: const InputDecoration(
+                              // hintText: "45",
+                              labelText: ' ',
+                              suffix: Text('\u2033'),
+                            ),
+                            maxLength: 2,
+                            validator: validatorTwoDigitWithoutSign,
+                            onChanged: (String value) {
+                              if (RegExp(checkTwoDigitWithoutSign)
+                                  .hasMatch(value)) {
+                                setState(() {
+                                  final latSec = int.tryParse(value);
+                                  if (latSec != null &&
+                                      latSec >= 0 &&
+                                      latSec < 60) {
+                                    _latitude = DmsAngle(
+                                        _latitude?.isNegative ?? false,
+                                        _latitude?.deg ?? 0,
+                                        _latitude?.min ?? 0,
+                                        latSec);
+                                  }
+                                });
+                              }
+                            }),
                       ),
-                    ],
-                  ),
-                ],
-              ),
-            )));
+                    ]),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: <Widget>[
+                    SizedBox(
+                      width: 50,
+                      child: TextFormField(
+                        controller: _longDegFieldController,
+                        textAlign: TextAlign.end,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            signed: true, decimal: false),
+                        decoration: InputDecoration(
+                          // hintText: "+123",
+                          labelText: AppLocalizations.of(context)!.longitude,
+                          suffix: const Text('\u00b0'),
+                        ),
+                        maxLength: 4,
+                        validator: validatorThreeDigitWithSign,
+                        onChanged: (String value) {
+                          if (RegExp(checkThreeDigitWithSign).hasMatch(value)) {
+                            setState(() {
+                              final longDeg = int.tryParse(value);
+                              if (longDeg != null &&
+                                  longDeg >= -180 &&
+                                  longDeg <= 180) {
+                                _longitude = DmsAngle(
+                                    longDeg.isNegative,
+                                    longDeg,
+                                    _longitude?.min ?? 0,
+                                    _longitude?.sec ?? 0);
+                              }
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      width: 50,
+                      child: TextFormField(
+                        controller: _longMinFieldController,
+                        textAlign: TextAlign.end,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            signed: false, decimal: false),
+                        decoration: const InputDecoration(
+                          // hintText: "12",
+                          labelText: ' ',
+                          suffix: Text('\u2032'),
+                        ),
+                        maxLength: 2,
+                        validator: validatorTwoDigitWithoutSign,
+                        onChanged: (String value) {
+                          if (RegExp(checkTwoDigitWithoutSign)
+                              .hasMatch(value)) {
+                            setState(() {
+                              final longMin = int.tryParse(value);
+                              if (longMin != null &&
+                                  longMin >= 0 &&
+                                  longMin < 60) {
+                                _longitude = DmsAngle(
+                                    _longitude?.isNegative ?? false,
+                                    _longitude?.deg ?? 0,
+                                    longMin,
+                                    _longitude?.sec ?? 0);
+                              }
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                    SizedBox(
+                      width: 50,
+                      child: TextFormField(
+                        controller: _longSecFieldController,
+                        textAlign: TextAlign.end,
+                        autovalidateMode: AutovalidateMode.onUserInteraction,
+                        keyboardType: const TextInputType.numberWithOptions(
+                            signed: false, decimal: false),
+                        decoration: const InputDecoration(
+                          // hintText: "00",
+                          labelText: ' ',
+                          suffix: Text('\u2033'),
+                        ),
+                        maxLength: 2,
+                        validator: validatorTwoDigitWithoutSign,
+                        onChanged: (String value) {
+                          if (RegExp(checkTwoDigitWithoutSign)
+                              .hasMatch(value)) {
+                            setState(() {
+                              final longSec = int.tryParse(value);
+                              if (longSec != null &&
+                                  longSec >= 0 &&
+                                  longSec < 60) {
+                                _longitude = DmsAngle(
+                                    _longitude?.isNegative ?? false,
+                                    _longitude?.deg ?? 0,
+                                    _longitude?.min ?? 0,
+                                    longSec);
+                              }
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          )),
+    );
   }
 
   String? validatorThreeDigitWithSign(String? value) {

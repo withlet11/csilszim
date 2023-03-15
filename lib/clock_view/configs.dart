@@ -22,7 +22,7 @@
 import 'dart:math';
 import 'dart:ui';
 
-import '../constants.dart';
+import 'package:flutter/material.dart';
 
 const zodiacSign = ['♓', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒'];
 
@@ -64,4 +64,28 @@ class Settings {
   double get extraSmallLetter => bezelSize * 0.08;
 
   double get baseStroke => bezelSize * 0.01;
+
+  TextStyle get smallHourNumberTextStyle => TextStyle(
+      color: Colors.lightGreen,
+      fontSize: smallLetter,
+      fontWeight: FontWeight.normal);
+
+  TextStyle get largeHourNumberTextStyle => TextStyle(
+      color: Colors.lightGreen,
+      fontSize: largeLetter,
+      fontWeight: FontWeight.normal);
+
+  TextStyle get upperLabelTextStyle => TextStyle(
+      color: Colors.grey, fontSize: smallLetter, fontWeight: FontWeight.bold);
+
+  TextStyle get lowerLabelTextStyle => TextStyle(
+      color: Colors.grey,
+      fontSize: extraSmallLetter,
+      fontWeight: FontWeight.bold,
+      fontFeatures: const [FontFeature.tabularFigures()]);
+
+  TextStyle get signTextStyle => TextStyle(
+      color: Colors.lightGreen,
+      fontSize: largeLetter,
+      fontWeight: FontWeight.normal);
 }
