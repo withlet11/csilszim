@@ -1,5 +1,5 @@
 /*
- * location_provider.dart
+ * configs.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -19,28 +19,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:csilszim/configs.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-
-import '../astronomical/coordinate_system/geographic_coordinate.dart';
-import '../utilities/sexagesimal_angle.dart';
-
-class LocationProvider extends StateNotifier<Geographic> {
-  LocationProvider(
-      {DmsAngle lat = const DmsAngle(
-          defaultLatNeg, defaultLatDeg, defaultLatMin, defaultLatSec),
-      DmsAngle long = const DmsAngle(
-          defaultLongNeg, defaultLongDeg, defaultLongMin, defaultLongSec)})
-      : super(Geographic.fromDegrees(
-            lat: lat.toDegrees(), long: long.toDegrees()));
-
-  void setLocation({lat = DmsAngle, long = DmsAngle}) {
-    state =
-        Geographic.fromDegrees(lat: lat.toDegrees(), long: long.toDegrees());
-  }
-}
-
-final locationProvider =
-    StateNotifierProvider<LocationProvider, Geographic>((ref) {
-  return LocationProvider();
-});
+const appName = 'Csilszim';
+const defaultLatNeg = false;
+const defaultLatDeg = 45;
+const defaultLatMin = 0;
+const defaultLatSec = 0;
+const defaultLongNeg = false;
+const defaultLongDeg = 0;
+const defaultLongMin = 0;
+const defaultLongSec = 0;

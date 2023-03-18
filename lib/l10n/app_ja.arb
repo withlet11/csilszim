@@ -37,6 +37,6 @@
   "startUTC": "開始日 (UTC): {date}",
   "interval": "間隔: ",
   "repetition": "回数: ",
-  "nDays": "{count, plural, other{{count}日}",
-  "nYears": "{count, plural, other{{count}年}"
+  "nDays": "{count, plural, other{{count}日}}",
+  "nYears": "{count, plural, other{{count}年}}"
 }

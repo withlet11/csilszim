@@ -250,7 +250,7 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawDecNumber(Canvas canvas, Size size, int dec) {
-    final sign = '${dec.isNegative ? '$dec' : '+$dec'}\u00b0';
+    final sign = '${dec.isNegative ? '$dec' : '+$dec'}$degSign';
     final locationTextSpan = TextSpan(style: decTextStyle, text: sign);
 
     final locationTextPainter = TextPainter(

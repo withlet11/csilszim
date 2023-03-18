@@ -27,6 +27,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'astronomical/star_catalogue.dart';
 import 'clock_view/clock_view.dart';
+import 'configs.dart';
 import 'momentary_sky_view/momentary_sky_view.dart';
 import 'orbit_view/orbit_view.dart';
 import 'provider/view_select_provider.dart';
@@ -45,6 +46,7 @@ const _keyIsSouth = 'isSouth';
 const _keyLatDeg = 'latDeg';
 const _keyLatMin = 'latMin';
 const _keyLatSec = 'latSec';
+const _keyLongNeg = 'longNeg';
 const _keyLongDeg = 'longDeg';
 const _keyLongMin = 'longMin';
 const _keyLongSec = 'longSec';
@@ -76,16 +78,14 @@ class MyApp extends ConsumerWidget {
       supportedLocales: localeList,
       theme: ThemeData.dark(),
       debugShowCheckedModeBanner: false,
-      title: 'Csilszim',
-      home: const HomePage(title: 'Csilszim'),
+      title: appName,
+      home: const HomePage(),
     );
   }
 }
 
 class HomePage extends ConsumerStatefulWidget {
-  const HomePage({super.key, required this.title});
-
-  final String title;
+  const HomePage({super.key});
 
   @override
   ConsumerState<HomePage> createState() => _HomePageState();
@@ -113,7 +113,7 @@ class _HomePageState extends ConsumerState<HomePage> {
             return const Center(child: Text(_messageError));
           } else if (snapshot.hasData) {
             return Scaffold(
-                appBar: AppBar(title: Text(widget.title), actions: <Widget>[
+                appBar: AppBar(title: const Text(appName), actions: <Widget>[
                   IconButton(
                       icon: const Icon(Icons.settings_rounded),
                       tooltip: AppLocalizations.of(context)!.locationSetting,
@@ -162,20 +162,21 @@ class _HomePageState extends ConsumerState<HomePage> {
 
   Future<void> loadLocationData() async {
     final prefs = await SharedPreferences.getInstance();
-    final isSouth = prefs.getBool(_keyIsSouth) ?? false;
-    final latDeg = prefs.getInt(_keyLatDeg) ?? 45;
-    final latMin = prefs.getInt(_keyLatMin) ?? 0;
-    final latSec = prefs.getInt(_keyLatSec) ?? 0;
-    final longDeg = prefs.getInt(_keyLongDeg) ?? 0;
-    final longMin = prefs.getInt(_keyLongMin) ?? 0;
-    final longSec = prefs.getInt(_keyLongSec) ?? 0;
+    final isSouth = prefs.getBool(_keyIsSouth) ?? defaultLatNeg;
+    final latDeg = prefs.getInt(_keyLatDeg) ?? defaultLatDeg;
+    final latMin = prefs.getInt(_keyLatMin) ?? defaultLatMin;
+    final latSec = prefs.getInt(_keyLatSec) ?? defaultLatSec;
+    final isWest = prefs.getBool(_keyLongNeg) ?? defaultLongNeg;
+    final longDeg = prefs.getInt(_keyLongDeg) ?? defaultLongDeg;
+    final longMin = prefs.getInt(_keyLongMin) ?? defaultLongMin;
+    final longSec = prefs.getInt(_keyLongSec) ?? defaultLongSec;
     final lang = prefs.getString(_keyLang) ?? 'en';
 
     setState(() {
       ref.read(languageSelectProvider.notifier).state = Locale(lang);
       ref.read(locationProvider.notifier).setLocation(
           lat: DmsAngle(isSouth, latDeg, latMin, latSec),
-          long: DmsAngle(false, longDeg, longMin, longSec));
+          long: DmsAngle(isWest, longDeg, longMin, longSec));
     });
   }
 
@@ -185,6 +186,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     prefs.setInt(_keyLatDeg, location[0].deg);
     prefs.setInt(_keyLatMin, location[0].min);
     prefs.setInt(_keyLatSec, location[0].sec);
+    prefs.setBool(_keyLongNeg, location[1].isNegative);
     prefs.setInt(_keyLongDeg, location[1].deg);
     prefs.setInt(_keyLongMin, location[1].min);
     prefs.setInt(_keyLongSec, location[1].sec);

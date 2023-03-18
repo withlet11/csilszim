@@ -24,6 +24,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../configs.dart';
 import '../provider/language_select_provider.dart';
 import '../provider/momentary_sky_view_setting_provider.dart';
 import '../provider/view_select_provider.dart';
@@ -56,7 +57,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
               // color: Theme.of(context).appBarTheme.backgroundColor),
               child: Column(
             children: [
-              const Text('Csilszim', style: TextStyle(fontSize: 24.0)),
+              const Text(appName, style: TextStyle(fontSize: 24.0)),
               Text(AppLocalizations.of(context)!.shortIntroduction,
                   style: const TextStyle(fontSize: 12.0)),
               Theme(

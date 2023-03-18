@@ -31,3 +31,7 @@ const degInRad = pi / 180;
 const radInDeg = 180 / pi;
 const hourInRad = pi / 12;
 const radInHour = 12 / pi;
+
+const degSign = '\u00b0';
+const minSign = '\u2032';
+const secSign = '\u2033';

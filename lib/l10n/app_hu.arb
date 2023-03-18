@@ -37,6 +37,6 @@
   "startUTC": "Kezdő (UTC): {date}",
   "interval": "Időköz: ",
   "repetition": "Ismétlés: ",
-  "nDays": "{count, plural, other{{count} nap}",
-  "nYears": "{count, plural, other{{count} év}"
+  "nDays": "{count, plural, other{{count} nap}}",
+  "nYears": "{count, plural, other{{count} év}}"
 }
