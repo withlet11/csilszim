@@ -20,6 +20,8 @@
   "siderealTime": "Csillagidő",
   "timeZone": "Időzóna",
   "timeOffset": "Időeltolódás",
+  "planets": "Bolygók",
+  "messierObjects": "Messier objektumok",
   "sun": "Nap",
   "mercury": "Mercúr",
   "venus": "Vénusz",

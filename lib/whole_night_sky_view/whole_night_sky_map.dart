@@ -30,7 +30,7 @@ import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
-import '../provider/whole_night_sky_view_setting_provider.dart';
+import 'whole_night_sky_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'configs.dart';
 import 'mercator_projection.dart';
@@ -122,8 +122,13 @@ class _ProjectionRenderer extends CustomPainter {
       _drawConstellationName(canvas, size);
     }
 
-    _drawMessierObject(canvas, size);
-    _drawPlanet(canvas, size);
+    if (displaySettings.isMessierObjectVisible) {
+      _drawMessierObject(canvas, size);
+    }
+
+    if (displaySettings.isPlanetVisible) {
+      _drawPlanet(canvas, size);
+    }
 
     _drawAstronomicalTwilight(canvas, size, sunEquatorial);
     _drawNauticalTwilight(canvas, size, sunEquatorial);

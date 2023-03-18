@@ -37,6 +37,14 @@ class WholeNightSkyViewSettingProvider
   set constellationNameVisibility(bool visibility) {
     state = state.copyWith(isConstellationNameVisible: visibility);
   }
+
+  set planetVisibility(bool visibility) {
+    state = state.copyWith(isPlanetVisible: visibility);
+  }
+
+  set messierObjectVisibility(bool visibility) {
+    state = state.copyWith(isMessierObjectVisible: visibility);
+  }
 }
 
 @immutable
@@ -44,17 +52,23 @@ class WholeNightSkyViewSettings {
   final bool isEquatorialGridVisible;
   final bool isConstellationLineVisible;
   final bool isConstellationNameVisible;
+  final bool isPlanetVisible;
+  final bool isMessierObjectVisible;
 
   const WholeNightSkyViewSettings({
     this.isEquatorialGridVisible = true,
     this.isConstellationLineVisible = true,
     this.isConstellationNameVisible = false,
+    this.isPlanetVisible = true,
+    this.isMessierObjectVisible = true,
   });
 
   WholeNightSkyViewSettings copyWith({
     bool? isEquatorialGridVisible,
     bool? isConstellationLineVisible,
     bool? isConstellationNameVisible,
+    bool? isPlanetVisible,
+    bool? isMessierObjectVisible,
   }) =>
       WholeNightSkyViewSettings(
         isEquatorialGridVisible:
@@ -63,6 +77,9 @@ class WholeNightSkyViewSettings {
             isConstellationLineVisible ?? this.isConstellationLineVisible,
         isConstellationNameVisible:
             isConstellationNameVisible ?? this.isConstellationNameVisible,
+        isPlanetVisible: isPlanetVisible ?? this.isPlanetVisible,
+        isMessierObjectVisible:
+            isMessierObjectVisible ?? this.isMessierObjectVisible,
       );
 }
 

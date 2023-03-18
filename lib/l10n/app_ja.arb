@@ -20,6 +20,8 @@
   "siderealTime": "恒星時",
   "timeZone": "タイムゾーン",
   "timeOffset": "オフセット",
+  "planets": "惑星",
+  "messierObjects": "メシエ天体",
   "sun": "太陽",
   "mercury": "水星",
   "venus": "金星",

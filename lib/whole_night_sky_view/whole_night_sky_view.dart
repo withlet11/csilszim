@@ -37,7 +37,7 @@ import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../provider/location_provider.dart';
-import '../provider/whole_night_sky_view_setting_provider.dart';
+import 'whole_night_sky_view_setting_provider.dart';
 import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'date_chooser_dial.dart';

@@ -20,6 +20,8 @@
   "siderealTime": "Sidereal Time",
   "timeZone": "Time zone",
   "timeOffset": "Offset",
+  "planets": "Planets",
+  "messierObjects": "Messier objects",
   "sun": "Sun",
   "mercury": "Mercury",
   "venus": "Venus",

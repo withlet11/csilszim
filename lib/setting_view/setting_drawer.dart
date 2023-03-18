@@ -28,7 +28,7 @@ import '../configs.dart';
 import '../provider/language_select_provider.dart';
 import '../provider/momentary_sky_view_setting_provider.dart';
 import '../provider/view_select_provider.dart';
-import '../provider/whole_night_sky_view_setting_provider.dart';
+import '../whole_night_sky_view/whole_night_sky_view_setting_provider.dart';
 import '../utilities/language_selection.dart';
 
 const _keyLang = 'lang';
@@ -212,6 +212,36 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                     ref
                         .read(wholeNightSkyViewSettingProvider.notifier)
                         .constellationNameVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.wholeNight)
+            SwitchListTile(
+              title: Text(AppLocalizations.of(context)!.planets),
+              tileColor: Colors.teal,
+              value: wholeNightSkyViewSetting.isPlanetVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(wholeNightSkyViewSettingProvider.notifier)
+                        .planetVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.wholeNight)
+            SwitchListTile(
+              title: Text(AppLocalizations.of(context)!.messierObjects),
+              tileColor: Colors.teal,
+              value: wholeNightSkyViewSetting.isMessierObjectVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(wholeNightSkyViewSettingProvider.notifier)
+                        .messierObjectVisibility = value;
                   }
                 });
               },
