@@ -76,7 +76,11 @@ class MyApp extends ConsumerWidget {
       ],
       locale: locale,
       supportedLocales: localeList,
-      theme: ThemeData.dark(),
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        // primaryColor: Colors.lightBlue[800],
+
+      ),
       debugShowCheckedModeBanner: false,
       title: appName,
       home: const HomePage(),

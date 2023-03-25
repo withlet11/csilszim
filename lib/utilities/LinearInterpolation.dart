@@ -1,5 +1,5 @@
 /*
- * perspective.dart
+ * linear_interpolation.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -19,15 +19,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'dart:ui';
+/// Calculations values with linear interpolation
+///
+/// xList is required to be sorted with descending
+class LinearInterpolation {
+  final List<double> xList;
 
-class Perspective {
-  final double x, y, z;
+  const LinearInterpolation(this.xList);
 
-  const Perspective(this.x, this.y, this.z);
+  // Linear interpolation (LERP: Linear intERPolation)
+  double lerp(List<double> yList, double x) {
+    final index = xList.indexWhere((value) => value <= x);
+    switch (index) {
+      case -1:
+        return yList.last;
+      case 0:
+        return yList.first;
+      default:
+        final x0 = xList[index - 1];
+        final x1 = xList[index];
+        final y0 = yList[index - 1];
+        final y1 = yList[index];
+        final m = (x - x1) / (x0 - x1);
+        final n = 1 - m;
+        return m * y0 + n * y1;
+    }
+  }
 
-  Offset? toXy(Offset center, double scale) =>
-      z > 1 ? Offset(-x, -y) * (scale / z) + center : null;
-
-  bool isOnAxisZ() => x == 0 && y == 0;
+  double closest(List<double> yList, double x) {
+    final index = xList.indexWhere((value) => value >= x);
+    switch (index) {
+      case -1:
+        return yList.last;
+      case 0:
+        return yList.first;
+      default:
+        final x0 = xList[index - 1];
+        final x1 = xList[index];
+        return (x - x0 < x1 - x) ? yList[index - 1] : yList[index];
+    }
+  }
 }

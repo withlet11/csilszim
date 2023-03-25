@@ -23,6 +23,7 @@ import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../astronomical/orbit_calculation/orbit_calculation.dart';
 import '../astronomical/solar_system.dart';
@@ -32,9 +33,10 @@ import '../utilities/offset_3d.dart';
 import 'graphical_projection/graphical_projection.dart';
 import 'graphical_projection/perspective.dart';
 import 'configs.dart';
+import 'orbitViewSettingProvider.dart';
 
 /// A widget that displays the solar system.
-class OrbitPlot extends StatelessWidget {
+class OrbitPlot extends ConsumerWidget {
   final GraphicalProjection projection;
   final double zoom;
   final TimeModel timeModel;
@@ -50,8 +52,9 @@ class OrbitPlot extends StatelessWidget {
       required this.repetition});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final localizations = AppLocalizations.of(context)!;
+    final settings = ref.watch(orbitViewSettingProvider);
     final nameList = {
       'mercury': localizations.mercury,
       'venus': localizations.venus,
@@ -66,10 +69,43 @@ class OrbitPlot extends StatelessWidget {
       'haumea': localizations.haumea,
       'makemake': localizations.makemake,
       'eris': localizations.eris,
+      'halley': localizations.halley,
+      'encke': localizations.encke,
+      'biela': localizations.biela,
+      'faye': localizations.faye,
+      'brorsen': localizations.brorsen,
+      'dArrest': localizations.dArrest,
+      'ponsWinnecke': localizations.ponsWinnecke,
+      'tuttle': localizations.tuttle,
+      'tempel1': localizations.tempel1,
+      'tempel2': localizations.tempel2,
+    };
+    final planetVisibility = {
+      'mercury': settings.isMercuryVisible,
+      'venus': settings.isVenusVisible,
+      'earth': settings.isEarthVisible,
+      'mars': settings.isMarsVisible,
+      'jupiter': settings.isJupiterVisible,
+      'saturn': settings.isSaturnVisible,
+      'uranus': settings.isUranusVisible,
+      'neptune': settings.isNeptuneVisible,
+      'ceres': settings.isCeresVisible,
+      'pluto': settings.isPlutoVisible,
+      'eris': settings.isErisVisible,
+      'haumea': settings.isHaumeaVisible,
+      'makemake': settings.isMakemakeVisible,
+      'halley': settings.isHalleyVisible,
+      'encke': settings.isEnckeVisible,
+      'faye': settings.isFayeVisible,
+      'dArrest': settings.isDArrestVisible,
+      'ponsWinnecke': settings.isPonsWinneckeVisible,
+      'tuttle': settings.isTuttleVisible,
+      'tempel1': settings.isTempel1Visible,
+      'tempel2': settings.isTempel2Visible,
     };
     return CustomPaint(
-        painter: _ProjectionRenderer(
-            projection, zoom, timeModel, interval, repetition, nameList));
+        painter: _ProjectionRenderer(projection, zoom, timeModel, interval,
+            repetition, nameList, planetVisibility));
   }
 }
 
@@ -80,9 +116,10 @@ class _ProjectionRenderer extends CustomPainter {
   final double interval;
   final int repetition;
   final Map<String, String> nameList;
+  final Map<String, bool> planetVisibility;
 
   const _ProjectionRenderer(this.projection, this.zoom, this.timeModel,
-      this.interval, this.repetition, this.nameList);
+      this.interval, this.repetition, this.nameList, this.planetVisibility);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -93,15 +130,18 @@ class _ProjectionRenderer extends CustomPainter {
     _drawDirectionOfVernalPoint(canvas, center, zoom);
     _drawOrbitOfPlanet(canvas, center, scale);
     _drawOrbitOfDwarfPlanet(canvas, center, scale);
+    _drawOrbitOfComets(canvas, center, scale);
 
     final list = <_PositionAndColor>[];
     _calculatePlanetPosition(timeModel, interval, repetition, list);
     _calculateDwarfPlanetPosition(timeModel, interval, repetition, list);
+    _calculateCometPosition(timeModel, interval, repetition, list);
     list.sort((a, b) => a.position.z.compareTo(b.position.z));
 
     _drawObjects(canvas, center, scale, list);
     _drawPlanetLabel(canvas, center, scale);
     _drawDwarfPlanetLabel(canvas, center, scale);
+    _drawCometLabel(canvas, center, scale);
   }
 
   @override
@@ -127,10 +167,12 @@ class _ProjectionRenderer extends CustomPainter {
       final orbitCalculation =
           OrbitCalculationWithMeanLongitude(time + interval * i);
       planetList.forEach((name, planet) {
-        final pos =
-            projection.transform(orbitCalculation.calculatePosition(planet));
-        final color = planetColor[name];
-        if (color != null) list.add(_PositionAndColor(pos, color));
+        if (planetVisibility[name] ?? false) {
+          final pos =
+              projection.transform(orbitCalculation.calculatePosition(planet));
+          final color = planetColor[name];
+          if (color != null) list.add(_PositionAndColor(pos, color));
+        }
       });
     }
   }
@@ -142,10 +184,29 @@ class _ProjectionRenderer extends CustomPainter {
       final orbitCalculation =
           OrbitCalculationWithMeanMotion(time + interval * i);
       dwarfPlanetList.forEach((name, planet) {
-        final pos =
-            projection.transform(orbitCalculation.calculatePosition(planet));
-        final color = dwarfPlanetColor[name];
-        if (color != null) list.add(_PositionAndColor(pos, color));
+        if (planetVisibility[name] ?? false) {
+          final pos =
+              projection.transform(orbitCalculation.calculatePosition(planet));
+          final color = dwarfPlanetColor[name];
+          if (color != null) list.add(_PositionAndColor(pos, color));
+        }
+      });
+    }
+  }
+
+  void _calculateCometPosition(TimeModel time, double interval, int repetition,
+      List<_PositionAndColor> list) {
+    final cometList = SolarSystem.comets;
+    for (var i = 0; i < repetition; ++i) {
+      final orbitCalculation =
+          OrbitCalculationWithPerihelionPassage(time + interval * i);
+      cometList.forEach((name, comet) {
+        if (planetVisibility[name] ?? false) {
+          final pos =
+              projection.transform(orbitCalculation.calculatePosition(comet));
+          final color = cometColor[name];
+          if (color != null) list.add(_PositionAndColor(pos, color));
+        }
       });
     }
   }
@@ -187,11 +248,13 @@ class _ProjectionRenderer extends CustomPainter {
     final planetList = SolarSystem.planets;
     final orbitCalculation = OrbitCalculationWithMeanLongitude(timeModel);
     planetList.forEach((name, planet) {
-      final pos = projection
-          .transform(orbitCalculation.calculatePosition(planet))
-          .toXy(center, scale);
-      if (pos != null && (pos - center).distance > 50) {
-        _drawLabel(canvas, pos, name);
+      if (planetVisibility[name] ?? false) {
+        final pos = projection
+            .transform(orbitCalculation.calculatePosition(planet))
+            .toXy(center, scale);
+        if (pos != null && (pos - center).distance > 50) {
+          _drawLabel(canvas, pos, name);
+        }
       }
     });
   }
@@ -200,11 +263,28 @@ class _ProjectionRenderer extends CustomPainter {
     final dwarfPlanetList = SolarSystem.dwarfPlanets;
     final orbitCalculation = OrbitCalculationWithMeanMotion(timeModel);
     dwarfPlanetList.forEach((name, planet) {
-      final pos = projection
-          .transform(orbitCalculation.calculatePosition(planet))
-          .toXy(center, scale);
-      if (pos != null && (pos - center).distance > 50) {
-        _drawLabel(canvas, pos, name);
+      if (planetVisibility[name] ?? false) {
+        final pos = projection
+            .transform(orbitCalculation.calculatePosition(planet))
+            .toXy(center, scale);
+        if (pos != null && (pos - center).distance > 50) {
+          _drawLabel(canvas, pos, name);
+        }
+      }
+    });
+  }
+
+  void _drawCometLabel(Canvas canvas, Offset center, double scale) {
+    final cometList = SolarSystem.comets;
+    final orbitCalculation = OrbitCalculationWithPerihelionPassage(timeModel);
+    cometList.forEach((name, planet) {
+      if (planetVisibility[name] ?? false) {
+        final pos = projection
+            .transform(orbitCalculation.calculatePosition(planet))
+            .toXy(center, scale);
+        if (pos != null && (pos - center).distance > 50) {
+          _drawLabel(canvas, pos, name);
+        }
       }
     });
   }
@@ -283,36 +363,85 @@ class _ProjectionRenderer extends CustomPainter {
       ..strokeWidth = 0.5;
 
     planetList.forEach((name, planet) {
-      bool isDrawing;
-      final path = Path();
+      if (planetVisibility[name] ?? false) {
+        bool isDrawing;
+        final path = Path();
 
-      final begin = projection
-          .transform(orbitCalculation.calculatePositionFromEa(planet, 0))
-          .toXy(center, scale);
-
-      if (begin == null) {
-        isDrawing = false;
-      } else {
-        isDrawing = true;
-        path.moveTo(begin.dx, begin.dy);
-      }
-
-      for (var i = 0; i <= 360; ++i) {
-        final position = projection
-            .transform(
-                orbitCalculation.calculatePositionFromEa(planet, i * degInRad))
+        final begin = projection
+            .transform(orbitCalculation.calculatePositionFromEa(planet, 0))
             .toXy(center, scale);
-        if (position == null) {
+
+        if (begin == null) {
           isDrawing = false;
-        } else if (isDrawing) {
-          path.lineTo(position.dx, position.dy);
         } else {
           isDrawing = true;
-          path.moveTo(position.dx, position.dy);
+          path.moveTo(begin.dx, begin.dy);
         }
-      }
 
-      canvas.drawPath(path, paint);
+        for (var i = 0; i <= 360; ++i) {
+          final position = projection
+              .transform(orbitCalculation.calculatePositionFromEa(
+                  planet, i * degInRad))
+              .toXy(center, scale);
+          if (position == null) {
+            isDrawing = false;
+          } else if (isDrawing) {
+            path.lineTo(position.dx, position.dy);
+          } else {
+            isDrawing = true;
+            path.moveTo(position.dx, position.dy);
+          }
+        }
+
+        canvas.drawPath(path, paint);
+      }
+    });
+  }
+
+  void _drawOrbitOfComets(Canvas canvas, Offset center, double scale) {
+    final cometList = SolarSystem.comets;
+
+    final orbitCalculation = OrbitCalculationWithPerihelionPassage(timeModel);
+
+    final paint = Paint()
+      ..color = Colors.grey
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 0.5;
+
+    cometList.forEach((name, comet) {
+      if (planetVisibility[name] ?? false) {
+        bool isDrawing;
+        final path = Path();
+
+        final begin = projection
+            .transform(orbitCalculation.calculatePositionFromEa(comet, 0))
+            .toXy(center, scale);
+
+        if (begin == null) {
+          isDrawing = false;
+        } else {
+          isDrawing = true;
+          path.moveTo(begin.dx, begin.dy);
+        }
+
+        for (var i = 0; i <= 360; ++i) {
+          final position = projection
+              .transform(
+                  orbitCalculation.calculatePositionFromEa(comet, i * degInRad))
+              .toXy(center, scale);
+          if (position == null) {
+            isDrawing = false;
+          } else if (isDrawing) {
+            path.lineTo(position.dx, position.dy);
+          } else {
+            isDrawing = true;
+            path.moveTo(position.dx, position.dy);
+          }
+        }
+
+        canvas.drawPath(path, paint);
+      }
     });
   }
 

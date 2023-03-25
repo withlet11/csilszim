@@ -21,35 +21,69 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../astronomical/time_model.dart';
 import 'configs.dart';
+import 'orbitViewSettingProvider.dart';
 
-class InfoTable extends StatelessWidget {
+class InfoTable extends ConsumerWidget {
   final TimeModel timeModel;
 
   const InfoTable({super.key, required this.timeModel});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final settings = ref.watch(orbitViewSettingProvider);
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: <
         Widget>[
       Text('Date and Time: ${timeModel.utc.toIso8601String()}'),
       legend(AppLocalizations.of(context)!.sun, Colors.orange),
-      legend(AppLocalizations.of(context)!.mercury, planetColor['mercury']!),
-      legend(AppLocalizations.of(context)!.venus, planetColor['venus']!),
-      legend(AppLocalizations.of(context)!.earth, planetColor['earth']!),
-      legend(AppLocalizations.of(context)!.mars, planetColor['mars']!),
-      legend(AppLocalizations.of(context)!.jupiter, planetColor['jupiter']!),
-      legend(AppLocalizations.of(context)!.saturn, planetColor['saturn']!),
-      legend(AppLocalizations.of(context)!.uranus, planetColor['uranus']!),
-      legend(AppLocalizations.of(context)!.neptune, planetColor['neptune']!),
-      legend(AppLocalizations.of(context)!.ceres, dwarfPlanetColor['ceres']!),
-      legend(AppLocalizations.of(context)!.pluto, dwarfPlanetColor['pluto']!),
-      legend(AppLocalizations.of(context)!.eris, dwarfPlanetColor['eris']!),
-      legend(AppLocalizations.of(context)!.haumea, dwarfPlanetColor['haumea']!),
-      legend(AppLocalizations.of(context)!.makemake,
-          dwarfPlanetColor['makemake']!),
+      if (settings.isMercuryVisible)
+        legend(AppLocalizations.of(context)!.mercury, planetColor['mercury']!),
+      if (settings.isVenusVisible)
+        legend(AppLocalizations.of(context)!.venus, planetColor['venus']!),
+      if (settings.isEarthVisible)
+        legend(AppLocalizations.of(context)!.earth, planetColor['earth']!),
+      if (settings.isMarsVisible)
+        legend(AppLocalizations.of(context)!.mars, planetColor['mars']!),
+      if (settings.isJupiterVisible)
+        legend(AppLocalizations.of(context)!.jupiter, planetColor['jupiter']!),
+      if (settings.isSaturnVisible)
+        legend(AppLocalizations.of(context)!.saturn, planetColor['saturn']!),
+      if (settings.isUranusVisible)
+        legend(AppLocalizations.of(context)!.uranus, planetColor['uranus']!),
+      if (settings.isNeptuneVisible)
+        legend(AppLocalizations.of(context)!.neptune, planetColor['neptune']!),
+      if (settings.isCeresVisible)
+        legend(AppLocalizations.of(context)!.ceres, dwarfPlanetColor['ceres']!),
+      if (settings.isPlutoVisible)
+        legend(AppLocalizations.of(context)!.pluto, dwarfPlanetColor['pluto']!),
+      if (settings.isErisVisible)
+        legend(AppLocalizations.of(context)!.eris, dwarfPlanetColor['eris']!),
+      if (settings.isHaumeaVisible)
+        legend(
+            AppLocalizations.of(context)!.haumea, dwarfPlanetColor['haumea']!),
+      if (settings.isMakemakeVisible)
+        legend(AppLocalizations.of(context)!.makemake,
+            dwarfPlanetColor['makemake']!),
+      if (settings.isHalleyVisible)
+        legend(AppLocalizations.of(context)!.halley, cometColor['halley']!),
+      if (settings.isEnckeVisible)
+        legend(AppLocalizations.of(context)!.encke, cometColor['encke']!),
+      if (settings.isFayeVisible)
+        legend(AppLocalizations.of(context)!.faye, cometColor['faye']!),
+      if (settings.isDArrestVisible)
+        legend(AppLocalizations.of(context)!.dArrest, cometColor['dArrest']!),
+      if (settings.isPonsWinneckeVisible)
+        legend(AppLocalizations.of(context)!.ponsWinnecke,
+            cometColor['ponsWinnecke']!),
+      if (settings.isTuttleVisible)
+        legend(AppLocalizations.of(context)!.tuttle, cometColor['tuttle']!),
+      if (settings.isTempel1Visible)
+        legend(AppLocalizations.of(context)!.tempel1, cometColor['tempel1']!),
+      if (settings.isTempel2Visible)
+        legend(AppLocalizations.of(context)!.tempel2, cometColor['tempel2']!),
     ]);
   }
 

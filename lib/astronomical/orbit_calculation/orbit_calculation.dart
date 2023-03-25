@@ -97,6 +97,79 @@ class OrbitCalculationWithMeanMotion {
   }
 }
 
+class OrbitCalculationWithPerihelionPassage {
+  final double t;
+
+  const OrbitCalculationWithPerihelionPassage._internal(this.t);
+
+  factory OrbitCalculationWithPerihelionPassage(TimeModel timeModel) {
+    final t = timeModel.jd;
+    return OrbitCalculationWithPerihelionPassage._internal(t);
+  }
+
+  Offset3D calculatePosition(OrbitalElementWithPerihelionPassage object) {
+    final e = object.e(t);
+    // if (e < 1) {
+    const mu = 1.32712440018e20; // μ, gravitationParameter
+    final a = object.a(t); // semi-major axis
+    final aInM = a * auInKm * 1000;
+    final period = sqrt(4 * pi * pi / mu * aInM * aInM * aInM) / 86400;
+    final tp = object.tp(t);
+    final ma = (t - tp) / period * fullTurn;
+    final ea = calculateEccentricAnomaly(ma: ma, e: e);
+    return calculatePositionFromEa(object, ea);
+    /*
+    } else if (e > 1) {
+    // in case of hyperbolic trajectory
+    // from Wikipedia
+    const mu = 1.32712440018e20; // μ, gravitationParameter
+    final a = object.a(t); // semi-major axis
+    final e = object.e(t); // eccentricity
+    final tp = object.tp(t); // perihelion passage
+    // Barker's equation
+    // t - τ = 1 / 2 * sqrt(l / GM) * (D + 1 / 3 * D ^ 3)
+    // D = tan(ν / 2)
+    // D ^ 3 + 3 * D + 2 * (τ - t) / 3 / sqrt(a * (e ^ 2 - 1) / µ) = 0
+    //
+    // Cardano's formula
+    // x ^ 3 + p x + q = 0
+    // x = (-q / 2 + sqrt((q / 2) ^ 2 + (p / 3) ^ 3)) ^ (1 / 3)
+    //     + (-q / 2 - sqrt(q / 2) ^ 2 + (p / 3) ^ 3)) ^ (1 / 3)
+    //
+    // p = 3
+    // q = 2 * (τ - t) / 3 / sqrt(a * (e ^ 2 - 1) / µ)
+
+    const p = 3;
+    final q =
+        2 * (t - tp) / 3 / sqrt(a * auInKm * 1000 * (e * e - 1) / mu) / 86400;
+    final q2 = q / 2;
+    const p3 = p / 3;
+    final d = pow(-q2 + sqrt(q2 * q2 + p3 * p3), 1 / 3) +
+        pow(-q2 - sqrt(q2 * q2 + p3 * p3), 1 / 3);
+    final ta = atan(d) * 2; // true anomaly
+
+      // final ma = ((t - object.tp(t)) * object.n(t) * 86400 % 360) * degInRad;
+      //
+    }
+     */
+  }
+
+  Offset3D calculatePositionFromEa(
+      OrbitalElementWithPerihelionPassage object, double ea) {
+    final e = object.e(t);
+    final i = object.i(t) * degInRad;
+    final a = object.a(t);
+    final p = object.argPeri(t) * degInRad;
+    final longNode = object.longNode(t) * degInRad;
+    final b = a * sqrt(1 - e * e);
+
+    final x = a * (cos(ea) - e);
+    final y = b * sin(ea);
+
+    return Offset3D(x, y, 0).rotateZ(p).rotateX(i).rotateZ(longNode);
+  }
+}
+
 /// Returns eccentric anomaly calculated by Kepler's equation.
 ///
 /// [e] Eccentricity

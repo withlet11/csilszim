@@ -49,6 +49,17 @@ const dwarfPlanetColor = {
   'makemake': Color(0xffb9beb4),
 };
 
+const cometColor = {
+  'halley': Color(0xffffd7a0),
+  'encke': Color(0xfffaaf3c),
+  'faye': Color(0xff37aae1),
+  'dArrest': Color(0xffff5050),
+  'ponsWinnecke': Color(0xffb9beb4),
+  'tuttle': Color(0xffc8a05f),
+  'tempel1': Color(0xffa0c8fa),
+  'tempel2': Color(0xff3232e1),
+};
+
 const labelTextStyle = TextStyle(
   color: Colors.grey,
   fontSize: 18.0,

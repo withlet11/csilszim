@@ -29,7 +29,7 @@ import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
-import '../provider/momentary_sky_view_setting_provider.dart';
+import 'momentary_sky_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'configs.dart';
 import 'stereographic_projection.dart';

@@ -34,7 +34,7 @@ import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
-import '../provider/momentary_sky_view_setting_provider.dart';
+import 'momentary_sky_view_setting_provider.dart';
 import '../utilities/fps_counter.dart';
 import '../provider/location_provider.dart';
 import '../utilities/offset_3d.dart';
