@@ -59,7 +59,7 @@ class MercatorProjection {
   }
 
   Equatorial xyToEquatorial(Offset offset) {
-    final centerOffset = Offset(centerEquatorial.ra,
+    final centerOffset = Offset(-centerEquatorial.ra,
         -log(tan((quarterTurn + centerEquatorial.dec) / 2)));
     final dec =
         atan(exp(-offset.dy / scale - centerOffset.dy)) * 2 - quarterTurn;
