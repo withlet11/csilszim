@@ -26,6 +26,7 @@ enum View {
   momentary,
   wholeNight,
   orbit,
+  objectList,
 }
 
 final viewSelectProvider = StateProvider<View>((ref) => View.clock);

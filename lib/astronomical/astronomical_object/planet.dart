@@ -21,8 +21,7 @@
 
 import 'dart:math';
 
-import 'package:csilszim/constants.dart';
-
+import '../../constants.dart';
 import '../../utilities/offset_3d.dart';
 import '../coordinate_system/equatorial_coordinate.dart';
 import '../orbit_calculation/orbital_element.dart';

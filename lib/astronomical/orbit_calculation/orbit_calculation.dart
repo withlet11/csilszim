@@ -21,8 +21,7 @@
 
 import 'dart:math';
 
-import 'package:csilszim/constants.dart';
-
+import '../../constants.dart';
 import '../../utilities/offset_3d.dart';
 import '../constants/common.dart';
 import '../time_model.dart';

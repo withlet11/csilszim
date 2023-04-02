@@ -30,6 +30,11 @@ const zoomingRate2 = 1.01157945426; // pow(10, 0.001)
 
 const backgroundColor = Color(0xff192029);
 
+const sunSize = 8.0;
+const planetSize = 4.0;
+
+const sunColor = Colors.amber;
+
 const planetColor = {
   'mercury': Color(0xffffd7a0),
   'venus': Color(0xfffaaf3c),

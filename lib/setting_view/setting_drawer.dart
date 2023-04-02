@@ -56,7 +56,8 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
       appLocalization.clock: View.clock,
       appLocalization.momentarySkyView: View.momentary,
       appLocalization.wholeNightSkyView: View.wholeNight,
-      appLocalization.orbit: View.orbit
+      appLocalization.orbit: View.orbit,
+      appLocalization.objectList: View.objectList
     };
     return Drawer(
       child: ListView(
@@ -88,18 +89,17 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ],
           )),
           for (final entry in viewList.entries)
-            ListTile(
+            RadioListTile<View>(
               title: Text(entry.key),
-              tileColor: viewSelect == entry.value
-                  ? Theme.of(context).colorScheme.secondary
-                  : null,
-              onTap: () {
-                ref.read(viewSelectProvider.notifier).state = entry.value;
+              value: entry.value,
+              groupValue: viewSelect,
+              onChanged: (View? value) {
+                if (value != null) {
+                  ref.read(viewSelectProvider.notifier).state = value;
+                }
               },
             ),
-          const Divider(
-            thickness: 2.0,
-          ),
+          const Divider(),
           if (viewSelect == View.momentary)
             SwitchListTile(
               title: Text(appLocalization.azimuthalGrid),
@@ -227,120 +227,119 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
               },
             ),
           if (viewSelect == View.orbit)
-            CheckboxListTile(
-              title: Text(appLocalization.mercury),
-              value: orbitViewSetting.isMercuryVisible,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value != null) {
-                    ref
-                        .read(orbitViewSettingProvider.notifier)
-                        .mercuryVisibility = value;
-                  }
-                });
-              },
+            ExpansionTile(
+              title: Text(appLocalization.planets),
+              children: [
+                CheckboxListTile(
+                  title: Text(appLocalization.mercury),
+                  value: orbitViewSetting.isMercuryVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .mercuryVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.venus),
+                  value: orbitViewSetting.isVenusVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .venusVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.earth),
+                  value: orbitViewSetting.isEarthVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .earthVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.mars),
+                  value: orbitViewSetting.isMarsVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .marsVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.jupiter),
+                  value: orbitViewSetting.isJupiterVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .jupiterVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.saturn),
+                  value: orbitViewSetting.isSaturnVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .saturnVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.uranus),
+                  value: orbitViewSetting.isUranusVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .uranusVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.neptune),
+                  value: orbitViewSetting.isNeptuneVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .neptuneVisibility = value;
+                      }
+                    });
+                  },
+                ),
+              ],
             ),
           if (viewSelect == View.orbit)
-            CheckboxListTile(
-              title: Text(appLocalization.venus),
-              value: orbitViewSetting.isVenusVisible,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value != null) {
-                    ref
-                        .read(orbitViewSettingProvider.notifier)
-                        .venusVisibility = value;
-                  }
-                });
-              },
-            ),
-          if (viewSelect == View.orbit)
-            CheckboxListTile(
-              title: Text(appLocalization.earth),
-              value: orbitViewSetting.isEarthVisible,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value != null) {
-                    ref
-                        .read(orbitViewSettingProvider.notifier)
-                        .earthVisibility = value;
-                  }
-                });
-              },
-            ),
-          if (viewSelect == View.orbit)
-            CheckboxListTile(
-              title: Text(appLocalization.mars),
-              value: orbitViewSetting.isMarsVisible,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value != null) {
-                    ref.read(orbitViewSettingProvider.notifier).marsVisibility =
-                        value;
-                  }
-                });
-              },
-            ),
-          if (viewSelect == View.orbit)
-            CheckboxListTile(
-              title: Text(appLocalization.jupiter),
-              value: orbitViewSetting.isJupiterVisible,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value != null) {
-                    ref
-                        .read(orbitViewSettingProvider.notifier)
-                        .jupiterVisibility = value;
-                  }
-                });
-              },
-            ),
-          if (viewSelect == View.orbit)
-            CheckboxListTile(
-              title: Text(appLocalization.saturn),
-              value: orbitViewSetting.isSaturnVisible,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value != null) {
-                    ref
-                        .read(orbitViewSettingProvider.notifier)
-                        .saturnVisibility = value;
-                  }
-                });
-              },
-            ),
-          if (viewSelect == View.orbit)
-            CheckboxListTile(
-              title: Text(appLocalization.uranus),
-              value: orbitViewSetting.isUranusVisible,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value != null) {
-                    ref
-                        .read(orbitViewSettingProvider.notifier)
-                        .uranusVisibility = value;
-                  }
-                });
-              },
-            ),
-          if (viewSelect == View.orbit)
-            CheckboxListTile(
-              title: Text(appLocalization.neptune),
-              value: orbitViewSetting.isNeptuneVisible,
-              onChanged: (bool? value) {
-                setState(() {
-                  if (value != null) {
-                    ref
-                        .read(orbitViewSettingProvider.notifier)
-                        .neptuneVisibility = value;
-                  }
-                });
-              },
-            ),
-          if (viewSelect == View.orbit)
-          ExpansionTile(
-            title: Text(appLocalization.dwarfPlanets),
-            children: [
+            ExpansionTile(
+              title: Text(appLocalization.dwarfPlanets),
+              children: [
                 CheckboxListTile(
                   title: Text(appLocalization.ceres),
                   value: orbitViewSetting.isCeresVisible,
@@ -393,129 +392,129 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                     });
                   },
                 ),
-              CheckboxListTile(
-                title: Text(appLocalization.makemake),
-                value: orbitViewSetting.isMakemakeVisible,
-                onChanged: (bool? value) {
-                  setState(() {
-                    if (value != null) {
-                      ref
-                          .read(orbitViewSettingProvider.notifier)
-                          .makemakeVisibility = value;
-                    }
-                  });
-                },
-              ),
-            ],
-          ),
+                CheckboxListTile(
+                  title: Text(appLocalization.makemake),
+                  value: orbitViewSetting.isMakemakeVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .makemakeVisibility = value;
+                      }
+                    });
+                  },
+                ),
+              ],
+            ),
           if (viewSelect == View.orbit)
             ExpansionTile(
               title: Text(appLocalization.comets),
               children: [
-                  CheckboxListTile(
-                    title: Text(appLocalization.halley),
-                    value: orbitViewSetting.isHalleyVisible,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value != null) {
-                          ref
-                              .read(orbitViewSettingProvider.notifier)
-                              .halleyVisibility = value;
-                        }
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: Text(appLocalization.encke),
-                    value: orbitViewSetting.isEnckeVisible,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value != null) {
-                          ref
-                              .read(orbitViewSettingProvider.notifier)
-                              .enckeVisibility = value;
-                        }
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: Text(appLocalization.faye),
-                    value: orbitViewSetting.isFayeVisible,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value != null) {
-                          ref
-                              .read(orbitViewSettingProvider.notifier)
-                              .fayeVisibility = value;
-                        }
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: Text(appLocalization.dArrest),
-                    value: orbitViewSetting.isDArrestVisible,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value != null) {
-                          ref
-                              .read(orbitViewSettingProvider.notifier)
-                              .dArrestVisibility = value;
-                        }
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: Text(appLocalization.ponsWinnecke),
-                    value: orbitViewSetting.isPonsWinneckeVisible,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value != null) {
-                          ref
-                              .read(orbitViewSettingProvider.notifier)
-                              .ponsWinneckeVisibility = value;
-                        }
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: Text(appLocalization.tuttle),
-                    value: orbitViewSetting.isTuttleVisible,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value != null) {
-                          ref
-                              .read(orbitViewSettingProvider.notifier)
-                              .tuttleVisibility = value;
-                        }
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: Text(appLocalization.tempel1),
-                    value: orbitViewSetting.isTempel1Visible,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value != null) {
-                          ref
-                              .read(orbitViewSettingProvider.notifier)
-                              .tempel1Visibility = value;
-                        }
-                      });
-                    },
-                  ),
-                  CheckboxListTile(
-                    title: Text(appLocalization.tempel2),
-                    value: orbitViewSetting.isTempel2Visible,
-                    onChanged: (bool? value) {
-                      setState(() {
-                        if (value != null) {
-                          ref
-                              .read(orbitViewSettingProvider.notifier)
-                              .tempel2Visibility = value;
-                        }
-                      });
-                    },
-                  ),
+                CheckboxListTile(
+                  title: Text(appLocalization.halley),
+                  value: orbitViewSetting.isHalleyVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .halleyVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.encke),
+                  value: orbitViewSetting.isEnckeVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .enckeVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.faye),
+                  value: orbitViewSetting.isFayeVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .fayeVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.dArrest),
+                  value: orbitViewSetting.isDArrestVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .dArrestVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.ponsWinnecke),
+                  value: orbitViewSetting.isPonsWinneckeVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .ponsWinneckeVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.tuttle),
+                  value: orbitViewSetting.isTuttleVisible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .tuttleVisibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.tempel1),
+                  value: orbitViewSetting.isTempel1Visible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .tempel1Visibility = value;
+                      }
+                    });
+                  },
+                ),
+                CheckboxListTile(
+                  title: Text(appLocalization.tempel2),
+                  value: orbitViewSetting.isTempel2Visible,
+                  onChanged: (bool? value) {
+                    setState(() {
+                      if (value != null) {
+                        ref
+                            .read(orbitViewSettingProvider.notifier)
+                            .tempel2Visibility = value;
+                      }
+                    });
+                  },
+                ),
               ],
             ),
         ],

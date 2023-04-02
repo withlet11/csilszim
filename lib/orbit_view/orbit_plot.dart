@@ -133,12 +133,13 @@ class _ProjectionRenderer extends CustomPainter {
     _drawOrbitOfComets(canvas, center, scale);
 
     final list = <_PositionAndColor>[];
+    _calculateSunPosition(list);
     _calculatePlanetPosition(timeModel, interval, repetition, list);
     _calculateDwarfPlanetPosition(timeModel, interval, repetition, list);
     _calculateCometPosition(timeModel, interval, repetition, list);
-    list.sort((a, b) => a.position.z.compareTo(b.position.z));
-
+    list.sort((a, b) => b.position.z.compareTo(a.position.z));
     _drawObjects(canvas, center, scale, list);
+
     _drawPlanetLabel(canvas, center, scale);
     _drawDwarfPlanetLabel(canvas, center, scale);
     _drawCometLabel(canvas, center, scale);
@@ -158,6 +159,12 @@ class _ProjectionRenderer extends CustomPainter {
 
     canvas.drawRect(
         Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)), paint);
+  }
+
+  void _calculateSunPosition(List<_PositionAndColor> list) {
+    final pos = projection.transform(Offset3D.zero);
+    const color = sunColor;
+    list.add(_PositionAndColor(pos, color, sunSize));
   }
 
   void _calculatePlanetPosition(TimeModel time, double interval, int repetition,
@@ -213,35 +220,17 @@ class _ProjectionRenderer extends CustomPainter {
 
   void _drawObjects(Canvas canvas, Offset center, double scale,
       List<_PositionAndColor> list) {
-    for (final object in list.where((e) => e.position.z < 0)) {
-      final pos = object.position.toXy(center, scale);
-      if (pos != null) _drawPlanet(canvas, pos, object.color);
-    }
-
-    _drawSun(canvas, center);
-
-    for (final object in list.where((e) => e.position.z >= 0)) {
-      final pos = object.position.toXy(center, scale);
-      if (pos != null) _drawPlanet(canvas, pos, object.color);
-    }
-  }
-
-  void _drawPlanet(Canvas canvas, Offset pos, Color? color) {
     final paint = Paint()
-      ..color = color ?? Colors.white
       ..style = PaintingStyle.fill
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 1;
-    canvas.drawCircle(pos, 4, paint);
-  }
-
-  void _drawSun(Canvas canvas, Offset center) {
-    final paintFillRed = Paint()
-      ..color = Colors.amber
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1;
-    canvas.drawCircle(center, 8, paintFillRed);
+    for (final object in list) {
+      final pos = object.position.toXy(center, scale);
+      if (pos != null) {
+        paint.color = object.color;
+        canvas.drawCircle(pos, object.size, paint);
+      }
+    }
   }
 
   void _drawPlanetLabel(Canvas canvas, Offset center, double scale) {
@@ -488,6 +477,7 @@ class _ProjectionRenderer extends CustomPainter {
 class _PositionAndColor {
   final Perspective position;
   final Color color;
+  final double size;
 
-  const _PositionAndColor(this.position, this.color);
+  const _PositionAndColor(this.position, this.color, [this.size = planetSize]);
 }

@@ -21,10 +21,9 @@
 
 import 'dart:math';
 
-import 'package:csilszim/astronomical/constants/earth.dart';
-import 'package:csilszim/utilities/offset_3d.dart';
-
 import '../../constants.dart';
+import '../../utilities/offset_3d.dart';
+import '../constants/earth.dart';
 import 'equatorial_coordinate.dart';
 
 /// A position in the ecliptic coordinate system.

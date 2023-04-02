@@ -19,10 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:csilszim/astronomical/astronomical_object/deep_sky_object.dart';
-import 'package:csilszim/constants.dart';
 import 'package:flutter/services.dart';
 
+import '../constants.dart';
+import 'astronomical_object/deep_sky_object.dart';
 import 'constellation/constellation_line.dart';
 import 'constellation/constellation_name.dart';
 import 'coordinate_system/equatorial_coordinate.dart';
@@ -142,7 +142,7 @@ class StarCatalogue {
             decStr.length > 1 ? double.parse(decStr[1].group(0) ?? '0.0') : 0.0;
         final decSec =
             decStr.length > 2 ? double.parse(decStr[2].group(0) ?? '0.0') : 0.0;
-        final dec = (e[9][0] == '\u2212' ? -1 : 1) * (decDeg + (decMin + decSec / 60.0) / 60.0) *
+        final dec = (e[9][0] == minusSign ? -1 : 1) * (decDeg + (decMin + decSec / 60.0) / 60.0) *
             degInRad;
 
         messierList.add(DeepSkyObject(

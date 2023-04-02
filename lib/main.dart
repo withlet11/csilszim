@@ -19,22 +19,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:csilszim/provider/language_select_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 import 'astronomical/star_catalogue.dart';
 import 'clock_view/clock_view.dart';
 import 'configs.dart';
 import 'momentary_sky_view/momentary_sky_view.dart';
+import 'object_list_view/object_list_view.dart';
 import 'orbit_view/orbit_view.dart';
+import 'provider/language_select_provider.dart';
+import 'provider/location_provider.dart';
 import 'provider/view_select_provider.dart';
 import 'setting_view/location_setting_view.dart';
 import 'setting_view/setting_drawer.dart';
-import 'provider/location_provider.dart';
-
 import 'utilities/language_selection.dart';
 import 'utilities/sexagesimal_angle.dart';
 import 'whole_night_sky_view/whole_night_sky_view.dart';
@@ -79,7 +80,6 @@ class MyApp extends ConsumerWidget {
       theme: ThemeData(
         brightness: Brightness.dark,
         // primaryColor: Colors.lightBlue[800],
-
       ),
       debugShowCheckedModeBanner: false,
       title: appName,
@@ -143,11 +143,16 @@ class _HomePageState extends ConsumerState<HomePage> {
                         : viewSelect == View.orbit
                             ? const OrbitView(
                                 key: PageStorageKey<String>(_keyOrbitView))
-                            : WholeNightSkyView(
-                                key: const PageStorageKey<String>(
-                                    _keyWholeNightSkyView),
-                                starCatalogue: snapshot.data as StarCatalogue,
-                              ));
+                            : viewSelect == View.wholeNight
+                                ? WholeNightSkyView(
+                                    key: const PageStorageKey<String>(
+                                        _keyWholeNightSkyView),
+                                    starCatalogue:
+                                        snapshot.data as StarCatalogue,
+                                  )
+                                : ObjectListView(
+                                    starCatalogue:
+                                        snapshot.data as StarCatalogue));
           } else {
             return Theme(
                 data: ThemeData.dark(),

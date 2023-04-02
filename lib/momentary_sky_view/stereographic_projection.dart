@@ -22,9 +22,8 @@
 import 'dart:math';
 import 'dart:ui';
 
-import 'package:csilszim/constants.dart';
-
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
+import '../constants.dart';
 import 'configs.dart';
 
 class StereographicProjection {

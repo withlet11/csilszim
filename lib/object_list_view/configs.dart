@@ -1,5 +1,5 @@
 /*
- * constants.dart
+ * configs.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -21,18 +21,20 @@
 
 import 'dart:math';
 
-const half = 0.5;
+import 'package:flutter/material.dart';
 
-const quarterTurn = 0.5 * pi;
-const halfTurn = pi;
-const fullTurn = 2 * pi;
+const highAltitudeColor = Color(0xffffdede);
+const middleAltitudeColor = Color(0xffdfb7b7);
+const lowAltitudeColor = Color(0xffaf9e9e);
+const invisible = Color(0xff9e9e9e);
 
-const degInRad = pi / 180;
-const radInDeg = 180 / pi;
-const hourInRad = pi / 12;
-const radInHour = 12 / pi;
+const highAltitude = pi * 45.0 / 360.0;
+const middleAltitude = pi * 20.0 / 360.0;
+const lowAltitude = 0.0;
 
-const degSign = '\u00b0'; // °
-const minSign = '\u2032'; // ′
-const secSign = '\u2033'; // ″
-const minusSign = '\u2212'; // −
+const numberColumnWidth = 30.0;
+const typeColumnWidth = 25.0;
+const angleColumnWidth = 60.0;
+
+const signSize = 20.0;
+const strokeWidth = 1.0;

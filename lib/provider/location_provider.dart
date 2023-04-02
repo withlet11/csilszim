@@ -19,10 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:csilszim/configs.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
+import '../configs.dart';
 import '../utilities/sexagesimal_angle.dart';
 
 class LocationProvider extends StateNotifier<Geographic> {

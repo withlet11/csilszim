@@ -21,8 +21,7 @@
 
 import 'dart:math';
 
-import 'package:csilszim/constants.dart';
-
+import '../../constants.dart';
 import 'equatorial_coordinate.dart';
 import 'geographic_coordinate.dart';
 import 'horizontal_coordinate.dart';

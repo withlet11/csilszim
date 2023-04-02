@@ -788,7 +788,7 @@ class _ProjectionRenderer extends CustomPainter {
     canvas.drawCircle(offset.translate(-radius * 3, 0.0), radius, paint);
     canvas.drawCircle(offset.translate(radius * 3, 0.0), radius, paint);
     canvas.drawRect(
-        Rect.fromCenter(center: offset, width: 9.0, height: 3.0), paint);
+        Rect.fromCenter(center: offset, width: radius * 6, height: radius * 2), paint);
     canvas.drawCircle(offset, radius, paint);
   }
 }

@@ -61,6 +61,22 @@ equation 14.
 Equation 4.26  
 sin _h_ = sin _φ_ sin _δ_ + cos _φ_ cos _δ_ cos _t_
 
+### [IAU Office of Astronomy for Education](https://www.astro4edu.org/)
+
+#### [GLOSSARY TERM: AZIMUTH](https://www.astro4edu.org/resources/glossary/term/36/)
+
+Description: In a horizontal coordinate system, azimuth refers to the direction
+(along the horizon) at which the object is found. It is measured in degrees
+starting from the north and towards the east. Azimuth values cover a full circle
+from 0 deg. to 360 deg. In other words, if you draw an imaginary arc on the
+celestial sphere from the object to the horizon and perpendicular to the horizon,
+the azimuth will tell you the location of the point where this arc meets the
+horizon. <ins>An object located directly north would have 0 deg</ins>. azimuth, an object
+directly east would have 90 deg. azimuth and so on. <ins>In older textbooks used in
+multiple countries, the convention was to start measuring the azimuth from the
+south towards the west.</ins> Thus, azimuth values in those textbooks would be shifted
+by 180 deg.
+
 ---
 
 ## Terminology

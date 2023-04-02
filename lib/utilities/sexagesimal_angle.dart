@@ -85,7 +85,7 @@ class DmsAngle {
   /// Requires [deg] >= -90 and [deg] <= 90.
   String toDmsWithSign() {
     final twoDigits = NumberFormat("00");
-    return '${isNegative ? '-' : '+'}${twoDigits.format(deg)}$degSign'
+    return '${isNegative ? minusSign : '+'}${twoDigits.format(deg)}$degSign'
         '${twoDigits.format(min)}$minSign'
         '${twoDigits.format(sec)}$secSign';
   }

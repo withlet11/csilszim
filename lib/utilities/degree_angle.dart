@@ -1,5 +1,5 @@
 /*
- * constants.dart
+ * degree_angle.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -19,20 +19,18 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'dart:math';
+import 'package:csilszim/constants.dart';
 
-const half = 0.5;
+class DegreeAngle {
+  final double angle;
 
-const quarterTurn = 0.5 * pi;
-const halfTurn = pi;
-const fullTurn = 2 * pi;
+  const DegreeAngle(this.angle);
 
-const degInRad = pi / 180;
-const radInDeg = 180 / pi;
-const hourInRad = pi / 12;
-const radInHour = 12 / pi;
+  String withSign([fractionDigits = 0]) =>
+      (angle.isNegative ? minusSign : '+') +
+      angle.abs().toStringAsFixed(fractionDigits) +
+      degSign;
 
-const degSign = '\u00b0'; // °
-const minSign = '\u2032'; // ′
-const secSign = '\u2033'; // ″
-const minusSign = '\u2212'; // −
+  String withoutSign([fractionDigits = 0]) =>
+      (angle % 360.0).toStringAsFixed(fractionDigits) + degSign;
+}
