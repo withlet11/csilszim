@@ -89,5 +89,7 @@
         "format": "compact"
       }
     }
-  }
+  },
+  "fov": "Field of view",
+  "tfov": "True field fo view"
 }

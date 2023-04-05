@@ -67,5 +67,47 @@ class MercatorProjection {
     return Equatorial.fromRadians(dec: dec, ra: ra);
   }
 
-  double lengthOfFullTurn(unitLength) => fullTurn * scale * unitLength;
+  double lengthOfFullTurn(double unitLength) => fullTurn * scale * unitLength;
+
+  /// Returns a list of points on a circle.
+  ///
+  /// [angle] is the radius of the circle on the celestial sphere.
+  /// The rotate angle is slight less than 2π. The start angle is [min] * 2π,
+  /// if the declination of the view center is positive. If not, it is
+  /// π + [min] * 2π. In the case that the view center is near the celestial
+  /// pole, the circle is open.
+  List<Offset> pointsOnCircle(Offset center, double unitLength, double angle) {
+    final centerDec = centerEquatorial.dec;
+    final centerRa = centerEquatorial.ra;
+
+    final sinAngle = sin(angle);
+    final cosAngle = cos(angle);
+    final sinCenterDec = sin(centerDec);
+    final cosCenterDec = cos(centerDec);
+    final cosCenterDecCosAngle = cosCenterDec * cosAngle;
+    final sinCenterDecSinAngle = sinCenterDec * sinAngle;
+    final sinCenterDecCosAngle = sinCenterDec * cosAngle;
+    final cosCenterDecSinAngle = cosCenterDec * sinAngle;
+
+    var list = <Offset>[];
+
+    final startPosition = centerDec.isNegative ? halfTurn : 0.0;
+    const repetition = 90;
+    const min = 1.0e-10; // enough small
+    const max = 1.0 - min;
+    for (var i = 0; i <= repetition; ++i) {
+      final direction =
+          (min + i / repetition * (max - min)) * fullTurn + startPosition;
+      final Equatorial equatorial;
+      final cosDirection = cos(direction);
+      final ra = atan2(sinAngle * sin(direction),
+              cosCenterDecCosAngle - sinCenterDecSinAngle * cosDirection) +
+          centerRa;
+      final dec =
+          asin(sinCenterDecCosAngle + cosCenterDecSinAngle * cosDirection);
+      equatorial = Equatorial.fromRadians(dec: dec, ra: ra);
+      list.add(equatorialToXy(equatorial, center, unitLength));
+    }
+    return list;
+  }
 }

@@ -239,10 +239,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
     // the first time.
     if (_latitude == null || _longitude == null) {
       List<DmsAngle> args =
-      ModalRoute
-          .of(context)
-          ?.settings
-          .arguments as List<DmsAngle>;
+          ModalRoute.of(context)?.settings.arguments as List<DmsAngle>;
       if (args.length == 2) {
         _latitude = args[0];
         _longitude = args[1];
@@ -298,8 +295,10 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                         negativeLabel: 'N',
                         positiveLabel: 'S',
                         onPressed: (int index) {
-                          _latitude = (_latitude ?? DmsAngle.zero)
-                              .copyWith(isNegative: index == 1);
+                          setState(() {
+                            _latitude = (_latitude ?? DmsAngle.zero)
+                                .copyWith(isNegative: index == 1);
+                          });
                         },
                       ),
                       SizedBox(
@@ -347,17 +346,20 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                       ),
                     ),
                     CustomToggleButtons(
-                        focusNode: [
-                          _longNegFieldFocusNode,
-                          _longPosFieldFocusNode
-                        ],
-                        value: _longitude?.isNegative ?? false,
-                        negativeLabel: 'E',
-                        positiveLabel: 'W',
-                        onPressed: (int index) {
+                      focusNode: [
+                        _longNegFieldFocusNode,
+                        _longPosFieldFocusNode
+                      ],
+                      value: _longitude?.isNegative ?? false,
+                      negativeLabel: 'E',
+                      positiveLabel: 'W',
+                      onPressed: (int index) {
+                        setState(() {
                           _longitude = (_longitude ?? DmsAngle.zero)
                               .copyWith(isNegative: index == 1);
-                        }),
+                        });
+                      },
+                    ),
                     SizedBox(
                         width: 50,
                         child: CustomTextFormField(
@@ -468,7 +470,7 @@ class CustomTextFormField extends StatelessWidget {
       focusNode: focusNode,
       textAlign: TextAlign.end,
       keyboardType:
-      const TextInputType.numberWithOptions(signed: false, decimal: false),
+          const TextInputType.numberWithOptions(signed: false, decimal: false),
       decoration: InputDecoration(suffix: Text(unitSign), counterText: ''),
       maxLength: maxLength,
       // validator: validator,
@@ -477,8 +479,7 @@ class CustomTextFormField extends StatelessWidget {
           nextNode.requestFocus();
         }
       },
-      onTap: () =>
-      controller.selection =
+      onTap: () => controller.selection =
           TextSelection(baseOffset: 0, extentOffset: controller.text.length),
     );
   }

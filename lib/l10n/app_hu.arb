@@ -62,5 +62,7 @@
   "interval": "Időköz: ",
   "repetition": "Ismétlés: ",
   "nDays": "{count, plural, other{{count} nap}}",
-  "nYears": "{count, plural, other{{count} év}}"
+  "nYears": "{count, plural, other{{count} év}}",
+  "fov": "Látómező",
+  "tfov": "Valódi látómező"
 }

@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'package:csilszim/whole_night_sky_view/configs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -45,6 +46,14 @@ class WholeNightSkyViewSettingProvider
   set messierObjectVisibility(bool visibility) {
     state = state.copyWith(isMessierObjectVisible: visibility);
   }
+
+  set fovVisibility(bool visibility) {
+    state = state.copyWith(isFovVisible: visibility);
+  }
+
+  set tfov(double angle) {
+    state = state.copyWith(tfov: angle);
+  }
 }
 
 @immutable
@@ -54,6 +63,8 @@ class WholeNightSkyViewSettings {
   final bool isConstellationNameVisible;
   final bool isPlanetVisible;
   final bool isMessierObjectVisible;
+  final bool isFovVisible;
+  final double tfov;
 
   const WholeNightSkyViewSettings({
     this.isEquatorialGridVisible = true,
@@ -61,6 +72,8 @@ class WholeNightSkyViewSettings {
     this.isConstellationNameVisible = false,
     this.isPlanetVisible = true,
     this.isMessierObjectVisible = true,
+    this.isFovVisible = true,
+    this.tfov = defaultTfov,
   });
 
   WholeNightSkyViewSettings copyWith({
@@ -69,6 +82,8 @@ class WholeNightSkyViewSettings {
     bool? isConstellationNameVisible,
     bool? isPlanetVisible,
     bool? isMessierObjectVisible,
+    bool? isFovVisible,
+    double? tfov,
   }) =>
       WholeNightSkyViewSettings(
         isEquatorialGridVisible:
@@ -80,6 +95,8 @@ class WholeNightSkyViewSettings {
         isPlanetVisible: isPlanetVisible ?? this.isPlanetVisible,
         isMessierObjectVisible:
             isMessierObjectVisible ?? this.isMessierObjectVisible,
+        isFovVisible: isFovVisible ?? this.isFovVisible,
+        tfov: tfov ?? this.tfov,
       );
 }
 

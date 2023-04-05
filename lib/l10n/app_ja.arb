@@ -62,5 +62,7 @@
   "interval": "間隔: ",
   "repetition": "回数: ",
   "nDays": "{count, plural, other{{count}日}}",
-  "nYears": "{count, plural, other{{count}年}}"
+  "nYears": "{count, plural, other{{count}年}}",
+  "fov": "視野",
+  "tfov": "実視界"
 }

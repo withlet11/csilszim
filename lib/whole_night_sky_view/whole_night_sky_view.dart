@@ -305,12 +305,14 @@ class _Settings {
   DateTime date;
   bool isLeapYear;
   double dialAngle;
+  double fov;
 
   _Settings({
     required this.projection,
     required this.date,
     required this.isLeapYear,
     required this.dialAngle,
+    required this.fov,
   });
 
   static _Settings defaultValue() {
@@ -319,6 +321,7 @@ class _Settings {
     final yearBegin = DateTime(year).millisecondsSinceEpoch;
     final yearEnd = DateTime(year + 1).millisecondsSinceEpoch;
     final lengthOfYear = yearEnd - yearBegin;
+    const fov = defaultTfov;
 
     return _Settings(
         projection: MercatorProjection(const Equatorial.fromDegreesAndHours(
@@ -326,6 +329,7 @@ class _Settings {
         date: date,
         dialAngle:
             (date.millisecondsSinceEpoch - yearBegin) / lengthOfYear * fullTurn,
-        isLeapYear: lengthOfYear == 366 * 86400 * 1000);
+        isLeapYear: lengthOfYear == 366 * 86400 * 1000,
+        fov: fov);
   }
 }

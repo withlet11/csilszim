@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'package:csilszim/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -225,6 +226,41 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                   }
                 });
               },
+            ),
+          if (viewSelect == View.wholeNight)
+            SwitchListTile(
+              title: Text('${appLocalization.fov} '
+                  '(${wholeNightSkyViewSetting.tfov.toStringAsFixed(1)}$degSign)'),
+              value: wholeNightSkyViewSetting.isFovVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(wholeNightSkyViewSettingProvider.notifier)
+                        .fovVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.wholeNight)
+            ListTile(
+              title: Slider(
+                label: wholeNightSkyViewSetting.tfov.toStringAsFixed(1),
+                min: 1.0,
+                max: 10.0,
+                value: wholeNightSkyViewSetting.tfov,
+                onChanged: wholeNightSkyViewSetting.isFovVisible
+                    ? (double? value) {
+                        setState(() {
+                          if (value != null) {
+                            ref
+                                .read(wholeNightSkyViewSettingProvider.notifier)
+                                .tfov = value;
+                          }
+                        });
+                      }
+                    : null,
+              ),
             ),
           if (viewSelect == View.orbit)
             ExpansionTile(

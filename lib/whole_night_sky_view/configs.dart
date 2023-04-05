@@ -85,3 +85,5 @@ const eclipticLineWidth = 0.5;
 const constellationLineColor = Colors.grey;
 const constellationLineWidth = 0.5;
 
+const fovColor = Colors.red;
+const defaultTfov = 5.0;

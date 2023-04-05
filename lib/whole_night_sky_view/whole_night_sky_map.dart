@@ -62,14 +62,15 @@ class WholeNightSkyMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
         painter: _ProjectionRenderer(
-            projectionModel,
-            mouseEquatorial,
-            sphereModel,
-            starCatalogue,
-            displaySettings,
-            sunEquatorial,
-            planetEquatorialList,
-            planetNameList));
+      projectionModel,
+      mouseEquatorial,
+      sphereModel,
+      starCatalogue,
+      displaySettings,
+      sunEquatorial,
+      planetEquatorialList,
+      planetNameList,
+    ));
   }
 }
 
@@ -128,6 +129,10 @@ class _ProjectionRenderer extends CustomPainter {
 
     if (displaySettings.isPlanetVisible) {
       _drawPlanet(canvas, size);
+    }
+
+    if (displaySettings.isFovVisible) {
+      _drawFOV(canvas, size);
     }
 
     _drawAstronomicalTwilight(canvas, size, sunEquatorial);
@@ -788,8 +793,49 @@ class _ProjectionRenderer extends CustomPainter {
     canvas.drawCircle(offset.translate(-radius * 3, 0.0), radius, paint);
     canvas.drawCircle(offset.translate(radius * 3, 0.0), radius, paint);
     canvas.drawRect(
-        Rect.fromCenter(center: offset, width: radius * 6, height: radius * 2), paint);
+        Rect.fromCenter(center: offset, width: radius * 6, height: radius * 2),
+        paint);
     canvas.drawCircle(offset, radius, paint);
+  }
+
+  void _drawFOV(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
+
+    final paint = Paint()
+      ..color = fovColor
+      ..style = PaintingStyle.stroke;
+
+    final pointList = projectionModel.pointsOnCircle(
+        center, unitLength, displaySettings.tfov / 2 * degInRad);
+
+    final path = Path();
+    if (pointList.first.dx < pointList.last.dx) {
+      if (pointList[0].dx < pointList[1].dx) {
+        // Circle is open. Starts from left side.
+        path.moveTo(0.0, pointList.first.dy);
+        for (final point in pointList) {
+          path.lineTo(point.dx, point.dy);
+        }
+        path.lineTo(size.width, pointList.last.dy);
+      } else {
+        // Circle is closed.
+        path.addPolygon(pointList, true);
+      }
+    } else {
+      if (pointList[0].dx > pointList[1].dx) {
+        // Circle is open. Starts from right side.
+        path.moveTo(size.width, pointList.first.dy);
+        for (final point in pointList) {
+          path.lineTo(point.dx, point.dy);
+        }
+        path.lineTo(0.0, pointList.last.dy);
+      } else {
+        // Circle is closed.
+        path.addPolygon(pointList, true);
+      }
+    }
+    canvas.drawPath(path, paint);
   }
 }
 
