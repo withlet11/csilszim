@@ -28,6 +28,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:tuple/tuple.dart';
 
 import '../astronomical/astronomical_object/deep_sky_object.dart';
+import '../astronomical/astronomical_object/star.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
@@ -36,11 +37,14 @@ import '../astronomical/time_model.dart';
 import '../provider/location_provider.dart';
 import '../utilities/degree_angle.dart';
 import '../utilities/sexagesimal_angle.dart';
+import 'common_header_part.dart';
 
 class ObjectListView extends ConsumerStatefulWidget {
   final StarCatalogue starCatalogue;
+  final TabController tabController;
 
-  const ObjectListView({super.key, required this.starCatalogue});
+  const ObjectListView(
+      {super.key, required this.tabController, required this.starCatalogue});
 
   @override
   ConsumerState createState() => _ObjectListView();
@@ -50,7 +54,8 @@ class _ObjectListView extends ConsumerState<ObjectListView>
     with SingleTickerProviderStateMixin {
   var _timeModel = TimeModel.fromLocalTime();
   late Ticker _ticker;
-  final scrollController = ScrollController();
+  final scrollController1 = ScrollController();
+  final scrollController2 = ScrollController();
   var previousSeconds = 0;
 
   @override
@@ -90,9 +95,14 @@ class _ObjectListView extends ConsumerState<ObjectListView>
 
     final localizations = AppLocalizations.of(context)!;
     final messierList = widget.starCatalogue.messierList as List<DeepSkyObject>;
-    final list = prepareTableRows(sphereModel, locationData, messierList);
+    final brightestStarList =
+        widget.starCatalogue.brightestStarList as List<Star>;
+    final messierTableData =
+        prepareTableRows1(sphereModel, locationData, messierList);
+    final brightestStarTableData =
+        prepareTableRows2(sphereModel, locationData, brightestStarList);
 
-    final header = [
+    final messierTableHeader = [
       Tuple2<double, String>(numberColumnWidth, localizations.hash),
       const Tuple2<double, String>(typeColumnWidth, ''),
       Tuple2<double, String>(angleColumnWidth, localizations.alt),
@@ -102,107 +112,175 @@ class _ObjectListView extends ConsumerState<ObjectListView>
       Tuple2<double, String>(angleColumnWidth, localizations.ra),
     ];
 
-    final tableWidth = header.fold(0.0,
-            (double sum, Tuple2<double, String> item) => sum + item.item1) +
+    final brightestStarTableHeader = [
+      Tuple2<double, String>(nameColumnWidth, localizations.properName),
+      Tuple2<double, String>(angleColumnWidth, localizations.alt),
+      Tuple2<double, String>(angleColumnWidth, localizations.az),
+      Tuple2<double, String>(angleColumnWidth, localizations.dec),
+      Tuple2<double, String>(angleColumnWidth, localizations.ha),
+      Tuple2<double, String>(angleColumnWidth, localizations.ra),
+    ];
+
+    final messierTableWidth = messierTableHeader.fold(
+            0.0, (double sum, Tuple2<double, String> e) => sum + e.item1) +
         40.0;
 
-    final latitude =
-        DmsAngle.fromDegrees(locationData.latInDegrees()).toDmsWithNS();
-    final longitude =
-        DmsAngle.fromDegrees(locationData.longInDegrees()).toDmsWithEW();
-    final utc = _timeModel.utc.toIso8601String().substring(11, 19);
-    final localMeanTime = _timeModel
-        .localMeanTime(locationData.longInDegrees())
-        .toIso8601String()
-        .substring(11, 19);
+    final brightestStarTableWidth = brightestStarTableHeader.fold(
+            0.0, (double sum, Tuple2<double, String> e) => sum + e.item1) +
+        40.0;
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      mainAxisAlignment: MainAxisAlignment.center,
+    final commonHeaderPart = CommonHeaderPart(
+        width: messierTableWidth,
+        localizations: localizations,
+        locationData: locationData,
+        timeModel: _timeModel);
+
+    return TabBarView(
+      controller: widget.tabController,
       children: [
-        SizedBox(
-          width: tableWidth,
-          child: Column(children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text('${localizations.universalTime}: $utc'),
-                Text('${localizations.latitude}: $latitude'),
-              ],
-            ),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                Text('${localizations.meanSolarTime}: $localMeanTime'),
-                Text('${localizations.longitude}: $longitude'),
-              ],
-            ),
-          ]),
-        ),
-        Container(
-          alignment: Alignment.center,
-          child: SizedBox(
-            width: tableWidth,
-            child: DataTable(
-              showCheckboxColumn: false,
-              columnSpacing: 0.0,
-              columns: [
-                for (final item in header)
-                  DataColumn(
-                      label: Container(
-                          width: item.item1,
-                          alignment: Alignment.centerRight,
-                          child: Text(item.item2))),
-              ],
-              rows: const [],
-            ),
-          ),
-        ),
-        Expanded(
-          child: SizedBox(
-            width: tableWidth,
-            child: Scrollbar(
-              thumbVisibility: true,
-              controller: scrollController,
-              child: SingleChildScrollView(
-                controller: scrollController,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            commonHeaderPart,
+            Container(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: messierTableWidth,
                 child: DataTable(
                   showCheckboxColumn: false,
                   columnSpacing: 0.0,
                   columns: [
-                    for (var i = 0; i < header.length; ++i)
+                    for (final item in messierTableHeader)
                       DataColumn(
-                        label: Container(
-                            alignment: i < 1
-                                ? Alignment.centerLeft
-                                : Alignment.centerRight,
-                            width: header[i].item1,
-                            child: list.first[i]),
-                      ),
+                          label: Container(
+                              width: item.item1,
+                              alignment: Alignment.center,
+                              child: Text(item.item2))),
                   ],
-                  rows: [
-                    for (final object in list.sublist(1))
-                      DataRow(
-                        cells: [
-                          DataCell(Container(
-                              alignment: Alignment.centerLeft,
-                              child: object.first)),
-                          for (final e in object.sublist(1))
-                            DataCell(Container(
-                                alignment: Alignment.centerRight, child: e)),
-                        ],
-                      ),
-                  ],
+                  rows: const [],
                 ),
               ),
             ),
-          ),
+            Expanded(
+              child: SizedBox(
+                width: messierTableWidth,
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  controller: scrollController1,
+                  child: SingleChildScrollView(
+                    controller: scrollController1,
+                    child: DataTable(
+                      showCheckboxColumn: false,
+                      columnSpacing: 0.0,
+                      columns: [
+                        for (var i = 0; i < messierTableHeader.length; ++i)
+                          DataColumn(
+                            label: Container(
+                                alignment: i < 1
+                                    ? Alignment.centerLeft
+                                    : Alignment.centerRight,
+                                width: messierTableHeader[i].item1,
+                                child: messierTableData.first[i]),
+                          ),
+                      ],
+                      rows: [
+                        for (final object in messierTableData.sublist(1))
+                          DataRow(
+                            cells: [
+                              DataCell(Container(
+                                  alignment: Alignment.centerLeft,
+                                  child: object.first)),
+                              for (final e in object.sublist(1))
+                                DataCell(Container(
+                                    alignment: Alignment.centerRight,
+                                    child: e)),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            commonHeaderPart,
+            Container(
+              alignment: Alignment.center,
+              child: SizedBox(
+                width: brightestStarTableWidth,
+                child: DataTable(
+                  showCheckboxColumn: false,
+                  columnSpacing: 0.0,
+                  columns: [
+                    for (final item in brightestStarTableHeader)
+                      DataColumn(
+                          label: Container(
+                              width: item.item1,
+                              alignment: Alignment.center,
+                              child: Text(item.item2))),
+                  ],
+                  rows: const [],
+                ),
+              ),
+            ),
+            Expanded(
+              child: SizedBox(
+                width: brightestStarTableWidth,
+                child: Scrollbar(
+                  thumbVisibility: true,
+                  controller: scrollController2,
+                  child: SingleChildScrollView(
+                    controller: scrollController2,
+                    child: DataTable(
+                      showCheckboxColumn: false,
+                      columnSpacing: 0.0,
+                      columns: [
+                        for (var i = 0;
+                            i < brightestStarTableHeader.length;
+                            ++i)
+                          DataColumn(
+                            label: Container(
+                                alignment: i < 1
+                                    ? Alignment.center
+                                    : Alignment.centerRight,
+                                width: brightestStarTableHeader[i].item1,
+                                child: brightestStarTableData.first[i]),
+                          ),
+                      ],
+                      rows: [
+                        for (final object in brightestStarTableData.sublist(1))
+                          DataRow(
+                            cells: [
+                              DataCell(Container(
+                                  alignment: Alignment.center,
+                                  width: brightestStarTableHeader.first.item1,
+                                  child: object.first)),
+                              for (final e in object.sublist(1))
+                                DataCell(Container(
+                                    alignment: Alignment.centerRight,
+                                    width: brightestStarTableHeader[1].item1,
+                                    child: e)),
+                            ],
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 
-  List<List<Widget>> prepareTableRows(SphereModel sphereModel,
+  List<List<Widget>> prepareTableRows1(SphereModel sphereModel,
       Geographic locationData, List<DeepSkyObject> messierList) {
     return messierList.map((DeepSkyObject object) {
       final altAz = sphereModel.equatorialToHorizontal(Equatorial.fromRadians(
@@ -231,6 +309,42 @@ class _ObjectListView extends ConsumerState<ObjectListView>
         Text('M${object.messierNumber}',
             style: textStyle, textAlign: TextAlign.right),
         objectType(object, color),
+        Text(DegreeAngle(altAz.altInDegrees()).withSign(), style: textStyle),
+        Text(DegreeAngle(altAz.azInDegrees()).withoutSign(), style: textStyle),
+        Text(decAsDm, style: textStyle),
+        Text(haAsHm, style: textStyle),
+        Text(raAsHm, style: textStyle),
+      ];
+    }).toList();
+  }
+
+  List<List<Widget>> prepareTableRows2(SphereModel sphereModel,
+      Geographic locationData, List<Star> brightestStarList) {
+    return brightestStarList.map((Star star) {
+      final altAz = sphereModel.equatorialToHorizontal(
+          Equatorial.fromRadians(dec: star.position.dec, ra: star.position.ra));
+      final decAsDms =
+          DmsAngle.fromDegrees(star.position.decInDegrees()).toDmsWithSign();
+      final decAsDm = decAsDms.substring(0, decAsDms.length - 3);
+      final raAsHms = HmsAngle.fromHours(star.position.raInHours()).toHms();
+      final raAsHm = raAsHms.substring(0, raAsHms.length - 3);
+      final haAsHms = HmsAngle.fromHours((_timeModel.gmst / 3600e6 +
+                  locationData.long * radInHour -
+                  star.position.raInHours()) %
+              24.0)
+          .toHms();
+      final haAsHm = haAsHms.substring(0, haAsHms.length - 3);
+      final color = altAz.alt > highAltitude
+          ? highAltitudeColor
+          : altAz.alt > middleAltitude
+              ? middleAltitudeColor
+              : altAz.alt > lowAltitude
+                  ? lowAltitudeColor
+                  : invisible;
+      final textStyle = TextStyle(color: color);
+
+      return <Widget>[
+        Text(star.name.first, style: textStyle, textAlign: TextAlign.center),
         Text(DegreeAngle(altAz.altInDegrees()).withSign(), style: textStyle),
         Text(DegreeAngle(altAz.azInDegrees()).withoutSign(), style: textStyle),
         Text(decAsDm, style: textStyle),

@@ -34,6 +34,7 @@ class StarCatalogue {
   List lineList = <ConstellationLine>[];
   List nameList = <ConstellationName>[];
   List messierList = <DeepSkyObject>[];
+  List brightestStarList = <Star>[];
 
   static Future<StarCatalogue> make() async {
     final starCatalogue = StarCatalogue();
@@ -43,6 +44,7 @@ class StarCatalogue {
         ._loadConstellationLineData('hip_constellation_line.csv');
     await starCatalogue._loadConstellationNameData('constellation_name.csv');
     await starCatalogue._loadDeepSkyObjectData('messier.csv');
+    await starCatalogue._loadBrightestStarData('brightest_stars.csv');
 
     return Future.value(starCatalogue);
   }
@@ -142,7 +144,8 @@ class StarCatalogue {
             decStr.length > 1 ? double.parse(decStr[1].group(0) ?? '0.0') : 0.0;
         final decSec =
             decStr.length > 2 ? double.parse(decStr[2].group(0) ?? '0.0') : 0.0;
-        final dec = (e[9][0] == minusSign ? -1 : 1) * (decDeg + (decMin + decSec / 60.0) / 60.0) *
+        final dec = (e[9][0] == minusSign ? -1 : 1) *
+            (decDeg + (decMin + decSec / 60.0) / 60.0) *
             degInRad;
 
         messierList.add(DeepSkyObject(
@@ -152,6 +155,52 @@ class StarCatalogue {
             magnitude: magnitude,
             type: type,
             name: commonName.split(',')));
+      }
+    }
+  }
+
+  Future<void> _loadBrightestStarData(String filename) async {
+    final text = await rootBundle.loadString('assets/$filename');
+    final numReg = RegExp(r'[0-9]+(\.[0-9]+)?');
+
+    for (final line in text.split('\n')) {
+      final e = line.split('\t');
+      if (e.length >= 8) {
+        final double magnitude;
+        if (e.first[0] == minusSign) {
+          final temp = double.tryParse(e[0].substring(1));
+          if (temp == null) continue;
+          magnitude = -temp;
+        } else {
+          final temp = double.tryParse(e[0]);
+          if (temp == null) continue;
+          magnitude = temp;
+        }
+        final name = e[1];
+        final raStr = numReg.allMatches(e[6]).toList();
+        final raHour =
+            raStr.isNotEmpty ? int.parse(raStr[0].group(0) ?? '0') : 0;
+        final raMin =
+            raStr.length > 1 ? double.parse(raStr[1].group(0) ?? '0.0') : 0.0;
+        final raSec =
+            raStr.length > 2 ? double.parse(raStr[2].group(0) ?? '0.0') : 0.0;
+        final ra = (raHour + (raMin + raSec / 60.0) / 60.0) * hourInRad;
+        final decStr = numReg.allMatches(e[7]).toList();
+        final decDeg =
+            decStr.isNotEmpty ? int.parse(decStr[0].group(0) ?? '0') : 0;
+        final decMin =
+            decStr.length > 1 ? double.parse(decStr[1].group(0) ?? '0.0') : 0.0;
+        final decSec =
+            decStr.length > 2 ? double.parse(decStr[2].group(0) ?? '0.0') : 0.0;
+        final dec = (e[7][0] == minusSign ? -1 : 1) *
+            (decDeg + (decMin + decSec / 60.0) / 60.0) *
+            degInRad;
+
+        brightestStarList.add(Star(
+            position: Equatorial.fromRadians(dec: dec, ra: ra),
+            magnitude: magnitude,
+            name: [name],
+            hipNumber: 0));
       }
     }
   }

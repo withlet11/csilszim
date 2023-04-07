@@ -30,6 +30,7 @@ import '../orbit_view/orbitViewSettingProvider.dart';
 import '../provider/language_select_provider.dart';
 import '../momentary_sky_view/momentary_sky_view_setting_provider.dart';
 import '../provider/view_select_provider.dart';
+import '../whole_night_sky_view/configs.dart';
 import '../whole_night_sky_view/whole_night_sky_view_setting_provider.dart';
 import '../utilities/language_selection.dart';
 
@@ -246,8 +247,8 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ListTile(
               title: Slider(
                 label: wholeNightSkyViewSetting.tfov.toStringAsFixed(1),
-                min: 1.0,
-                max: 10.0,
+                min: minimumTfov,
+                max: maximumTfov,
                 value: wholeNightSkyViewSetting.tfov,
                 onChanged: wholeNightSkyViewSetting.isFovVisible
                     ? (double? value) {

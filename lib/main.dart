@@ -95,12 +95,15 @@ class HomePage extends ConsumerStatefulWidget {
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> {
+class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMixin {
   late Future<StarCatalogue> starCatalogue;
+  late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
+    // _tabController.animateTo(2);
     starCatalogue = StarCatalogue.make();
     loadLocationData();
   }
@@ -116,21 +119,32 @@ class _HomePageState extends ConsumerState<HomePage> {
           if (snapshot.hasError) {
             return const Center(child: Text(_messageError));
           } else if (snapshot.hasData) {
+            final localizations = AppLocalizations.of(context)!;
             return Scaffold(
-                appBar: AppBar(title: const Text(appName), actions: <Widget>[
-                  IconButton(
-                      icon: const Icon(Icons.settings_rounded),
-                      tooltip: AppLocalizations.of(context)!.locationSetting,
-                      onPressed: () async {
-                        final lat =
-                            DmsAngle.fromDegrees(locationData.latInDegrees());
-                        final long =
-                            DmsAngle.fromDegrees(locationData.longInDegrees());
-                        final newOne =
-                            await pushAndPopLocationData([lat, long]);
-                        saveLocationData(newOne);
-                      })
-                ]),
+                appBar: AppBar(
+                  title: const Text(appName),
+                  actions: <Widget>[
+                    IconButton(
+                        icon: const Icon(Icons.settings_rounded),
+                        tooltip: localizations.locationSetting,
+                        onPressed: () async {
+                          final lat =
+                              DmsAngle.fromDegrees(locationData.latInDegrees());
+                          final long = DmsAngle.fromDegrees(
+                              locationData.longInDegrees());
+                          final newOne =
+                              await pushAndPopLocationData([lat, long]);
+                          saveLocationData(newOne);
+                        })
+                  ],
+                  bottom: viewSelect == View.objectList ? TabBar(
+                    controller: _tabController,
+                    tabs: [
+                      Tab(text: localizations.messierObjects),
+                      Tab(text: localizations.brightestStars),
+                    ],
+                  ) : null
+                ),
                 drawer: const SettingDrawer(),
                 body: viewSelect == View.clock
                     ? const ClockView()
@@ -151,6 +165,7 @@ class _HomePageState extends ConsumerState<HomePage> {
                                         snapshot.data as StarCatalogue,
                                   )
                                 : ObjectListView(
+                  tabController: _tabController,
                                     starCatalogue:
                                         snapshot.data as StarCatalogue));
           } else {

@@ -33,6 +33,7 @@ const middleAltitude = pi * 20.0 / 360.0;
 const lowAltitude = 0.0;
 
 const numberColumnWidth = 30.0;
+const nameColumnWidth = 80.0;
 const typeColumnWidth = 25.0;
 const angleColumnWidth = 60.0;
 

@@ -87,3 +87,5 @@ const constellationLineWidth = 0.5;
 
 const fovColor = Colors.red;
 const defaultTfov = 5.0;
+const minimumTfov = 1.0;
+const maximumTfov = 10.0;
