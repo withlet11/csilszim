@@ -1,4 +1,4 @@
-# csilszim
+# Csilszim
 
 An astronomical simulator (hu: Csillagászati szimulátor) project.
 

@@ -19,7 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:csilszim/constants.dart';
+
+import '../constants.dart';
 
 class DegreeAngle {
   final double angle;

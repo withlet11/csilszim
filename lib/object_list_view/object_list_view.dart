@@ -19,8 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:csilszim/constants.dart';
-import 'package:csilszim/object_list_view/configs.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
@@ -34,10 +32,12 @@ import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
+import '../constants.dart';
 import '../provider/location_provider.dart';
 import '../utilities/degree_angle.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'common_header_part.dart';
+import 'configs.dart';
 
 class ObjectListView extends ConsumerStatefulWidget {
   final StarCatalogue starCatalogue;
