@@ -168,11 +168,11 @@ class StarCatalogue {
       if (e.length >= 8) {
         final double magnitude;
         if (e.first[0] == minusSign) {
-          final temp = double.tryParse(e[0].substring(1));
+          final temp = double.tryParse(e[0].substring(1).split(' ').first);
           if (temp == null) continue;
           magnitude = -temp;
         } else {
-          final temp = double.tryParse(e[0]);
+          final temp = double.tryParse(e[0].split(' ').first);
           if (temp == null) continue;
           magnitude = temp;
         }

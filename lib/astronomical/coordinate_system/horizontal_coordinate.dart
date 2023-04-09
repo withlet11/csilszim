@@ -33,20 +33,16 @@ class Horizontal {
 
   const Horizontal.fromRadians({required this.alt, required this.az});
 
-  double altInDegrees() => alt / degInRad;
+  double altInDegrees() => alt * radInDeg;
 
-  double azInDegrees() => az / degInRad;
+  double azInDegrees() => az * radInDeg;
 
   Horizontal operator -(Horizontal other) {
     var tempAlt = alt - other.alt;
     var tempAz = az - other.az;
 
-    if (tempAlt > quarterTurn) {
-      tempAlt = halfTurn - tempAlt;
-      tempAz += halfTurn;
-    } else if (tempAlt < -quarterTurn) {
-      tempAlt = -halfTurn - tempAlt;
-      tempAz += halfTurn;
+    if (tempAlt > quarterTurn || tempAlt < -quarterTurn) {
+      return this;
     }
 
     if (tempAz > fullTurn) {

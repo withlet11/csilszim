@@ -104,12 +104,11 @@ class _ObjectListView extends ConsumerState<ObjectListView>
 
     final messierTableHeader = [
       Tuple2<double, String>(numberColumnWidth, localizations.hash),
-      const Tuple2<double, String>(typeColumnWidth, ''),
+      const Tuple2<double, String>(typeColumnWidth, ' '),
       Tuple2<double, String>(angleColumnWidth, localizations.alt),
       Tuple2<double, String>(angleColumnWidth, localizations.az),
       Tuple2<double, String>(angleColumnWidth, localizations.dec),
       Tuple2<double, String>(angleColumnWidth, localizations.ha),
-      Tuple2<double, String>(angleColumnWidth, localizations.ra),
     ];
 
     final brightestStarTableHeader = [
@@ -118,7 +117,6 @@ class _ObjectListView extends ConsumerState<ObjectListView>
       Tuple2<double, String>(angleColumnWidth, localizations.az),
       Tuple2<double, String>(angleColumnWidth, localizations.dec),
       Tuple2<double, String>(angleColumnWidth, localizations.ha),
-      Tuple2<double, String>(angleColumnWidth, localizations.ra),
     ];
 
     final messierTableWidth = messierTableHeader.fold(
@@ -150,8 +148,14 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                 child: DataTable(
                   showCheckboxColumn: false,
                   columnSpacing: 0.0,
+                  horizontalMargin: 10.0,
                   columns: [
-                    for (final item in messierTableHeader)
+                    DataColumn(
+                        label: Container(
+                            width: messierTableHeader.first.item1,
+                            alignment: Alignment.centerRight,
+                            child: Text(messierTableHeader.first.item2))),
+                    for (final item in messierTableHeader.sublist(1))
                       DataColumn(
                           label: Container(
                               width: item.item1,
@@ -173,11 +177,12 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                     child: DataTable(
                       showCheckboxColumn: false,
                       columnSpacing: 0.0,
+                      horizontalMargin: 10.0,
                       columns: [
                         for (var i = 0; i < messierTableHeader.length; ++i)
                           DataColumn(
                             label: Container(
-                                alignment: i < 1
+                                alignment: i < 2
                                     ? Alignment.centerLeft
                                     : Alignment.centerRight,
                                 width: messierTableHeader[i].item1,
@@ -188,10 +193,10 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                         for (final object in messierTableData.sublist(1))
                           DataRow(
                             cells: [
-                              DataCell(Container(
-                                  alignment: Alignment.centerLeft,
-                                  child: object.first)),
-                              for (final e in object.sublist(1))
+                              for (final e in object.sublist(0, 2))
+                                DataCell(Container(
+                                    alignment: Alignment.centerLeft, child: e)),
+                              for (final e in object.sublist(2))
                                 DataCell(Container(
                                     alignment: Alignment.centerRight,
                                     child: e)),
@@ -217,6 +222,7 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                 child: DataTable(
                   showCheckboxColumn: false,
                   columnSpacing: 0.0,
+                  horizontalMargin: 10.0,
                   columns: [
                     for (final item in brightestStarTableHeader)
                       DataColumn(
@@ -240,6 +246,7 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                     child: DataTable(
                       showCheckboxColumn: false,
                       columnSpacing: 0.0,
+                      horizontalMargin: 10.0,
                       columns: [
                         for (var i = 0;
                             i < brightestStarTableHeader.length;
@@ -288,8 +295,6 @@ class _ObjectListView extends ConsumerState<ObjectListView>
       final decAsDms =
           DmsAngle.fromDegrees(object.position.decInDegrees()).toDmsWithSign();
       final decAsDm = decAsDms.substring(0, decAsDms.length - 3);
-      final raAsHms = HmsAngle.fromHours(object.position.raInHours()).toHms();
-      final raAsHm = raAsHms.substring(0, raAsHms.length - 3);
       final haAsHms = HmsAngle.fromHours((_timeModel.gmst / 3600e6 +
                   locationData.long * radInHour -
                   object.position.raInHours()) %
@@ -313,7 +318,6 @@ class _ObjectListView extends ConsumerState<ObjectListView>
         Text(DegreeAngle(altAz.azInDegrees()).withoutSign(), style: textStyle),
         Text(decAsDm, style: textStyle),
         Text(haAsHm, style: textStyle),
-        Text(raAsHm, style: textStyle),
       ];
     }).toList();
   }
@@ -326,8 +330,6 @@ class _ObjectListView extends ConsumerState<ObjectListView>
       final decAsDms =
           DmsAngle.fromDegrees(star.position.decInDegrees()).toDmsWithSign();
       final decAsDm = decAsDms.substring(0, decAsDms.length - 3);
-      final raAsHms = HmsAngle.fromHours(star.position.raInHours()).toHms();
-      final raAsHm = raAsHms.substring(0, raAsHms.length - 3);
       final haAsHms = HmsAngle.fromHours((_timeModel.gmst / 3600e6 +
                   locationData.long * radInHour -
                   star.position.raInHours()) %
@@ -349,7 +351,6 @@ class _ObjectListView extends ConsumerState<ObjectListView>
         Text(DegreeAngle(altAz.azInDegrees()).withoutSign(), style: textStyle),
         Text(decAsDm, style: textStyle),
         Text(haAsHm, style: textStyle),
-        Text(raAsHm, style: textStyle),
       ];
     }).toList();
   }

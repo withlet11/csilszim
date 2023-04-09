@@ -20,8 +20,10 @@
  */
 
 import 'dart:math';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:tuple/tuple.dart';
 
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
@@ -83,7 +85,7 @@ class _ProjectionRenderer extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _setBackground(canvas, size);
+    _drawHorizon(canvas, size);
 
     if (displaySettings.isHorizontalGridVisible) {
       _drawAzimuthGrid(canvas, size);
@@ -94,19 +96,24 @@ class _ProjectionRenderer extends CustomPainter {
       _drawDeclinationGrid(canvas, size);
     }
 
-    _drawDirectionSign(canvas, size, 'N', 0, true);
-    _drawDirectionSign(canvas, size, 'NE', 45, false);
-    _drawDirectionSign(canvas, size, 'E', 90, true);
-    _drawDirectionSign(canvas, size, 'SE', 135, false);
-    _drawDirectionSign(canvas, size, 'S', 180, true);
-    _drawDirectionSign(canvas, size, 'SW', 225, false);
-    _drawDirectionSign(canvas, size, 'W', 270, true);
-    _drawDirectionSign(canvas, size, 'NW', 315, false);
+    const signList = [
+      Tuple3<String, int, bool>('N', 0, true),
+      Tuple3<String, int, bool>('NE', 45, false),
+      Tuple3<String, int, bool>('E', 90, true),
+      Tuple3<String, int, bool>('SE', 135, false),
+      Tuple3<String, int, bool>('S', 180, true),
+      Tuple3<String, int, bool>('SW', 225, false),
+      Tuple3<String, int, bool>('W', 270, true),
+      Tuple3<String, int, bool>('NW', 315, false),
+    ];
+
+    _drawDirectionSign(canvas, size, signList);
 
     _drawStars(canvas, size);
 
+    final x0 = x0ForCalculatingRadiusOfObject();
     for (final planet in planetList) {
-      _drawPlanet(canvas, size, planet);
+      _drawPlanet(canvas, size, planet, x0);
     }
 
     if (displaySettings.isConstellationLineVisible) {
@@ -151,15 +158,42 @@ class _ProjectionRenderer extends CustomPainter {
     return false;
   }
 
-  void _setBackground(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = backgroundColor
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1;
+  void _drawHorizon(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
 
-    canvas.drawRect(
-        Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)), paint);
+    final Color innerPartColor;
+    final Color outerPartColor;
+    if (projectionModel.centerAltAz.alt.isNegative) {
+      innerPartColor = horizonColor;
+      outerPartColor = backgroundColor;
+    } else {
+      innerPartColor = backgroundColor;
+      outerPartColor = horizonColor;
+    }
+
+    final outerPartPaint = Paint()
+      ..color = outerPartColor
+      ..style = PaintingStyle.fill;
+
+    canvas.drawRect(Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)),
+        outerPartPaint);
+
+    final innerPartPaint = Paint()
+      ..color = innerPartColor
+      ..style = PaintingStyle.fill;
+
+    final list = [
+      for (var i = 0; i < 360; ++i)
+        projectionModel.horizontalToXy(
+            Horizontal.fromDegrees(alt: 0, az: i.toDouble()),
+            center,
+            unitLength),
+    ];
+
+    final path = Path();
+    path.addPolygon(list, true);
+    canvas.drawPath(path, innerPartPaint);
   }
 
   void _drawAzimuthGrid(Canvas canvas, Size size) {
@@ -282,63 +316,59 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawDirectionSign(
-      Canvas canvas, Size size, String sign, int direction, bool isLarge) {
-    final locationTextSpan = TextSpan(
-      style:
-          isLarge ? largeDirectionSignTextStyle : smallDirectionSignTextStyle,
-      text: sign,
-    );
-
-    final locationTextPainter = TextPainter(
-      text: locationTextSpan,
-      textAlign: TextAlign.left,
-      textDirection: TextDirection.ltr,
-    );
-
-    locationTextPainter.layout();
-    final textSize = locationTextPainter.size;
+      Canvas canvas, Size size, List<Tuple3<String, int, bool>> list) {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
-    final position = projectionModel.horizontalToXy(
-            Horizontal.fromDegrees(alt: 0, az: direction.toDouble()),
-            center,
-            unitLength) -
-        textSize.center(Offset.zero);
 
-    locationTextPainter.paint(canvas, position);
+    for (final e in list) {
+      final signTextSpan = TextSpan(
+          style: e.item3
+              ? largeDirectionSignTextStyle
+              : smallDirectionSignTextStyle,
+          text: e.item1);
+
+      final signTextPainter = TextPainter(
+          text: signTextSpan,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr);
+
+      signTextPainter.layout();
+      final textSize = signTextPainter.size;
+      final position = projectionModel.horizontalToXy(
+              Horizontal.fromDegrees(alt: 0, az: e.item2.toDouble()),
+              center,
+              unitLength) -
+          textSize.center(Offset.zero);
+
+      signTextPainter.paint(canvas, position);
+    }
   }
 
   void _drawStars(Canvas canvas, Size size) {
     final paintBlur = Paint()
-      ..color = Colors.white30
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1;
+      ..color = Colors.grey
+      ..imageFilter =
+          ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
+      ..style = PaintingStyle.fill;
 
     final paint = Paint()
       ..color = Colors.grey
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 0.5;
+      ..style = PaintingStyle.fill;
 
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
+    final x0 = x0ForCalculatingRadiusOfObject();
     for (final star in starCatalogue.starList) {
       if (star.hipNumber > 0) {
-        final size = min(
-            3.0 *
-                pow(0.63, star.magnitude) *
-                (log(projectionModel.scale) * 1.2 + 0.8),
-            8.0);
-        // if (star.magnitude < 8) {
-        if (size > 0.2) {
+        final size = radiusOfObject(star.magnitude, x0);
+        if (size > 0.25) {
           final altAz = sphereModel.equatorialToHorizontal(star.position);
-          if (altAz.alt > 0) {
+          if (!altAz.alt.isNegative) {
             final xy =
                 projectionModel.horizontalToXy(altAz, center, unitLength);
-            if (size > 4) {
-              canvas.drawCircle(xy, size, paintBlur);
-              canvas.drawCircle(xy, size - 0.5, paint);
+            if (size > 3.0) {
+              canvas.drawCircle(xy, 3.0 + (size - 3.0) * 0.8, paintBlur);
+              canvas.drawCircle(xy, 3.0 + (size - 3.0) * 0.5, paint);
             } else {
               canvas.drawCircle(xy, size, paint);
             }
@@ -348,35 +378,31 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawPlanet(Canvas canvas, Size size, Planet planet) {
+  void _drawPlanet(Canvas canvas, Size size, Planet planet, double x0) {
     final paintBlur = Paint()
-      ..color = Colors.yellowAccent
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 1;
+      ..color = Colors.grey
+      ..imageFilter =
+          ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
+      ..style = PaintingStyle.fill;
 
     final paint = Paint()
-      ..color = Colors.yellow
-      ..style = PaintingStyle.fill
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 0.5;
+      ..color = Colors.grey
+      ..style = PaintingStyle.fill;
 
     final equatorial = planet.vsop87!.toEquatorial();
     final altAz = sphereModel.equatorialToHorizontal(equatorial);
-    // if (altAz.alt > 0) {
-    final center = size.center(Offset.zero);
-    final unitLength = _getUnitLength(size);
-    final xy = projectionModel.horizontalToXy(altAz, center, unitLength);
-    // const size = 4.0;
-    // print('name: ${planet.name}, mag: ${planet.magnitude()}');
-    final radius = min(
-        3.0 *
-            pow(0.63, planet.magnitude() ?? 0) *
-            (log(projectionModel.scale) * 1.2 + 0.8),
-        8.0);
-    canvas.drawCircle(xy, radius, paintBlur);
-    canvas.drawCircle(xy, radius - 0.5, paint);
-    // }
+    if (altAz.alt > 0) {
+      final center = size.center(Offset.zero);
+      final unitLength = _getUnitLength(size);
+      final xy = projectionModel.horizontalToXy(altAz, center, unitLength);
+      final radius = radiusOfObject(planet.magnitude() ?? 0.0, x0);
+      if (radius > 3.0) {
+        canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.8, paintBlur);
+        canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.5, paint);
+      } else {
+        canvas.drawCircle(xy, radius, paint);
+      }
+    }
   }
 
   void _drawConstellationLines(Canvas canvas, Size size) {
@@ -433,6 +459,18 @@ class _ProjectionRenderer extends CustomPainter {
       }
     }
   }
+
+  double radiusOfObject(double magnitude, double x0) {
+    const l = 24.0;
+
+    // log(sqrt((1/100)^(1/5))) ∵ magnitude 1 star is exactly 100 times brighter
+    // than a magnitude 6 star, and the radius is square root of the area.
+    const r = -2 * (1 / 5) * (1 / 2) / log10e;
+    return l / (1 + exp(-r * (magnitude - x0)));
+  }
+
+  double x0ForCalculatingRadiusOfObject() =>
+      -4.0 + log(projectionModel.scale) * 1.5;
 }
 
 double _getUnitLength(Size size) => min(size.width, size.height) * half * 0.9;

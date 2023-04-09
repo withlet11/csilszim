@@ -23,13 +23,14 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-const initialScale = 16.0;
 const minScale = 1.0;
 const maxScale = 128.0;
-const defaultAlt = 35.0;
-const defaultAz = 0.0;
+const initialScale = minScale;
+const defaultAlt = 89.999;
+const defaultAz = 180.0;
 
 const backgroundColor = Color(0xff192029);
+const horizonColor = Color(0xff0c1014); // Color(0xff192920);
 
 const altAzTextStyle = TextStyle(
     color: Colors.white,
@@ -48,12 +49,12 @@ const constellationLabelTextStyle = TextStyle(
 
 const largeDirectionSignTextStyle = TextStyle(
   color: Colors.white,
-  fontSize: 24.0,
+  fontSize: 16.0,
   fontWeight: FontWeight.normal,
 );
 
 const smallDirectionSignTextStyle = TextStyle(
   color: Colors.white,
-  fontSize: 18.0,
+  fontSize: 12.0,
   fontWeight: FontWeight.normal,
 );
