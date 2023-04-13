@@ -41,11 +41,11 @@ class DeepSkyObject implements AstronomicalObject {
   });
 
   @override
-  Equatorial toEquatorial(double jd, Offset3D earthPosition) => position;
+  Equatorial get equatorial => position;
 
   @override
-  Offset3D? toHeliocentric(double jd) => null;
+  Offset3D? get heliocentric => null;
 
   @override
-  Offset3D? toGeocentric(double jd, Offset3D earthPosition) => null;
+  Offset3D? get geocentric => null;
 }

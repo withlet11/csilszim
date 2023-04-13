@@ -24,8 +24,7 @@ import '../../utilities/offset_3d.dart';
 import '../coordinate_system/equatorial_coordinate.dart';
 
 abstract class AstronomicalObject {
-  // List<String> get name;
-  Equatorial toEquatorial(double jd, Offset3D earthPosition);
-  Offset3D? toHeliocentric(double jd);
-  Offset3D? toGeocentric(double jd, Offset3D earthPosition);
+  Equatorial get equatorial;
+  Offset3D? get heliocentric;
+  Offset3D? get geocentric;
 }

@@ -43,14 +43,8 @@ import 'dart:math';
 import '../../../utilities/offset_3d.dart';
 import 'vsop87.dart';
 
-class Vsop87Saturn extends Vsop87 {
-  Vsop87Saturn._internal();
-
-  factory Vsop87Saturn(double jd, Offset3D earthPosition) =>
-      Vsop87Saturn._internal()..forceUpdate(jd, earthPosition);
-
-  @override
-  Offset3D calculatePosition(double jd) {
+class Vsop87Saturn {
+  static Offset3D calculatePosition(double jd) {
     final t = jm2000(jd);
     return Offset3D(
       _x0(t) + _x1(t) + _x2(t) + _x3(t) + _x4(t) + _x5(t),

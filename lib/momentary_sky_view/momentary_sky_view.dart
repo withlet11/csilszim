@@ -26,20 +26,20 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
-import '../astronomical/orbit_calculation/vsop87/earth.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
-import 'momentary_sky_view_setting_provider.dart';
 import '../utilities/fps_counter.dart';
 import '../provider/location_provider.dart';
 import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'momentary_sky_map.dart';
+import 'momentary_sky_view_setting_provider.dart';
 import 'stereographic_projection.dart';
 
 /// A view that shows a momentary sky map.
@@ -64,20 +64,24 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   double? _previousScale;
   Offset? _previousPosition;
   var mouseAltAz = const Horizontal.fromRadians(alt: 0, az: 0);
-  late final Vsop87Earth _earth;
-  final _planetList = <Planet>[];
+  late final Planet _earth;
+  late final List<Planet> _planetList;
 
   @override
   void initState() {
-    _earth = Vsop87Earth(_timeModel.jd, Offset3D.zero);
-    _planetList
-      ..add(Planet.mercury(_timeModel.jd, _earth.heliocentric))
-      ..add(Planet.venus(_timeModel.jd, _earth.heliocentric))
-      ..add(Planet.mars(_timeModel.jd, _earth.heliocentric))
-      ..add(Planet.jupiter(_timeModel.jd, _earth.heliocentric))
-      ..add(Planet.saturn(_timeModel.jd, _earth.heliocentric))
-      ..add(Planet.uranus(_timeModel.jd, _earth.heliocentric))
-      ..add(Planet.neptune(_timeModel.jd, _earth.heliocentric));
+    _earth = PlanetEarth()..update(_timeModel.jd, Offset3D.zero);
+    _planetList = [
+      PlanetMercury(),
+      PlanetVenus(),
+      PlanetMars(),
+      PlanetJupiter(),
+      PlanetSaturn(),
+      PlanetUranus(),
+      PlanetNeptune(),
+    ];
+    for (final planet in _planetList) {
+      planet.update(_timeModel.jd, _earth.heliocentric!);
+    }
 
     // For Ticker. It should be disposed when this widget is disposed.
     // Ticker is also paused when the widget is paused. It is good for
@@ -96,7 +100,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   @override
   void didChangeDependencies() {
     final pageStorage = PageStorage.of(context);
-    projection = pageStorage?.readState(context) as StereographicProjection? ??
+    projection = pageStorage.readState(context) as StereographicProjection? ??
         StereographicProjection(
             const Horizontal.fromDegrees(alt: defaultAlt, az: defaultAz));
     super.didChangeDependencies();
@@ -115,7 +119,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     _timeModel = TimeModel.fromLocalTime();
     _earth.update(_timeModel.jd, Offset3D.zero);
     for (final planet in _planetList) {
-      planet.vsop87!.update(_timeModel.jd, _earth.heliocentric);
+      planet.update(_timeModel.jd, _earth.heliocentric!);
     }
 
     final sphereModel = SphereModel(
@@ -159,7 +163,6 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
                 // for calling setState()
                 projectionModel: projection,
                 sphereModel: sphereModel,
-                jd: _timeModel.jd,
                 starCatalogue: widget.starCatalogue,
                 planetList: _planetList,
                 displaySettings: settingData.copyWith(),
@@ -184,7 +187,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
           } else if (_previousScale != null) {
             final delta = details.scale - _previousScale!;
             projection.zoom(delta * 2);
-            PageStorage.of(context)?.writeState(context, projection);
+            PageStorage.of(context).writeState(context, projection);
           }
           _previousScale = details.scale;
         });
@@ -213,7 +216,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
             } else if (event.scrollDelta.dy < 0) {
               projection.zoomIn();
             }
-            PageStorage.of(context)?.writeState(context, projection);
+            PageStorage.of(context).writeState(context, projection);
           }
         });
       },
@@ -233,7 +236,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       final horizontal = projection.xyToHorizontal(offset);
       mouseAltAz = horizontal;
       _previousPosition = null;
-      PageStorage.of(context)?.writeState(context, projection);
+      PageStorage.of(context).writeState(context, projection);
     });
   }
 
@@ -261,7 +264,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
         projection.centerAltAz -= deltaAltAz;
       }
       _previousPosition = position;
-      PageStorage.of(context)?.writeState(context, projection);
+      PageStorage.of(context).writeState(context, projection);
     }
   }
 }

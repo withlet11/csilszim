@@ -58,3 +58,19 @@ const smallDirectionSignTextStyle = TextStyle(
   fontSize: 12.0,
   fontWeight: FontWeight.normal,
 );
+
+final starBlurPaint = Paint()
+  ..color = Colors.grey
+  ..imageFilter =
+      ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
+  ..style = PaintingStyle.fill;
+
+final starPaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.fill;
+
+final constellationLinePaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.stroke
+  ..strokeCap = StrokeCap.round
+  ..strokeWidth = 0.5;

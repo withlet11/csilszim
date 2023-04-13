@@ -20,7 +20,6 @@
  */
 
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
@@ -31,16 +30,15 @@ import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
-import 'momentary_sky_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'configs.dart';
+import 'momentary_sky_view_setting_provider.dart';
 import 'stereographic_projection.dart';
 
 /// A widget that creates a momentary sky map.
 class MomentarySkyMap extends StatelessWidget {
   final StereographicProjection projectionModel;
   final SphereModel sphereModel;
-  final double jd;
   final StarCatalogue starCatalogue;
   final List<Planet> planetList;
   final MomentarySkyViewSettings displaySettings;
@@ -50,7 +48,6 @@ class MomentarySkyMap extends StatelessWidget {
     super.key,
     required this.projectionModel,
     required this.sphereModel,
-    required this.jd,
     required this.starCatalogue,
     required this.planetList,
     required this.displaySettings,
@@ -61,14 +58,13 @@ class MomentarySkyMap extends StatelessWidget {
   Widget build(BuildContext context) {
     return CustomPaint(
         painter: _ProjectionRenderer(projectionModel, mouseAltAz, sphereModel,
-            jd, starCatalogue, planetList, displaySettings));
+            starCatalogue, planetList, displaySettings));
   }
 }
 
 class _ProjectionRenderer extends CustomPainter {
   final StereographicProjection projectionModel;
   final SphereModel sphereModel;
-  final double jd;
   final StarCatalogue starCatalogue;
   final List<Planet> planetList;
   final MomentarySkyViewSettings displaySettings;
@@ -78,7 +74,6 @@ class _ProjectionRenderer extends CustomPainter {
       this.projectionModel,
       this.mouseAltAz,
       this.sphereModel,
-      this.jd,
       this.starCatalogue,
       this.planetList,
       this.displaySettings);
@@ -345,16 +340,6 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawStars(Canvas canvas, Size size) {
-    final paintBlur = Paint()
-      ..color = Colors.grey
-      ..imageFilter =
-          ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
-      ..style = PaintingStyle.fill;
-
-    final paint = Paint()
-      ..color = Colors.grey
-      ..style = PaintingStyle.fill;
-
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     final x0 = x0ForCalculatingRadiusOfObject();
@@ -367,10 +352,10 @@ class _ProjectionRenderer extends CustomPainter {
             final xy =
                 projectionModel.horizontalToXy(altAz, center, unitLength);
             if (size > 3.0) {
-              canvas.drawCircle(xy, 3.0 + (size - 3.0) * 0.8, paintBlur);
-              canvas.drawCircle(xy, 3.0 + (size - 3.0) * 0.5, paint);
+              canvas.drawCircle(xy, 3.0 + (size - 3.0) * 0.8, starBlurPaint);
+              canvas.drawCircle(xy, 3.0 + (size - 3.0) * 0.5, starPaint);
             } else {
-              canvas.drawCircle(xy, size, paint);
+              canvas.drawCircle(xy, size, starPaint);
             }
           }
         }
@@ -379,39 +364,22 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawPlanet(Canvas canvas, Size size, Planet planet, double x0) {
-    final paintBlur = Paint()
-      ..color = Colors.grey
-      ..imageFilter =
-          ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
-      ..style = PaintingStyle.fill;
-
-    final paint = Paint()
-      ..color = Colors.grey
-      ..style = PaintingStyle.fill;
-
-    final equatorial = planet.vsop87!.toEquatorial();
-    final altAz = sphereModel.equatorialToHorizontal(equatorial);
+    final altAz = sphereModel.equatorialToHorizontal(planet.equatorial);
     if (altAz.alt > 0) {
       final center = size.center(Offset.zero);
       final unitLength = _getUnitLength(size);
       final xy = projectionModel.horizontalToXy(altAz, center, unitLength);
       final radius = radiusOfObject(planet.magnitude() ?? 0.0, x0);
       if (radius > 3.0) {
-        canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.8, paintBlur);
-        canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.5, paint);
+        canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+        canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.5, starPaint);
       } else {
-        canvas.drawCircle(xy, radius, paint);
+        canvas.drawCircle(xy, radius, starPaint);
       }
     }
   }
 
   void _drawConstellationLines(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = Colors.grey
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeWidth = 0.5;
-
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     for (final line in starCatalogue.lineList) {
@@ -427,7 +395,7 @@ class _ProjectionRenderer extends CustomPainter {
         final path = Path()
           ..moveTo(begin.dx, begin.dy)
           ..lineTo(end.dx, end.dy);
-        canvas.drawPath(path, paint);
+        canvas.drawPath(path, constellationLinePaint);
       }
     }
   }
@@ -460,6 +428,10 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
+  /// Calculates the radius of objects on the canvas with the logistic function.
+  ///
+  /// [x0] should be calculated with x0ForCalculatingRadiusOfObject() once.
+  /// Don't calculate [x0] every time.
   double radiusOfObject(double magnitude, double x0) {
     const l = 24.0;
 

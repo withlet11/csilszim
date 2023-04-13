@@ -37,6 +37,11 @@ class OrbitCalculationWithMeanLongitude {
     return OrbitCalculationWithMeanLongitude._internal(t);
   }
 
+  factory OrbitCalculationWithMeanLongitude.fromJd(double jd) {
+    final t = (jd - 2451545) / 36525;
+    return OrbitCalculationWithMeanLongitude._internal(t);
+  }
+
   Offset3D calculatePosition(OrbitalElementWithMeanLongitude planet) {
     final e = planet.e(t);
     final l = planet.l(t) * degInRad;
@@ -72,6 +77,9 @@ class OrbitCalculationWithMeanMotion {
     final t = timeModel.jd;
     return OrbitCalculationWithMeanMotion._internal(t);
   }
+
+  factory OrbitCalculationWithMeanMotion.fromJd(double jd) =>
+      OrbitCalculationWithMeanMotion._internal(jd);
 
   Offset3D calculatePosition(OrbitalElementWithMeanMotion planet) {
     final e = planet.e(t);

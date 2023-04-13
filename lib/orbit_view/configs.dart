@@ -21,6 +21,8 @@
 
 import 'package:flutter/material.dart';
 
+import '../astronomical/astronomical_object/celestial_id.dart';
+
 const oneYear = 365.25;
 const initialZoom = 50.0;
 const initialInterval = oneYear;
@@ -36,33 +38,33 @@ const planetSize = 4.0;
 const sunColor = Colors.amber;
 
 const planetColor = {
-  'mercury': Color(0xffffd7a0),
-  'venus': Color(0xfffaaf3c),
-  'earth': Color(0xff37aae1),
-  'mars': Color(0xffff5050),
-  'jupiter': Color(0xffb9beb4),
-  'saturn': Color(0xffc8a05f),
-  'uranus': Color(0xffa0c8fa),
-  'neptune': Color(0xff3232e1),
+  CelestialId.mercury: Color(0xffffd7a0),
+  CelestialId.venus: Color(0xfffaaf3c),
+  CelestialId.earth: Color(0xff37aae1),
+  CelestialId.mars: Color(0xffff5050),
+  CelestialId.jupiter: Color(0xffb9beb4),
+  CelestialId.saturn: Color(0xffc8a05f),
+  CelestialId.uranus: Color(0xffa0c8fa),
+  CelestialId.neptune: Color(0xff3232e1),
 };
 
 const dwarfPlanetColor = {
-  'ceres': Color(0xffffd7a0),
-  'pluto': Color(0xfffaaf3c),
-  'eris': Color(0xff37aae1),
-  'haumea': Color(0xffff5050),
-  'makemake': Color(0xffb9beb4),
+  CelestialId.ceres: Color(0xffffd7a0),
+  CelestialId.pluto: Color(0xfffaaf3c),
+  CelestialId.eris: Color(0xff37aae1),
+  CelestialId.haumea: Color(0xffff5050),
+  CelestialId.makemake: Color(0xffb9beb4),
 };
 
 const cometColor = {
-  'halley': Color(0xffffd7a0),
-  'encke': Color(0xfffaaf3c),
-  'faye': Color(0xff37aae1),
-  'dArrest': Color(0xffff5050),
-  'ponsWinnecke': Color(0xffb9beb4),
-  'tuttle': Color(0xffc8a05f),
-  'tempel1': Color(0xffa0c8fa),
-  'tempel2': Color(0xff3232e1),
+  CelestialId.halley: Color(0xffffd7a0),
+  CelestialId.encke: Color(0xfffaaf3c),
+  CelestialId.faye: Color(0xff37aae1),
+  CelestialId.dArrest: Color(0xffff5050),
+  CelestialId.ponsWinnecke: Color(0xffb9beb4),
+  CelestialId.tuttle: Color(0xffc8a05f),
+  CelestialId.tempel1: Color(0xffa0c8fa),
+  CelestialId.tempel2: Color(0xff3232e1),
 };
 
 const labelTextStyle = TextStyle(

@@ -1,3 +1,4 @@
+import 'package:csilszim/constants.dart';
 import 'package:csilszim/utilities/sexagesimal_angle.dart';
 import 'package:test/test.dart';
 
@@ -14,7 +15,7 @@ void main() {
   test('test: DmsAngle - negative', () {
     const object = DmsAngle(true, 11, 00, 00);
     expect(object.toDmsWithoutSign(), '349°00′00″');
-    expect(object.toDmsWithSign(), '-11°00′00″');
+    expect(object.toDmsWithSign(), '${minusSign}11°00′00″');
     expect(object.toDmsWithNS(), '11°00′00″ S');
     expect(object.toDmsWithEW(), '11°00′00″ W');
     expect(object.toDegrees(), -11);
@@ -32,7 +33,7 @@ void main() {
   test('test: DmsAngle - negative', () {
     const object = DmsAngle(true, 12, 30, 30);
     expect(object.toDmsWithoutSign(), '347°29′30″');
-    expect(object.toDmsWithSign(), '-12°30′30″');
+    expect(object.toDmsWithSign(), '${minusSign}12°30′30″');
     expect(object.toDmsWithNS(), '12°30′30″ S');
     expect(object.toDmsWithEW(), '12°30′30″ W');
     expect(object.toDegrees(), -12 - (30 + 30 / 60) / 60);
@@ -50,7 +51,7 @@ void main() {
   test('test: DmsAngle - negative', () {
     const object = DmsAngle(true, 0, 30, 30);
     expect(object.toDmsWithoutSign(), '359°29′30″');
-    expect(object.toDmsWithSign(), '-00°30′30″');
+    expect(object.toDmsWithSign(), '${minusSign}00°30′30″');
     expect(object.toDmsWithNS(), '0°30′30″ S');
     expect(object.toDmsWithEW(), '0°30′30″ W');
     expect(object.toDegrees(), -(30 + 30 / 60) / 60);

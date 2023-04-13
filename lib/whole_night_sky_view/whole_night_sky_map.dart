@@ -21,19 +21,21 @@
 
 import 'dart:math';
 
+import 'package:csilszim/astronomical/astronomical_object/celestial_id.dart';
 import 'package:flutter/material.dart';
 
 import '../astronomical/astronomical_object/deep_sky_object.dart';
+import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../constants.dart';
-import 'whole_night_sky_view_setting_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'configs.dart';
 import 'mercator_projection.dart';
+import 'whole_night_sky_view_setting_provider.dart';
 
 /// A widget that creates a whole night sky map.
 class WholeNightSkyMap extends StatelessWidget {
@@ -43,8 +45,8 @@ class WholeNightSkyMap extends StatelessWidget {
   final WholeNightSkyViewSettings displaySettings;
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
-  final Map<String, Equatorial> planetEquatorialList;
-  final Map<String, String> planetNameList;
+  final List<Planet> planetList;
+  final Map<CelestialId, String> planetNameList;
 
   const WholeNightSkyMap({
     super.key,
@@ -54,7 +56,7 @@ class WholeNightSkyMap extends StatelessWidget {
     required this.displaySettings,
     required this.mouseEquatorial,
     required this.sunEquatorial,
-    required this.planetEquatorialList,
+    required this.planetList,
     required this.planetNameList,
   });
 
@@ -68,7 +70,7 @@ class WholeNightSkyMap extends StatelessWidget {
       starCatalogue,
       displaySettings,
       sunEquatorial,
-      planetEquatorialList,
+      planetList,
       planetNameList,
     ));
   }
@@ -81,8 +83,8 @@ class _ProjectionRenderer extends CustomPainter {
   final WholeNightSkyViewSettings displaySettings;
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
-  final Map<String, Equatorial> planetEquatorialList;
-  final Map<String, String> planetNameList;
+  final List<Planet> planetList;
+  final Map<CelestialId, String> planetNameList;
 
   const _ProjectionRenderer(
     this.projectionModel,
@@ -91,7 +93,7 @@ class _ProjectionRenderer extends CustomPainter {
     this.starCatalogue,
     this.displaySettings,
     this.sunEquatorial,
-    this.planetEquatorialList,
+    this.planetList,
     this.planetNameList,
   );
 
@@ -691,8 +693,9 @@ class _ProjectionRenderer extends CustomPainter {
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
 
     const radius = 3.0;
-    planetEquatorialList.forEach((String name, Equatorial equatorial) {
-      final xy = projectionModel.equatorialToXy(equatorial, center, unitLength);
+    for (var planet in planetList) {
+      final xy =
+          projectionModel.equatorialToXy(planet.equatorial, center, unitLength);
       final y = xy.dy;
       for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
         final position = Offset(x, y);
@@ -704,8 +707,8 @@ class _ProjectionRenderer extends CustomPainter {
           ..relativeLineTo(20.0, 0.0);
         canvas.drawPath(path, planetPointerPaint);
 
-        final locationTextSpan =
-            TextSpan(style: planetNameTextStyle, text: planetNameList[name]);
+        final locationTextSpan = TextSpan(
+            style: planetNameTextStyle, text: planetNameList[planet.id]);
 
         final nameTextPainter = TextPainter(
           text: locationTextSpan,
@@ -717,7 +720,7 @@ class _ProjectionRenderer extends CustomPainter {
         final textPosition = position + const Offset(40.0, -22.0);
         nameTextPainter.paint(canvas, textPosition);
       }
-    });
+    }
   }
 
   void _drawOpenCluster(Canvas canvas, Offset offset) {

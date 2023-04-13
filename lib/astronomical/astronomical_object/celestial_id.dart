@@ -1,5 +1,5 @@
 /*
- * solar_system.dart
+ * celestial_id.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -19,39 +19,29 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'astronomical_object/comet.dart';
-import 'astronomical_object/minor_planet.dart';
-import 'astronomical_object/planet.dart';
-
-class SolarSystem {
-  /// A class of orbit elements with mean longitude
-  static final planets = [
-    PlanetMercury(),
-    PlanetVenus(),
-    PlanetEarth(),
-    PlanetMars(),
-    PlanetJupiter(),
-    PlanetSaturn(),
-    PlanetUranus(),
-    PlanetNeptune()
-  ];
-
-  static final dwarfPlanets = [
-    DwarfPlanetCeres(),
-    DwarfPlanetPluto(),
-    DwarfPlanetEris(),
-    DwarfPlanetHaumea(),
-    DwarfPlanetMakemake(),
-  ];
-
-  static final comets = [
-    CometHalley(),
-    CometEncke(),
-    CometFaye(),
-    CometDArrest(),
-    CometPonsWinnecke(),
-    CometTuttle(),
-    CometTempel1(),
-    CometTempel2(),
-  ];
+enum CelestialId {
+  mercury,
+  venus,
+  earth,
+  mars,
+  jupiter,
+  saturn,
+  uranus,
+  neptune,
+  ceres,
+  pluto,
+  eris,
+  haumea,
+  makemake,
+  halley,
+  encke,
+  biela,
+  faye,
+  brorsen,
+  dArrest,
+  ponsWinnecke,
+  tuttle,
+  tempel1,
+  tempel2,
 }
+
