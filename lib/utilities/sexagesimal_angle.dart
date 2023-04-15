@@ -69,15 +69,25 @@ class DmsAngle {
       if (sec == 0) {
         if (min == 0) {
           if (deg == 0) {
-            return '${threeDigits.format(0)}$degSign${twoDigits.format(0)}$minSign${twoDigits.format(0)}$secSign';
+            return '${threeDigits.format(0)}$degSign'
+                '${twoDigits.format(0)}$minSign'
+                '${twoDigits.format(0)}$secSign';
           }
-          return '${threeDigits.format(360 - deg)}$degSign${twoDigits.format(0)}$minSign${twoDigits.format(0)}$secSign';
+          return '${threeDigits.format(360 - deg)}$degSign'
+              '${twoDigits.format(0)}$minSign'
+              '${twoDigits.format(0)}$secSign';
         }
-        return '${threeDigits.format(359 - deg)}$degSign${twoDigits.format(60 - min)}$minSign${twoDigits.format(0)}$secSign';
+        return '${threeDigits.format(359 - deg)}$degSign'
+            '${twoDigits.format(60 - min)}$minSign'
+            '${twoDigits.format(0)}$secSign';
       }
-      return '${threeDigits.format(359 - deg)}$degSign${twoDigits.format(59 - min)}$minSign${twoDigits.format(60 - sec)}$secSign';
+      return '${threeDigits.format(359 - deg)}$degSign'
+          '${twoDigits.format(59 - min)}$minSign'
+          '${twoDigits.format(60 - sec)}$secSign';
     }
-    return '${threeDigits.format(deg)}$degSign${twoDigits.format(min)}$minSign${twoDigits.format(sec)}$secSign';
+    return '${threeDigits.format(deg)}$degSign'
+        '${twoDigits.format(min)}$minSign'
+        '${twoDigits.format(sec)}$secSign';
   }
 
   /// Generate a text between '-90° 0′ 0' and '+90° 0′ 0″'.

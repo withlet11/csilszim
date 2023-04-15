@@ -26,8 +26,12 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:tuple/tuple.dart';
 
+import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/planet.dart';
+import '../astronomical/astronomical_object/sun.dart';
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
@@ -66,6 +70,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   var mouseAltAz = const Horizontal.fromRadians(alt: 0, az: 0);
   late final Planet _earth;
   late final List<Planet> _planetList;
+  late final Sun _sun;
 
   @override
   void initState() {
@@ -82,6 +87,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     for (final planet in _planetList) {
       planet.update(_timeModel.jd, _earth.heliocentric!);
     }
+    _sun = Sun()..update(_timeModel.jd, _earth.heliocentric!);
 
     // For Ticker. It should be disposed when this widget is disposed.
     // Ticker is also paused when the widget is paused. It is good for
@@ -121,6 +127,29 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     for (final planet in _planetList) {
       planet.update(_timeModel.jd, _earth.heliocentric!);
     }
+    _sun.update(_timeModel.jd, _earth.heliocentric!);
+    final appLocalizations = AppLocalizations.of(context)!;
+    final nameList = {
+      CelestialId.sun: appLocalizations.sun,
+      CelestialId.mercury: appLocalizations.mercury,
+      CelestialId.venus: appLocalizations.venus,
+      CelestialId.mars: appLocalizations.mars,
+      CelestialId.jupiter: appLocalizations.jupiter,
+      CelestialId.saturn: appLocalizations.saturn,
+      CelestialId.uranus: appLocalizations.uranus,
+      CelestialId.neptune: appLocalizations.neptune,
+    };
+
+    final directionSignList = [
+      Tuple3<String, int, bool>(appLocalizations.northSign, 0, true),
+      Tuple3<String, int, bool>(appLocalizations.northEastSign, 45, false),
+      Tuple3<String, int, bool>(appLocalizations.eastSign, 90, true),
+      Tuple3<String, int, bool>(appLocalizations.southEastSign, 135, false),
+      Tuple3<String, int, bool>(appLocalizations.southSign, 180, true),
+      Tuple3<String, int, bool>(appLocalizations.southWestSign, 225, false),
+      Tuple3<String, int, bool>(appLocalizations.westSign, 270, true),
+      Tuple3<String, int, bool>(appLocalizations.northWestSign, 315, false),
+    ];
 
     final sphereModel = SphereModel(
         location: Geographic.fromDegrees(
@@ -149,12 +178,6 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
           ),
           Expanded(
               child: ClipRect(
-                  /*
-                  child: (Platform.isAndroid
-                      ? _makeGestureDetector
-                      : _makeListener)(
-
-                 */
                   child: (defaultTargetPlatform == TargetPlatform.android
                       ? _makeGestureDetector
                       : _makeListener)(
@@ -165,6 +188,9 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
                 sphereModel: sphereModel,
                 starCatalogue: widget.starCatalogue,
                 planetList: _planetList,
+                sun: _sun,
+                nameList: nameList,
+                directionSignList: directionSignList,
                 displaySettings: settingData.copyWith(),
                 mouseAltAz: mouseAltAz),
           )))
@@ -213,7 +239,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
           if (event is PointerScrollEvent) {
             if (event.scrollDelta.dy > 0) {
               projection.zoomOut();
-            } else if (event.scrollDelta.dy < 0) {
+            } else if (event.scrollDelta.dy.isNegative) {
               projection.zoomIn();
             }
             PageStorage.of(context).writeState(context, projection);
@@ -245,9 +271,9 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     final width = size?.width ?? 0.0;
     final height = size?.height ?? 0.0;
 
-    if (position.dx < 0 ||
+    if (position.dx.isNegative ||
         position.dx >= width ||
-        position.dy < 0 ||
+        position.dy.isNegative ||
         position.dy >= height) {
       _previousPosition = null;
     } else {

@@ -443,7 +443,7 @@ class _ProjectionRenderer extends CustomPainter {
       lineGridList = lineGridList2 + lineGridList1;
     } else {
       if (zoneGridList1.isEmpty) {
-        if (sun.dec < 0) {
+        if (sun.dec.isNegative) {
           zoneGridList = [
             size.bottomLeft(Offset.zero),
             size.bottomRight(Offset.zero)
@@ -815,12 +815,9 @@ class _ProjectionRenderer extends CustomPainter {
     final path = Path();
     if (pointList.first.dx < pointList.last.dx) {
       if (pointList[0].dx < pointList[1].dx) {
-        // Circle is open. Starts from left side.
-        path.moveTo(0.0, pointList.first.dy);
-        for (final point in pointList) {
-          path.lineTo(point.dx, point.dy);
-        }
-        path.lineTo(size.width, pointList.last.dy);
+        pointList.insert(0, Offset(0.0, pointList.first.dy));
+        pointList.add(Offset(size.width, pointList.last.dy));
+        path.addPolygon(pointList, false);
       } else {
         // Circle is closed.
         path.addPolygon(pointList, true);
@@ -828,11 +825,9 @@ class _ProjectionRenderer extends CustomPainter {
     } else {
       if (pointList[0].dx > pointList[1].dx) {
         // Circle is open. Starts from right side.
-        path.moveTo(size.width, pointList.first.dy);
-        for (final point in pointList) {
-          path.lineTo(point.dx, point.dy);
-        }
-        path.lineTo(0.0, pointList.last.dy);
+        pointList.insert(0, Offset(size.width, pointList.first.dy));
+        pointList.add(Offset(0.0, pointList.last.dy));
+        path.addPolygon(pointList, false);
       } else {
         // Circle is closed.
         path.addPolygon(pointList, true);

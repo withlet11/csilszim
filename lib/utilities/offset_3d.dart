@@ -47,6 +47,8 @@ class Offset3D {
   Offset3D operator /(double divisor) =>
       Offset3D(dx / divisor, dy / divisor, dz / divisor);
 
+  Offset3D operator -() => Offset3D(-dx, -dy, -dz);
+
   Offset3D rotateX(double angle) {
     final cosAngle = cos(angle);
     final sinAngle = sin(angle);

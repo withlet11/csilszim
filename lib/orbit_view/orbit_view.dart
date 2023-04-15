@@ -84,7 +84,7 @@ class _OrbitViewState extends State<OrbitView> {
   @override
   void didChangeDependencies() {
     final pageStorage = PageStorage.of(context);
-    _settings = pageStorage?.readState(context) as _Settings? ??
+    _settings = pageStorage.readState(context) as _Settings? ??
         _Settings(
             projection: GraphicalProjection(const Offset3D(20, 1800, 500)),
             timeModel: TimeModel.fromLocalTime(),
@@ -173,7 +173,7 @@ class _OrbitViewState extends State<OrbitView> {
           icon: const Icon(Icons.calendar_month),
           onPressed: () {
             _pickDate(context);
-            PageStorage.of(context)?.writeState(context, _settings);
+            PageStorage.of(context).writeState(context, _settings);
           },
         ),
       ]),
@@ -186,7 +186,7 @@ class _OrbitViewState extends State<OrbitView> {
             setState(() {
               _settings.interval = value ?? oneYear;
             });
-            PageStorage.of(context)?.writeState(context, _settings);
+            PageStorage.of(context).writeState(context, _settings);
           },
         ),
       ]),
@@ -199,7 +199,7 @@ class _OrbitViewState extends State<OrbitView> {
             setState(() {
               _settings.repetition = value ?? 10;
             });
-            PageStorage.of(context)?.writeState(context, _settings);
+            PageStorage.of(context).writeState(context, _settings);
           },
         ),
       ])
@@ -223,11 +223,11 @@ class _OrbitViewState extends State<OrbitView> {
           setState(() {
             _settings.zoom = delta > 0
                 ? min(_settings.zoom * zoomingRate2, 10000)
-                : delta < 0
+                : delta.isNegative
                     ? max(_settings.zoom / zoomingRate2, 1)
                     : _settings.zoom;
           });
-          PageStorage.of(context)?.writeState(context, _settings);
+          PageStorage.of(context).writeState(context, _settings);
         }
 
         _previousScale = details.scale;
@@ -251,11 +251,11 @@ class _OrbitViewState extends State<OrbitView> {
           setState(() {
             _settings.zoom = event.scrollDelta.dy > 0
                 ? min(_settings.zoom * zoomingRate1, 10000)
-                : event.scrollDelta.dy < 0
+                : event.scrollDelta.dy.isNegative
                     ? max(_settings.zoom / zoomingRate1, 1)
                     : _settings.zoom;
           });
-          PageStorage.of(context)?.writeState(context, _settings);
+          PageStorage.of(context).writeState(context, _settings);
         }
       },
       child: child,
@@ -267,9 +267,9 @@ class _OrbitViewState extends State<OrbitView> {
     final width = size?.width ?? 0.0;
     final height = size?.height ?? 0.0;
 
-    if (position.dx < 0 ||
+    if (position.dx.isNegative ||
         position.dx >= width ||
-        position.dy < 0 ||
+        position.dy.isNegative ||
         position.dy >= height) {
       _previousPosition = null;
     } else {
@@ -287,7 +287,7 @@ class _OrbitViewState extends State<OrbitView> {
         }
       }
       _previousPosition = position;
-      PageStorage.of(context)?.writeState(context, _settings);
+      PageStorage.of(context).writeState(context, _settings);
     }
   }
 

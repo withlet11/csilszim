@@ -1,5 +1,5 @@
 /*
- * celestial_id.dart
+ * sun.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -19,30 +19,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-enum CelestialId {
-  sun,
-  mercury,
-  venus,
-  earth,
-  mars,
-  jupiter,
-  saturn,
-  uranus,
-  neptune,
-  ceres,
-  pluto,
-  eris,
-  haumea,
-  makemake,
-  halley,
-  encke,
-  biela,
-  faye,
-  brorsen,
-  dArrest,
-  ponsWinnecke,
-  tuttle,
-  tempel1,
-  tempel2,
-}
+import 'package:csilszim/astronomical/astronomical_object/astronomical_object.dart';
 
+import '../../utilities/offset_3d.dart';
+import '../coordinate_system/ecliptic_coordinate.dart';
+import '../coordinate_system/equatorial_coordinate.dart';
+import 'celestial_id.dart';
+
+class Sun implements AstronomicalObject {
+  static const name = 'Sun';
+  static const id = CelestialId.sun;
+  var jd = 0.0;
+  static const magnitude = -26.74;
+
+  @override
+  var heliocentric = Offset3D.zero;
+  @override
+  var geocentric = Offset3D.zero;
+
+  void update(double jd, Offset3D earthPosition) {
+    this.jd = jd;
+    geocentric = -earthPosition;
+  }
+
+  @override
+  Equatorial get equatorial {
+    final ecliptic = Ecliptic.fromXyz(geocentric!);
+    return ecliptic.toEquatorial();
+  }
+}

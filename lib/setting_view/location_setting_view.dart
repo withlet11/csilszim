@@ -71,7 +71,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
               baseOffset: 0, extentOffset: _latDegFieldController.text.length);
         } else {
           final latDeg = int.tryParse(_latDegFieldController.text);
-          if (latDeg == null || latDeg < 0) {
+          if (latDeg == null || latDeg.isNegative) {
             setState(() {
               _latitude = (_latitude ?? DmsAngle.zero).copyWith(deg: 0);
               _latDegFieldController.text = '0';
@@ -101,7 +101,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
           });
         } else {
           final latMin = int.tryParse(_latMinFieldController.text);
-          if (latMin == null || latMin < 0 || latMin > 59) {
+          if (latMin == null || latMin.isNegative || latMin > 59) {
             setState(() {
               _latitude = (_latitude ?? DmsAngle.zero).copyWith(min: 0);
               _latMinFieldController.text = '0';
@@ -125,7 +125,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
           });
         } else {
           final latSec = int.tryParse(_latSecFieldController.text);
-          if (latSec == null || latSec < 0 || latSec > 59) {
+          if (latSec == null || latSec.isNegative || latSec > 59) {
             setState(() {
               _latitude = (_latitude ?? DmsAngle.zero).copyWith(sec: 0);
               _latSecFieldController.text = '0';
@@ -147,7 +147,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
               baseOffset: 0, extentOffset: _longDegFieldController.text.length);
         } else {
           final longDeg = int.tryParse(_longDegFieldController.text);
-          if (longDeg == null || longDeg < 0) {
+          if (longDeg == null || longDeg.isNegative) {
             setState(() {
               _longitude = (_longitude ?? DmsAngle.zero).copyWith(deg: 0);
               _longDegFieldController.text = '0';
@@ -176,7 +176,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
           });
         } else {
           final longMin = int.tryParse(_longMinFieldController.text);
-          if (longMin == null || longMin < 0 || longMin > 59) {
+          if (longMin == null || longMin.isNegative || longMin > 59) {
             setState(() {
               _longitude = (_longitude ?? DmsAngle.zero).copyWith(min: 0);
               _longMinFieldController.text = '0';
@@ -199,7 +199,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
           });
         } else {
           final longSec = int.tryParse(_longSecFieldController.text);
-          if (longSec == null || longSec < 0 || longSec > 59) {
+          if (longSec == null || longSec.isNegative || longSec > 59) {
             setState(() {
               _longitude = (_longitude ?? DmsAngle.zero).copyWith(sec: 0);
               _longSecFieldController.text = '0';
@@ -405,7 +405,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
       return 'Not a number!';
     } else {
       var number = int.tryParse(value);
-      if (number == null || number < 0 || number > 180) {
+      if (number == null || number.isNegative || number > 180) {
         return 'max 180';
       } else {
         return null;
@@ -420,7 +420,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
       return 'Not a number!';
     } else {
       var number = int.tryParse(value);
-      if (number == null || number < 0 || number > 90) {
+      if (number == null || number.isNegative || number > 90) {
         return 'max 90';
       } else {
         return null;
@@ -435,7 +435,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
       return 'Not a number!';
     } else {
       var number = int.tryParse(value);
-      if (number == null || number < 0 || number >= 60) {
+      if (number == null || number.isNegative || number >= 60) {
         return 'max 60';
       } else {
         return null;

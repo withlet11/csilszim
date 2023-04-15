@@ -134,7 +134,7 @@ abstract class Planet implements AstronomicalObject {
     return ecliptic.toEquatorial();
   }
 
-  double? magnitude() {
+  double get magnitude {
     final fromSun = heliocentric!.distance();
     final fromEarth = geocentric!.distance();
     return absoluteMagnitude +

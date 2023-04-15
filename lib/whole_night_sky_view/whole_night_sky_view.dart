@@ -198,9 +198,9 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     final width = size?.width ?? 0.0;
     final height = size?.height ?? 0.0;
 
-    if (position.dx < 0 ||
+    if (position.dx.isNegative ||
         position.dx >= width ||
-        position.dy < 0 ||
+        position.dy.isNegative ||
         position.dy >= height) {
       _pointerPosition = null;
     } else {
@@ -262,7 +262,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
       setState(() {
         if (event.scrollDelta.dy > 0) {
           _settings.projection.zoomOut();
-        } else if (event.scrollDelta.dy < 0) {
+        } else if (event.scrollDelta.dy.isNegative) {
           _settings.projection.zoomIn();
         }
         PageStorage.of(context).writeState(context, _settings);

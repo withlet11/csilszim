@@ -29,9 +29,6 @@ const initialScale = minScale;
 const defaultAlt = 89.999;
 const defaultAz = 180.0;
 
-const backgroundColor = Color(0xff192029);
-const horizonColor = Color(0xff0c1014); // Color(0xff192920);
-
 const altAzTextStyle = TextStyle(
     color: Colors.white,
     fontSize: 12.0,
@@ -44,20 +41,28 @@ const decRaTextStyle = TextStyle(
     fontWeight: FontWeight.normal,
     fontFeatures: [FontFeature.tabularFigures()]);
 
+const planetLabelTextStyle = TextStyle(
+    color: Colors.white, fontSize: 12.0, fontWeight: FontWeight.normal);
+
 const constellationLabelTextStyle = TextStyle(
     color: Colors.lightGreen, fontSize: 18.0, fontWeight: FontWeight.normal);
 
 const largeDirectionSignTextStyle = TextStyle(
-  color: Colors.white,
-  fontSize: 16.0,
-  fontWeight: FontWeight.normal,
-);
+    color: Colors.white, fontSize: 16.0, fontWeight: FontWeight.normal);
 
 const smallDirectionSignTextStyle = TextStyle(
   color: Colors.white,
   fontSize: 12.0,
   fontWeight: FontWeight.normal,
 );
+
+final horizonPaint = Paint()
+  ..color = const Color(0xff0c1014) // Color(0xff192920);
+  ..style = PaintingStyle.fill;
+
+final backgroundPaint = Paint()
+  ..color = const Color(0xff192029)
+  ..style = PaintingStyle.fill;
 
 final starBlurPaint = Paint()
   ..color = Colors.grey
@@ -68,6 +73,18 @@ final starBlurPaint = Paint()
 final starPaint = Paint()
   ..color = Colors.grey
   ..style = PaintingStyle.fill;
+
+final horizontalGridPaint = Paint()
+  ..color = Colors.orange
+  ..style = PaintingStyle.stroke
+  ..strokeCap = StrokeCap.round
+  ..strokeWidth = 0.5;
+
+final equatorialGridPaint = Paint()
+  ..color = Colors.green
+  ..style = PaintingStyle.stroke
+  ..strokeCap = StrokeCap.round
+  ..strokeWidth = 0.5;
 
 final constellationLinePaint = Paint()
   ..color = Colors.grey
