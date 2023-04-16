@@ -48,6 +48,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
   @override
   Widget build(BuildContext context) {
     final displaySetting = ref.watch(momentarySkyViewSettingProvider);
+    final momentarySkyViewSetting = ref.watch(momentarySkyViewSettingProvider);
     final wholeNightSkyViewSetting =
         ref.watch(wholeNightSkyViewSettingProvider);
     final orbitViewSetting = ref.watch(orbitViewSettingProvider);
@@ -157,6 +158,41 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                   }
                 });
               },
+            ),
+          if (viewSelect == View.momentary)
+            SwitchListTile(
+              title: Text('${appLocalization.fov} '
+                  '(${momentarySkyViewSetting.tfov.toStringAsFixed(1)}$degSign)'),
+              value: momentarySkyViewSetting.isFovVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(momentarySkyViewSettingProvider.notifier)
+                        .fovVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.momentary)
+            ListTile(
+              title: Slider(
+                label: momentarySkyViewSetting.tfov.toStringAsFixed(1),
+                min: minimumTfov,
+                max: maximumTfov,
+                value: momentarySkyViewSetting.tfov,
+                onChanged: momentarySkyViewSetting.isFovVisible
+                    ? (double? value) {
+                        setState(() {
+                          if (value != null) {
+                            ref
+                                .read(momentarySkyViewSettingProvider.notifier)
+                                .tfov = value;
+                          }
+                        });
+                      }
+                    : null,
+              ),
             ),
           if (viewSelect == View.wholeNight)
             SwitchListTile(

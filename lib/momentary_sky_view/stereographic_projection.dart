@@ -90,4 +90,46 @@ class StereographicProjection {
         fullTurn;
     return Horizontal.fromRadians(alt: objectAltitude, az: objectAzimuth);
   }
+
+  /// Returns a list of points on a circle.
+  ///
+  /// [angle] is the radius of the circle on the celestial sphere.
+  /// The rotate angle is slight less than 2π. The start angle is [min] * 2π,
+  /// if the declination of the view center is positive. If not, it is
+  /// π + [min] * 2π. In the case that the view center is near the celestial
+  /// pole, the circle is open.
+  List<Offset> pointsOnCircle(Offset center, double unitLength, double angle) {
+    final centerAlt = centerAltAz.alt;
+    final centerAz = centerAltAz.az;
+
+    final sinAngle = sin(angle);
+    final cosAngle = cos(angle);
+    final sinCenterAlt = sin(centerAlt);
+    final cosCenterAlt = cos(centerAlt);
+    final cosCenterDecCosAngle = cosCenterAlt * cosAngle;
+    final sinCenterDecSinAngle = sinCenterAlt * sinAngle;
+    final sinCenterDecCosAngle = sinCenterAlt * cosAngle;
+    final cosCenterDecSinAngle = cosCenterAlt * sinAngle;
+
+    var list = <Offset>[];
+
+    const startPosition = 0.0; // centerAlt.isNegative ? halfTurn : 0.0;
+    const repetition = 90;
+    const min = 1.0e-10; // enough small
+    const max = 1.0 - min;
+    for (var i = 0; i <= repetition; ++i) {
+      final direction =
+          (min + i / repetition * (max - min)) * fullTurn + startPosition;
+      final Horizontal horizontal;
+      final cosDirection = cos(direction);
+      final az = atan2(sinAngle * sin(direction),
+          cosCenterDecCosAngle - sinCenterDecSinAngle * cosDirection) +
+          centerAz;
+      final alt =
+      asin(sinCenterDecCosAngle + cosCenterDecSinAngle * cosDirection);
+      horizontal = Horizontal.fromRadians(alt: alt, az: az);
+      list.add(horizontalToXy(horizontal, center, unitLength));
+    }
+    return list;
+  }
 }

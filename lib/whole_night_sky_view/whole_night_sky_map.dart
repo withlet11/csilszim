@@ -31,6 +31,7 @@ import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
+import '../configs.dart';
 import '../constants.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'configs.dart';
@@ -115,7 +116,8 @@ class _ProjectionRenderer extends CustomPainter {
       }
     }
 
-    _drawStars(canvas, size);
+    final midPoint = calculateMidPointOfMagnitude();
+    _drawStars(canvas, size, midPoint);
 
     if (displaySettings.isConstellationLineVisible) {
       _drawConstellationLines(canvas, size);
@@ -130,7 +132,7 @@ class _ProjectionRenderer extends CustomPainter {
     }
 
     if (displaySettings.isPlanetVisible) {
-      _drawPlanet(canvas, size);
+      _drawPlanet(canvas, size, midPoint);
     }
 
     if (displaySettings.isFovVisible) {
@@ -166,20 +168,11 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _setBackground(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = nightSkyColor
-      ..style = PaintingStyle.fill;
-
-    canvas.drawRect(
-        Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)), paint);
+    canvas.drawRect(Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)),
+        backgroundPaint);
   }
 
   void _drawRightAscensionGrid(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = raGridColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = raGridWidth;
-
     final width = size.width;
     final height = size.height;
     final center = size.center(Offset.zero);
@@ -194,24 +187,14 @@ class _ProjectionRenderer extends CustomPainter {
       for (var x = pointOnLine.dx % lengthOfFullTurn;
           x < width;
           x += lengthOfFullTurn) {
-        final path = Path()..moveTo(x, 0);
-        path.lineTo(x, height);
-        canvas.drawPath(path, paint);
+        final p1 = Offset(x, 0.0);
+        final p2 = Offset(x, height);
+        canvas.drawLine(p1, p2, equatorialGridPaint);
       }
     }
   }
 
   void _drawDeclinationGrid(Canvas canvas, Size size) {
-    final decLine = Paint()
-      ..color = decGridColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = decGridWidth;
-
-    final equatorialLine = Paint()
-      ..color = equatorialLineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = equatorialLineWidth;
-
     final width = size.width;
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
@@ -221,44 +204,37 @@ class _ProjectionRenderer extends CustomPainter {
           Equatorial.fromDegreesAndHours(dec: dec.toDouble(), ra: 0),
           center,
           unitLength);
-      final y = pointOnLine.dy;
-      final path = Path()..moveTo(0, y);
-      path.lineTo(width, y);
-      canvas.drawPath(path, dec == 0 ? equatorialLine : decLine);
+      final p1 = Offset(0.0, pointOnLine.dy);
+      final p2 = Offset(width, pointOnLine.dy);
+      canvas.drawLine(p1, p2, dec == 0 ? equatorPaint : equatorialGridPaint);
     }
   }
 
   void _drawEclipticLine(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = eclipticLineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = eclipticLineWidth;
-
     final width = size.width;
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
 
-    var list = <Offset>[];
+    var fullTurnList = <Offset>[];
     for (var long = -180; long < 180; long += 5) {
       final ecliptic = Ecliptic.fromDegrees(long: long.toDouble(), lat: 0.0);
       final equatorial = ecliptic.toEquatorial();
-      list.add(projectionModel.equatorialToXy(equatorial, center, unitLength));
+      fullTurnList
+          .add(projectionModel.equatorialToXy(equatorial, center, unitLength));
     }
 
-    var firstX = list[0].dx;
-    while (firstX < width) {
-      firstX += lengthOfFullTurn;
-    }
-    var shift = firstX - list[0].dx;
-    final path = Path()..moveTo(list[0].dx + shift, list[0].dy);
-
-    for (; list[0].dx + shift > 0; shift -= lengthOfFullTurn) {
-      for (final offset in list) {
-        path.lineTo(offset.dx + shift, offset.dy);
+    final firstX = fullTurnList.first.dx % width + width;
+    final fullScreenList = <Offset>[];
+    for (var shift = firstX - fullTurnList.first.dx;
+        fullTurnList.first.dx + shift > 0;
+        shift -= lengthOfFullTurn) {
+      for (final offset in fullTurnList) {
+        fullScreenList.add(offset + Offset(shift, 0.0));
       }
     }
-    canvas.drawPath(path, paint);
+    final path = Path()..addPolygon(fullScreenList, false);
+    canvas.drawPath(path, eclipticPaint);
   }
 
   void _drawDecNumber(Canvas canvas, Size size, int dec) {
@@ -335,10 +311,7 @@ class _ProjectionRenderer extends CustomPainter {
     final origin = Offset(0.0, xy.dy);
     list = [origin, size.topRight(origin)];
     final path = _preparePathOfZone(list, size);
-    final paint = Paint()
-      ..color = horizonColor
-      ..style = PaintingStyle.fill;
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, horizonPaint);
   }
 
   void _drawDay(Canvas canvas, Size size, Equatorial sun) {
@@ -348,7 +321,8 @@ class _ProjectionRenderer extends CustomPainter {
         sun,
         sphereModel.raOnEastHorizonAtSunrise,
         sphereModel.raOnWestHorizonAtSunset,
-        dayColor);
+        dayZonePaint,
+        dayLinePaint);
   }
 
   void _drawCivilTwilight(Canvas canvas, Size size, Equatorial sun) {
@@ -358,7 +332,8 @@ class _ProjectionRenderer extends CustomPainter {
         sun,
         sphereModel.raOnEastHorizonAtCivilDawn,
         sphereModel.raOnWestHorizonAtCivilDusk,
-        civilTwilightColor);
+        civilTwilightZonePaint,
+        civilTwilightLinePaint);
   }
 
   void _drawNauticalTwilight(Canvas canvas, Size size, Equatorial sun) {
@@ -368,7 +343,8 @@ class _ProjectionRenderer extends CustomPainter {
         sun,
         sphereModel.raOnEastHorizonAtNauticalDawn,
         sphereModel.raOnWestHorizonAtNauticalDusk,
-        nauticalTwilightColor);
+        nauticalTwilightZonePaint,
+        nauticalTwilightLinePaint);
   }
 
   void _drawAstronomicalTwilight(Canvas canvas, Size size, Equatorial sun) {
@@ -378,7 +354,8 @@ class _ProjectionRenderer extends CustomPainter {
         sun,
         sphereModel.raOnEastHorizonAtAstronomicalDawn,
         sphereModel.raOnWestHorizonAtAstronomicalDusk,
-        astronomicalTwilightColor);
+        astronomicalTwilightZonePaint,
+        astronomicalTwilightLinePaint);
   }
 
   void _drawZoneAndLineOfTwilight(
@@ -387,7 +364,8 @@ class _ProjectionRenderer extends CustomPainter {
       Equatorial sun,
       double? Function(Equatorial, double) raOnEastHorizon,
       double? Function(Equatorial, double) raOnWestHorizon,
-      Color zoneColor) {
+      Paint zonePaint,
+      Paint linePaint) {
     var zoneGridList1 = <Offset>[];
     var lineGridList2 = <Offset>[];
     var zoneGridList2 = <Offset>[];
@@ -434,11 +412,11 @@ class _ProjectionRenderer extends CustomPainter {
             size.topLeft(Offset.zero),
             size.topRight(Offset.zero)
           ];
-          _drawZoneTwilight(canvas, size, zoneColor, zoneGridList);
+          _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
         }
       } else {
         zoneGridList = zoneGridList1 + zoneGridList2;
-        _drawZoneTwilight(canvas, size, zoneColor, zoneGridList);
+        _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
       }
       lineGridList = lineGridList2 + lineGridList1;
     } else {
@@ -448,36 +426,29 @@ class _ProjectionRenderer extends CustomPainter {
             size.bottomLeft(Offset.zero),
             size.bottomRight(Offset.zero)
           ];
-          _drawZoneTwilight(canvas, size, zoneColor, zoneGridList);
+          _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
         }
       } else {
         zoneGridList = (zoneGridList2 + zoneGridList1).reversed.toList();
-        _drawZoneTwilight(canvas, size, zoneColor, zoneGridList);
+        _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
       }
       lineGridList = (lineGridList1 + lineGridList2).reversed.toList();
     }
 
     if (lineGridList.isNotEmpty) {
-      _drawLineTwilight(canvas, size, zoneColor, lineGridList);
+      _drawLineOfTwilight(canvas, size, linePaint, lineGridList);
     }
   }
 
-  void _drawZoneTwilight(
-      Canvas canvas, Size size, Color zoneColor, List<Offset> zoneGridList) {
+  void _drawZoneOfTwilight(
+      Canvas canvas, Size size, Paint zonePaint, List<Offset> zoneGridList) {
     final zonePath = _preparePathOfZone(zoneGridList, size);
-    final zonePaint = Paint()
-      ..color = zoneColor
-      ..style = PaintingStyle.fill;
     canvas.drawPath(zonePath, zonePaint);
   }
 
-  void _drawLineTwilight(
-      Canvas canvas, Size size, Color zoneColor, List<Offset> lineGridList) {
+  void _drawLineOfTwilight(
+      Canvas canvas, Size size, Paint linePaint, List<Offset> lineGridList) {
     final linePath = _preparePathOfZone(lineGridList, size);
-    final linePaint = Paint()
-      ..color = zoneColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = twilightLineWidth;
     canvas.drawPath(linePath, linePaint);
   }
 
@@ -502,16 +473,7 @@ class _ProjectionRenderer extends CustomPainter {
     return path;
   }
 
-  void _drawStars(Canvas canvas, Size size) {
-    final paintBlur = Paint()
-      ..color = Colors.white30
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-
-    final paint = Paint()
-      ..color = Colors.grey
-      ..style = PaintingStyle.fill;
-
+  void _drawStars(Canvas canvas, Size size, double midPoint) {
     final width = size.width;
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
@@ -519,26 +481,22 @@ class _ProjectionRenderer extends CustomPainter {
 
     for (final star in starCatalogue.starList) {
       if (star.hipNumber > 0) {
-        final radius = min(
-            3.0 *
-                pow(0.63, star.magnitude) *
-                (log(projectionModel.scale) * 1.2 + 1.8),
-            8.0);
-        if (star.magnitude < 8) {
-          if (radius > 0.2) {
-            final xy = projectionModel.equatorialToXy(
-                star.position, center, unitLength);
-            final y = xy.dy;
-            for (var x = xy.dx % lengthOfFullTurn;
-                x < width;
-                x += lengthOfFullTurn) {
-              final position = Offset(x, y);
-              if (radius > 4) {
-                canvas.drawCircle(position, radius, paintBlur);
-                canvas.drawCircle(position, radius - 0.5, paint);
-              } else {
-                canvas.drawCircle(position, radius, paint);
-              }
+        final radius = radiusOfObject(star.magnitude, midPoint);
+        if (radius > 0.2) {
+          final xy =
+              projectionModel.equatorialToXy(star.position, center, unitLength);
+          final y = xy.dy;
+          for (var x = xy.dx % lengthOfFullTurn;
+              x < width;
+              x += lengthOfFullTurn) {
+            final position = Offset(x, y);
+            if (radius > 3.0) {
+              canvas.drawCircle(
+                  position, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+              canvas.drawCircle(
+                  position, 3.0 + (radius - 3.0) * 0.5, starPaint);
+            } else {
+              canvas.drawCircle(position, radius, starPaint);
             }
           }
         }
@@ -547,11 +505,6 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawConstellationLines(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = constellationLineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = constellationLineWidth;
-
     final width = size.width;
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
@@ -593,7 +546,7 @@ class _ProjectionRenderer extends CustomPainter {
         final path = Path()
           ..moveTo(x, y1)
           ..lineTo(x + dx, y1 + dy);
-        canvas.drawPath(path, paint);
+        canvas.drawPath(path, constellationLinePaint);
       }
     }
   }
@@ -606,7 +559,7 @@ class _ProjectionRenderer extends CustomPainter {
 
     for (final name in starCatalogue.nameList) {
       final locationTextSpan = TextSpan(
-        style: constellationNameTextStyle,
+        style: constellationLabelTextStyle,
         text: name.iauAbbr,
       );
 
@@ -686,21 +639,26 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawPlanet(Canvas canvas, Size size) {
+  void _drawPlanet(Canvas canvas, Size size, double midPoint) {
     final width = size.width;
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
 
-    const radius = 3.0;
     for (var planet in planetList) {
+      final radius = radiusOfObject(planet.magnitude, midPoint);
       final xy =
           projectionModel.equatorialToXy(planet.equatorial, center, unitLength);
       final y = xy.dy;
       for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
         final position = Offset(x, y);
-        canvas.drawCircle(position, radius, planetEdgePaint);
-        canvas.drawCircle(position, radius - 0.5, planetBodyPaint);
+        if (radius > 3.0) {
+          canvas.drawCircle(
+              position, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+          canvas.drawCircle(position, 3.0 + (radius - 3.0) * 0.5, starPaint);
+        } else {
+          canvas.drawCircle(position, radius, starPaint);
+        }
         final path = Path()
           ..moveTo(position.dx + 4, position.dy - 4)
           ..relativeLineTo(12.0, -12.0)
@@ -708,7 +666,7 @@ class _ProjectionRenderer extends CustomPainter {
         canvas.drawPath(path, planetPointerPaint);
 
         final locationTextSpan = TextSpan(
-            style: planetNameTextStyle, text: planetNameList[planet.id]);
+            style: planetLabelTextStyle, text: planetNameList[planet.id]);
 
         final nameTextPainter = TextPainter(
           text: locationTextSpan,
@@ -769,45 +727,34 @@ class _ProjectionRenderer extends CustomPainter {
 
   void _drawNebula(Canvas canvas, Offset offset) {
     const length = 12.0;
-    final paint = Paint()
-      ..color = Colors.grey
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
     canvas.drawRect(
-        Rect.fromCenter(center: offset, width: length, height: length), paint);
+        Rect.fromCenter(center: offset, width: length, height: length),
+        deepSkyObjectPaint);
   }
 
   void _drawGalaxy(Canvas canvas, Offset offset) {
     const width = 12.0;
     const height = width / 2;
-    final paint = Paint()
-      ..color = Colors.grey
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
     canvas.drawOval(
-        Rect.fromCenter(center: offset, width: width, height: height), paint);
+        Rect.fromCenter(center: offset, width: width, height: height),
+        deepSkyObjectPaint);
   }
 
   void _drawDoubleStar(Canvas canvas, Offset offset) {
     const radius = 1.5;
-    final paint = Paint()
-      ..color = Colors.grey
-      ..style = PaintingStyle.fill;
-    canvas.drawCircle(offset.translate(-radius * 3, 0.0), radius, paint);
-    canvas.drawCircle(offset.translate(radius * 3, 0.0), radius, paint);
+    canvas.drawCircle(
+        offset.translate(-radius * 3, 0.0), radius, deepSkyObjectPaint);
+    canvas.drawCircle(
+        offset.translate(radius * 3, 0.0), radius, deepSkyObjectPaint);
     canvas.drawRect(
         Rect.fromCenter(center: offset, width: radius * 6, height: radius * 2),
-        paint);
-    canvas.drawCircle(offset, radius, paint);
+        deepSkyObjectPaint);
+    canvas.drawCircle(offset, radius, deepSkyObjectPaint);
   }
 
   void _drawFOV(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
-
-    final paint = Paint()
-      ..color = fovColor
-      ..style = PaintingStyle.stroke;
 
     final pointList = projectionModel.pointsOnCircle(
         center, unitLength, displaySettings.tfov / 2 * degInRad);
@@ -833,8 +780,25 @@ class _ProjectionRenderer extends CustomPainter {
         path.addPolygon(pointList, true);
       }
     }
-    canvas.drawPath(path, paint);
+    canvas.drawPath(path, fovPaint);
   }
+
+  /// Calculates the radius of objects on the canvas with the logistic function.
+  ///
+  /// [midPoint] should be calculated with [calculateMidPointOfMagnitude] once.
+  /// Don't calculate [midPoint] every time.
+  double radiusOfObject(double magnitude, double midPoint) {
+    const l = 24.0;
+
+    // r = log(sqrt((1/100)^(1/5))) ∵ magnitude 1 star is exactly 100 times
+    // brighter than a magnitude 6 star, and the radius is proportional to the
+    // square root of the area.
+    const r = -2 * (1 / 5) * (1 / 2) / log10e;
+    return l / (1 + exp(-r * (magnitude - midPoint)));
+  }
+
+  double calculateMidPointOfMagnitude() =>
+      -3.0 + log(projectionModel.scale) * 1.5;
 }
 
 double _getUnitLength(Size size) => size.height * 0.9 / halfTurn;

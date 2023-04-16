@@ -121,7 +121,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   @override
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
-    final settingData = ref.watch(momentarySkyViewSettingProvider);
+    final displaySettings = ref.watch(momentarySkyViewSettingProvider);
     _timeModel = TimeModel.fromLocalTime();
     _earth.update(_timeModel.jd, Offset3D.zero);
     for (final planet in _planetList) {
@@ -191,7 +191,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
                 sun: _sun,
                 nameList: nameList,
                 directionSignList: directionSignList,
-                displaySettings: settingData.copyWith(),
+                displaySettings: displaySettings.copyWith(),
                 mouseAltAz: mouseAltAz),
           )))
         ]);

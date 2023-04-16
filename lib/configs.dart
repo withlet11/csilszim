@@ -19,12 +19,78 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'dart:ui';
+
+import 'package:flutter/material.dart';
+
 const appName = 'Csilszim';
 const defaultLatNeg = false;
-const defaultLatDeg = 45;
-const defaultLatMin = 0;
-const defaultLatSec = 0;
+const defaultLatDeg = 47;
+const defaultLatMin = 26;
+const defaultLatSec = 32;
 const defaultLongNeg = false;
-const defaultLongDeg = 0;
-const defaultLongMin = 0;
-const defaultLongSec = 0;
+const defaultLongDeg = 19;
+const defaultLongMin = 32;
+const defaultLongSec = 18;
+
+final horizonPaint = Paint()
+  ..color = const Color(0xff0f1317) // Color(0xff0c1014)
+  ..style = PaintingStyle.fill;
+
+final backgroundPaint = Paint()
+  ..color = const Color(0xff1f252d) // Color(0xff192029)
+  ..style = PaintingStyle.fill;
+
+final horizontalGridPaint = Paint()
+  ..color = Colors.orange
+  ..style = PaintingStyle.stroke
+  ..strokeCap = StrokeCap.round
+  ..strokeWidth = 0.5;
+
+final equatorialGridPaint = Paint()
+  ..color = Colors.green
+  ..style = PaintingStyle.stroke
+  ..strokeCap = StrokeCap.round
+  ..strokeWidth = 0.5;
+
+final equatorPaint = Paint()
+  ..color = Colors.red
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = 0.5;
+
+final eclipticPaint = Paint()
+  ..color = Colors.yellow
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = 0.5;
+
+final constellationLinePaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.stroke
+  ..strokeCap = StrokeCap.round
+  ..strokeWidth = 0.5;
+
+final starBlurPaint = Paint()
+  ..color = Colors.grey
+  ..imageFilter =
+      ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
+  ..style = PaintingStyle.fill;
+
+final starPaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.fill;
+
+final deepSkyObjectPaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = 1.0;
+
+final fovPaint = Paint()
+  ..color = Colors.red
+  ..style = PaintingStyle.stroke;
+
+const planetLabelTextStyle = TextStyle(
+    color: Colors.white, fontSize: 12.0, fontWeight: FontWeight.normal);
+
+const constellationLabelTextStyle = TextStyle(
+    color: Colors.lightGreen, fontSize: 18.0, fontWeight: FontWeight.normal);
+

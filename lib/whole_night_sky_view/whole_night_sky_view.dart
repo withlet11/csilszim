@@ -38,12 +38,12 @@ import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../provider/location_provider.dart';
-import 'whole_night_sky_view_setting_provider.dart';
 import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'date_chooser_dial.dart';
 import 'mercator_projection.dart';
 import 'whole_night_sky_map.dart';
+import 'whole_night_sky_view_setting_provider.dart';
 
 /// A view that shows a whole night sky map.
 class WholeNightSkyView extends ConsumerStatefulWidget {
@@ -302,15 +302,12 @@ class _Settings {
   DateTime date;
   bool isLeapYear;
   double dialAngle;
-  double fov;
 
-  _Settings({
-    required this.projection,
-    required this.date,
-    required this.isLeapYear,
-    required this.dialAngle,
-    required this.fov,
-  });
+  _Settings(
+      {required this.projection,
+      required this.date,
+      required this.isLeapYear,
+      required this.dialAngle});
 
   static _Settings defaultValue() {
     final date = DateTime.now();
@@ -318,7 +315,6 @@ class _Settings {
     final yearBegin = DateTime(year).millisecondsSinceEpoch;
     final yearEnd = DateTime(year + 1).millisecondsSinceEpoch;
     final lengthOfYear = yearEnd - yearBegin;
-    const fov = defaultTfov;
 
     return _Settings(
         projection: MercatorProjection(const Equatorial.fromDegreesAndHours(
@@ -326,7 +322,6 @@ class _Settings {
         date: date,
         dialAngle:
             (date.millisecondsSinceEpoch - yearBegin) / lengthOfYear * fullTurn,
-        isLeapYear: lengthOfYear == 366 * 86400 * 1000,
-        fov: fov);
+        isLeapYear: lengthOfYear == 366 * 86400 * 1000);
   }
 }

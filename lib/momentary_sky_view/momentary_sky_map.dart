@@ -31,6 +31,7 @@ import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
+import '../configs.dart';
 import '../constants.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'configs.dart';
@@ -130,6 +131,10 @@ class _ProjectionRenderer extends CustomPainter {
     }
 
     _drawSun(canvas, size, midPoint);
+
+    if (displaySettings.isFovVisible) {
+      _drawFOV(canvas, size);
+    }
 
     final altAzText = TextSpan(
       style: altAzTextStyle,
@@ -277,7 +282,7 @@ class _ProjectionRenderer extends CustomPainter {
           path.lineTo(position.dx, position.dy);
         }
       }
-      canvas.drawPath(path, equatorialGridPaint);
+      canvas.drawPath(path, dec == 0 ? equatorPaint : equatorialGridPaint);
     }
   }
 
@@ -424,6 +429,37 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
+  void _drawFOV(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
+
+    final pointList = projectionModel.pointsOnCircle(
+        center, unitLength, displaySettings.tfov / 2 * degInRad);
+
+    final path = Path();
+    if (pointList.first.dx < pointList.last.dx) {
+      if (pointList[0].dx < pointList[1].dx) {
+        pointList.insert(0, Offset(0.0, pointList.first.dy));
+        pointList.add(Offset(size.width, pointList.last.dy));
+        path.addPolygon(pointList, false);
+      } else {
+        // Circle is closed.
+        path.addPolygon(pointList, true);
+      }
+    } else {
+      if (pointList[0].dx > pointList[1].dx) {
+        // Circle is open. Starts from right side.
+        pointList.insert(0, Offset(size.width, pointList.first.dy));
+        pointList.add(Offset(0.0, pointList.last.dy));
+        path.addPolygon(pointList, false);
+      } else {
+        // Circle is closed.
+        path.addPolygon(pointList, true);
+      }
+    }
+    canvas.drawPath(path, fovPaint);
+  }
+
   /// Calculates the radius of objects on the canvas with the logistic function.
   ///
   /// [midPoint] should be calculated with [calculateMidPointOfMagnitude] once.
@@ -431,8 +467,9 @@ class _ProjectionRenderer extends CustomPainter {
   double radiusOfObject(double magnitude, double midPoint) {
     const l = 24.0;
 
-    // log(sqrt((1/100)^(1/5))) ∵ magnitude 1 star is exactly 100 times brighter
-    // than a magnitude 6 star, and the radius is square root of the area.
+    // r = log(sqrt((1/100)^(1/5))) ∵ magnitude 1 star is exactly 100 times
+    // brighter than a magnitude 6 star, and the radius is proportional to the
+    // square root of the area.
     const r = -2 * (1 / 5) * (1 / 2) / log10e;
     return l / (1 + exp(-r * (magnitude - midPoint)));
   }

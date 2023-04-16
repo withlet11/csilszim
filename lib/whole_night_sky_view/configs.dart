@@ -24,11 +24,14 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-const initialScale = 1.0;
 const minScale = 1.0;
 const maxScale = 20.0;
+const initialScale = minScale;
 const defaultDec = 0.0;
 const defaultRa = pi;
+const defaultTfov = 5.0;
+const minimumTfov = 1.0;
+const maximumTfov = 10.0;
 
 const decRaTextStyle = TextStyle(
     color: Colors.white,
@@ -44,48 +47,49 @@ const decTextStyle = TextStyle(
 
 const raTextStyle = decTextStyle;
 
-const constellationNameTextStyle = TextStyle(
-    color: Colors.lightGreen,
-    fontSize: 18.0,
-    fontWeight: FontWeight.normal,
-    fontFeatures: [FontFeature.tabularFigures()]);
-
-final planetEdgePaint = Paint()
-  ..color = Colors.white30
-  ..style = PaintingStyle.stroke
-  ..strokeWidth = 1;
-
-final planetBodyPaint = Paint()
-  ..color = Colors.yellow
-  ..style = PaintingStyle.fill;
-
 final planetPointerPaint = Paint()
   ..color = Colors.grey
   ..style = PaintingStyle.stroke
   ..strokeWidth = 1;
 
-const planetNameTextStyle = decTextStyle;
-
-const nightSkyColor = Color(0xff1f252d);
-const horizonColor = Color(0xff041014);
 const dayColor = Color(0xffdbe9ff);
 const civilTwilightColor = Color(0xbf9cb4db);
 const nauticalTwilightColor = Color(0xbf5284d7);
 const astronomicalTwilightColor = Color(0x7f2d579f);
 const twilightLineWidth = 1.0;
 
-const decGridColor = Colors.green;
-const decGridWidth = 0.5;
-const raGridColor = Colors.green;
-const raGridWidth = 0.5;
-const equatorialLineColor = Colors.red;
-const equatorialLineWidth = 0.5;
-const eclipticLineColor = Colors.yellow;
-const eclipticLineWidth = 0.5;
-const constellationLineColor = Colors.grey;
-const constellationLineWidth = 0.5;
+final dayZonePaint = Paint()
+  ..color = dayColor
+  ..style = PaintingStyle.fill;
 
-const fovColor = Colors.red;
-const defaultTfov = 5.0;
-const minimumTfov = 1.0;
-const maximumTfov = 10.0;
+final civilTwilightZonePaint = Paint()
+  ..color = civilTwilightColor
+  ..style = PaintingStyle.fill;
+
+final nauticalTwilightZonePaint = Paint()
+  ..color = nauticalTwilightColor
+  ..style = PaintingStyle.fill;
+
+final astronomicalTwilightZonePaint = Paint()
+  ..color = astronomicalTwilightColor
+  ..style = PaintingStyle.fill;
+
+final dayLinePaint = Paint()
+  ..color = dayColor
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = twilightLineWidth;
+
+final civilTwilightLinePaint = Paint()
+  ..color = civilTwilightColor
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = twilightLineWidth;
+
+final nauticalTwilightLinePaint = Paint()
+  ..color = nauticalTwilightColor
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = twilightLineWidth;
+
+final astronomicalTwilightLinePaint = Paint()
+  ..color = astronomicalTwilightColor
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = twilightLineWidth;

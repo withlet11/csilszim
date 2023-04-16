@@ -22,6 +22,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'configs.dart';
+
 class MomentarySkyViewSettingProvider
     extends StateNotifier<MomentarySkyViewSettings> {
   MomentarySkyViewSettingProvider() : super(const MomentarySkyViewSettings());
@@ -41,6 +43,14 @@ class MomentarySkyViewSettingProvider
   set constellationNameVisibility(bool visibility) {
     state = state.copyWith(isConstellationNameVisible: visibility);
   }
+
+  set fovVisibility(bool visibility) {
+    state = state.copyWith(isFovVisible: visibility);
+  }
+
+  set tfov(double angle) {
+    state = state.copyWith(tfov: angle);
+  }
 }
 
 @immutable
@@ -49,12 +59,16 @@ class MomentarySkyViewSettings {
   final bool isEquatorialGridVisible;
   final bool isConstellationLineVisible;
   final bool isConstellationNameVisible;
+  final bool isFovVisible;
+  final double tfov;
 
   const MomentarySkyViewSettings({
     this.isHorizontalGridVisible = false,
     this.isEquatorialGridVisible = false,
     this.isConstellationLineVisible = false,
     this.isConstellationNameVisible = false,
+    this.isFovVisible = true,
+    this.tfov = defaultTfov,
   });
 
   MomentarySkyViewSettings copyWith({
@@ -62,6 +76,8 @@ class MomentarySkyViewSettings {
     bool? isEquatorialGridVisible,
     bool? isConstellationLineVisible,
     bool? isConstellationNameVisible,
+    bool? isFovVisible,
+    double? tfov,
   }) =>
       MomentarySkyViewSettings(
         isHorizontalGridVisible:
@@ -72,6 +88,8 @@ class MomentarySkyViewSettings {
             isConstellationLineVisible ?? this.isConstellationLineVisible,
         isConstellationNameVisible:
             isConstellationNameVisible ?? this.isConstellationNameVisible,
+        isFovVisible: isFovVisible ?? this.isFovVisible,
+        tfov: tfov ?? this.tfov,
       );
 }
 
