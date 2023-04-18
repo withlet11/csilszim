@@ -42,7 +42,7 @@
   "shortIntroduction": "天文シミュレーター",
   "siderealTime": "恒星時",
   "standardTime": "標準時",
-  "tfov": "実視界",
+  "trueFov": "実視界",
   "timeOffset": "オフセット",
   "timeZone": "タイムゾーン",
   "type": "種別",

@@ -52,8 +52,8 @@ class WholeNightSkyViewSettingProvider
     state = state.copyWith(isFovVisible: visibility);
   }
 
-  set tfov(double angle) {
-    state = state.copyWith(tfov: angle);
+  set trueFov(double angle) {
+    state = state.copyWith(trueFov: angle);
   }
 }
 
@@ -65,7 +65,7 @@ class WholeNightSkyViewSettings {
   final bool isPlanetVisible;
   final bool isMessierObjectVisible;
   final bool isFovVisible;
-  final double tfov;
+  final double trueFov;
 
   const WholeNightSkyViewSettings({
     this.isEquatorialGridVisible = true,
@@ -74,7 +74,7 @@ class WholeNightSkyViewSettings {
     this.isPlanetVisible = true,
     this.isMessierObjectVisible = true,
     this.isFovVisible = true,
-    this.tfov = defaultTfov,
+    this.trueFov = defaultTfov,
   });
 
   WholeNightSkyViewSettings copyWith({
@@ -84,7 +84,7 @@ class WholeNightSkyViewSettings {
     bool? isPlanetVisible,
     bool? isMessierObjectVisible,
     bool? isFovVisible,
-    double? tfov,
+    double? trueFov,
   }) =>
       WholeNightSkyViewSettings(
         isEquatorialGridVisible:
@@ -97,7 +97,7 @@ class WholeNightSkyViewSettings {
         isMessierObjectVisible:
             isMessierObjectVisible ?? this.isMessierObjectVisible,
         isFovVisible: isFovVisible ?? this.isFovVisible,
-        tfov: tfov ?? this.tfov,
+        trueFov: trueFov ?? this.trueFov,
       );
 }
 

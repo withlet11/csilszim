@@ -25,6 +25,7 @@ import 'package:flutter/material.dart';
 import 'package:tuple/tuple.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
+import '../astronomical/astronomical_object/deep_sky_object.dart';
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/astronomical_object/sun.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
@@ -125,6 +126,10 @@ class _ProjectionRenderer extends CustomPainter {
 
     final midPoint = calculateMidPointOfMagnitude();
     _drawStars(canvas, size, midPoint);
+
+    if (displaySettings.isMessierObjectVisible) {
+      _drawMessierObject(canvas, size);
+    }
 
     for (final planet in planetList) {
       _drawPlanet(canvas, size, planet, midPoint);
@@ -369,7 +374,8 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawPlanetLabel(Canvas canvas, Size size, Offset offset, String label) {
-    final textSpan = TextSpan(style: planetLabelTextStyle, text: label);
+    final textSpan =
+        TextSpan(style: celestialObjectLabelTextStyle, text: label);
 
     final textPainter = TextPainter(
         text: textSpan,
@@ -429,12 +435,138 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
+  void _drawMessierObject(Canvas canvas, Size size) {
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
+
+    for (DeepSkyObject object in starCatalogue.messierList) {
+      final locationTextSpan = TextSpan(
+        style: celestialObjectLabelTextStyle,
+        text: 'M${object.messierNumber}',
+      );
+
+      final locationTextPainter = TextPainter(
+        text: locationTextSpan,
+        textAlign: TextAlign.left,
+        textDirection: TextDirection.ltr,
+      );
+      locationTextPainter.layout();
+      final altAz = sphereModel.equatorialToHorizontal(object.position);
+      if (!altAz.alt.isNegative) {
+        final xy = projectionModel.horizontalToXy(altAz, center, unitLength);
+        final majorAxisSize = max(
+            12.0,
+            lengthOfAltitudeAngle(
+                center, unitLength, altAz, object.majorAxisSize ?? 12.0));
+
+        if (object.type == 'Open cluster') {
+          _drawOpenCluster(canvas, xy, majorAxisSize);
+        } else if (object.type == 'Globular cluster') {
+          _drawGlobularCluster(canvas, xy, majorAxisSize);
+        } else if (object.type.toLowerCase().contains('nebula')) {
+          if (object.type == 'Planetary nebula') {
+            _drawPlanetaryNebula(canvas, xy, majorAxisSize);
+          } else {
+            _drawNebula(canvas, xy, majorAxisSize);
+          }
+        } else if (object.type.contains('galaxy')) {
+          final offset =
+              topCenterOfDeepSkyObject(center, unitLength, object) - xy;
+          final minorAxisSize = max(6.0, offset.distance);
+          final orientationAngle =
+              offset.direction - (object.orientationAngle ?? 0.0) * degInRad;
+          _drawGalaxy(
+              canvas, xy, majorAxisSize, minorAxisSize, orientationAngle);
+        } else {
+          switch (object.messierNumber) {
+            case 1:
+              _drawNebula(canvas, xy, majorAxisSize);
+              break;
+            case 24:
+            case 73:
+              _drawOpenCluster(canvas, xy, majorAxisSize);
+              break;
+            case 40:
+              _drawDoubleStar(canvas, xy);
+              break;
+            default:
+              break;
+          }
+        }
+        locationTextPainter.paint(canvas, xy + const Offset(10.0, -6.0));
+      }
+    }
+  }
+
+  void _drawOpenCluster(Canvas canvas, Offset offset, double signSize) {
+    final radius = signSize * half;
+    const stepAngle = fullTurn / 12;
+    const sweepAngle = stepAngle / 2;
+    for (var angle = 0.0; angle < fullTurn; angle += stepAngle) {
+      canvas.drawArc(Rect.fromCircle(center: offset, radius: radius), angle,
+          sweepAngle, false, deepSkyObjectThickStrokePaint);
+    }
+  }
+
+  void _drawGlobularCluster(Canvas canvas, Offset offset, double signSize) {
+    final radius = signSize * half;
+    canvas.drawCircle(offset, radius, deepSkyObjectStrokePaint);
+    canvas.drawLine(offset.translate(0.0, -radius),
+        offset.translate(0.0, radius), deepSkyObjectStrokePaint);
+    canvas.drawLine(offset.translate(-radius, 0.0),
+        offset.translate(radius, 0.0), deepSkyObjectStrokePaint);
+  }
+
+  void _drawPlanetaryNebula(Canvas canvas, Offset offset, double signSize) {
+    final radius = signSize / 3.0;
+    canvas.drawCircle(offset, radius, deepSkyObjectStrokePaint);
+    canvas.drawLine(offset.translate(0.0, -radius * 2),
+        offset.translate(0.0, -radius), deepSkyObjectStrokePaint);
+    canvas.drawLine(offset.translate(0.0, radius * 2),
+        offset.translate(0.0, radius), deepSkyObjectStrokePaint);
+    canvas.drawLine(offset.translate(-radius * 2, 0.0),
+        offset.translate(-radius, 0.0), deepSkyObjectStrokePaint);
+    canvas.drawLine(offset.translate(radius * 2, 0.0),
+        offset.translate(radius, 0.0), deepSkyObjectStrokePaint);
+  }
+
+  void _drawNebula(Canvas canvas, Offset offset, double signSize) {
+    canvas.drawRect(
+        Rect.fromCenter(center: offset, width: signSize, height: signSize),
+        deepSkyObjectStrokePaint);
+  }
+
+  void _drawGalaxy(Canvas canvas, Offset offset, double majorAxisSize,
+      double minorAxisSize, double orientationAngle) {
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    canvas.rotate(orientationAngle);
+    canvas.translate(-offset.dx, -offset.dy);
+    canvas.drawOval(
+        Rect.fromCenter(
+            center: offset, width: majorAxisSize, height: minorAxisSize),
+        deepSkyObjectStrokePaint);
+    canvas.restore();
+  }
+
+  void _drawDoubleStar(Canvas canvas, Offset offset) {
+    const radius = 1.5;
+    canvas.drawCircle(
+        offset.translate(-radius * 3, 0.0), radius, deepSkyObjectFillPaint);
+    canvas.drawCircle(
+        offset.translate(radius * 3, 0.0), radius, deepSkyObjectFillPaint);
+    canvas.drawRect(
+        Rect.fromCenter(center: offset, width: radius * 6, height: radius * 2),
+        deepSkyObjectFillPaint);
+    canvas.drawCircle(offset, radius, deepSkyObjectFillPaint);
+  }
+
   void _drawFOV(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
 
     final pointList = projectionModel.pointsOnCircle(
-        center, unitLength, displaySettings.tfov / 2 * degInRad);
+        center, unitLength, displaySettings.trueFov / 2 * degInRad);
 
     final path = Path();
     if (pointList.first.dx < pointList.last.dx) {
@@ -476,6 +608,30 @@ class _ProjectionRenderer extends CustomPainter {
 
   double calculateMidPointOfMagnitude() =>
       -4.0 + log(projectionModel.scale) * 1.5;
+
+  /// Converts angle to length at a position in horizontal coordinator.
+  ///
+  /// [angle] is given in arc minutes.
+  double lengthOfAltitudeAngle(
+      Offset center, double unitLength, Horizontal horizontal, double angle) {
+    final alt = horizontal.alt;
+    final az = horizontal.az;
+    final angleInRadian = angle / 60.0 * degInRad;
+    final bottomCenter =
+        Horizontal.fromRadians(alt: alt - angleInRadian, az: az);
+    return projectionModel.horizontalToXy(bottomCenter, center, unitLength).dy -
+        projectionModel.horizontalToXy(horizontal, center, unitLength).dy;
+  }
+
+  Offset topCenterOfDeepSkyObject(
+      Offset center, double unitLength, DeepSkyObject object) {
+    final topCenter = Equatorial.fromRadians(
+        dec: object.equatorial.dec +
+            (object.minorAxisSize ?? 0.0) / 60 * degInRad,
+        ra: object.equatorial.ra);
+    final altAzOfTopCenter = sphereModel.equatorialToHorizontal(topCenter);
+    return projectionModel.horizontalToXy(altAzOfTopCenter, center, unitLength);
+  }
 }
 
 double _getUnitLength(Size size) => min(size.width, size.height) * half * 0.9;

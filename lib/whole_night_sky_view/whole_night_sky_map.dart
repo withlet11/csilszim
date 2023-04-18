@@ -106,18 +106,7 @@ class _ProjectionRenderer extends CustomPainter {
       _drawRightAscensionGrid(canvas, size);
       _drawDeclinationGrid(canvas, size);
       _drawEclipticLine(canvas, size);
-
-      for (var i = -80; i <= 80; i += 10) {
-        _drawDecNumber(canvas, size, i);
-      }
-
-      for (var i = 0; i < 24; ++i) {
-        _drawRaNumber(canvas, size, i);
-      }
     }
-
-    final midPoint = calculateMidPointOfMagnitude();
-    _drawStars(canvas, size, midPoint);
 
     if (displaySettings.isConstellationLineVisible) {
       _drawConstellationLines(canvas, size);
@@ -126,6 +115,9 @@ class _ProjectionRenderer extends CustomPainter {
     if (displaySettings.isConstellationNameVisible) {
       _drawConstellationName(canvas, size);
     }
+
+    final midPoint = calculateMidPointOfMagnitude();
+    _drawStars(canvas, size, midPoint);
 
     if (displaySettings.isMessierObjectVisible) {
       _drawMessierObject(canvas, size);
@@ -191,6 +183,7 @@ class _ProjectionRenderer extends CustomPainter {
         final p2 = Offset(x, height);
         canvas.drawLine(p1, p2, equatorialGridPaint);
       }
+      _drawRaNumber(canvas, size, ra);
     }
   }
 
@@ -207,6 +200,7 @@ class _ProjectionRenderer extends CustomPainter {
       final p1 = Offset(0.0, pointOnLine.dy);
       final p2 = Offset(width, pointOnLine.dy);
       canvas.drawLine(p1, p2, dec == 0 ? equatorPaint : equatorialGridPaint);
+      _drawDecNumber(canvas, size, dec);
     }
   }
 
@@ -591,7 +585,7 @@ class _ProjectionRenderer extends CustomPainter {
 
     for (DeepSkyObject object in starCatalogue.messierList) {
       final locationTextSpan = TextSpan(
-        style: decTextStyle,
+        style: celestialObjectLabelTextStyle,
         text: 'M${object.messierNumber}',
       );
 
@@ -604,28 +598,39 @@ class _ProjectionRenderer extends CustomPainter {
       final xy =
           projectionModel.equatorialToXy(object.position, center, unitLength);
       final y = xy.dy;
+      final majorAxisSize = max(
+          12.0,
+          lengthOfAltitudeAngle(center, unitLength, object.position,
+              object.majorAxisSize ?? 12.0));
 
       for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
         if (object.type == 'Open cluster') {
-          _drawOpenCluster(canvas, Offset(x, y));
+          _drawOpenCluster(canvas, Offset(x, y), majorAxisSize);
         } else if (object.type == 'Globular cluster') {
-          _drawGlobularCluster(canvas, Offset(x, y));
+          _drawGlobularCluster(canvas, Offset(x, y), majorAxisSize);
         } else if (object.type.toLowerCase().contains('nebula')) {
           if (object.type == 'Planetary nebula') {
-            _drawPlanetaryNebula(canvas, Offset(x, y));
+            _drawPlanetaryNebula(canvas, Offset(x, y), majorAxisSize);
           } else {
-            _drawNebula(canvas, Offset(x, y));
+            _drawNebula(canvas, Offset(x, y), majorAxisSize);
           }
         } else if (object.type.contains('galaxy')) {
-          _drawGalaxy(canvas, Offset(x, y));
+          final minorAxisSize = max(
+              6.0,
+              lengthOfAltitudeAngle(center, unitLength, object.position,
+                  object.minorAxisSize ?? 0.0));
+          final orientationAngle =
+              quarterTurn - (object.orientationAngle ?? 0.0) * degInRad;
+          _drawGalaxy(canvas, Offset(x, y), majorAxisSize, minorAxisSize,
+              orientationAngle);
         } else {
           switch (object.messierNumber) {
             case 1:
-              _drawNebula(canvas, Offset(x, y));
+              _drawNebula(canvas, Offset(x, y), majorAxisSize);
               break;
             case 24:
             case 73:
-              _drawOpenCluster(canvas, Offset(x, y));
+              _drawOpenCluster(canvas, Offset(x, y), majorAxisSize);
               break;
             case 40:
               _drawDoubleStar(canvas, Offset(x, y));
@@ -634,7 +639,7 @@ class _ProjectionRenderer extends CustomPainter {
               break;
           }
         }
-        locationTextPainter.paint(canvas, Offset(x + 8.0, y - 6.0));
+        locationTextPainter.paint(canvas, Offset(x + 10.0, y - 6.0));
       }
     }
   }
@@ -666,7 +671,8 @@ class _ProjectionRenderer extends CustomPainter {
         canvas.drawPath(path, planetPointerPaint);
 
         final locationTextSpan = TextSpan(
-            style: planetLabelTextStyle, text: planetNameList[planet.id]);
+            style: celestialObjectLabelTextStyle,
+            text: planetNameList[planet.id]);
 
         final nameTextPainter = TextPainter(
           text: locationTextSpan,
@@ -681,8 +687,8 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawOpenCluster(Canvas canvas, Offset offset) {
-    const radius = 6.0;
+  void _drawOpenCluster(Canvas canvas, Offset offset, double signSize) {
+    final radius = signSize * half;
     const stepAngle = fullTurn / 12;
     const sweepAngle = stepAngle / 2;
     final paint = Paint()
@@ -695,8 +701,8 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  void _drawGlobularCluster(Canvas canvas, Offset offset) {
-    const radius = 6.0;
+  void _drawGlobularCluster(Canvas canvas, Offset offset, double signSize) {
+    final radius = signSize * half;
     final paint = Paint()
       ..color = Colors.grey
       ..style = PaintingStyle.stroke
@@ -708,8 +714,8 @@ class _ProjectionRenderer extends CustomPainter {
         offset.translate(-radius, 0.0), offset.translate(radius, 0.0), paint);
   }
 
-  void _drawPlanetaryNebula(Canvas canvas, Offset offset) {
-    const radius = 3.0;
+  void _drawPlanetaryNebula(Canvas canvas, Offset offset, double signSize) {
+    final radius = signSize / 3.0;
     final paint = Paint()
       ..color = Colors.grey
       ..style = PaintingStyle.stroke
@@ -725,31 +731,35 @@ class _ProjectionRenderer extends CustomPainter {
         offset.translate(radius, 0.0), paint);
   }
 
-  void _drawNebula(Canvas canvas, Offset offset) {
-    const length = 12.0;
+  void _drawNebula(Canvas canvas, Offset offset, double signSize) {
     canvas.drawRect(
-        Rect.fromCenter(center: offset, width: length, height: length),
-        deepSkyObjectPaint);
+        Rect.fromCenter(center: offset, width: signSize, height: signSize),
+        deepSkyObjectStrokePaint);
   }
 
-  void _drawGalaxy(Canvas canvas, Offset offset) {
-    const width = 12.0;
-    const height = width / 2;
+  void _drawGalaxy(Canvas canvas, Offset offset, double majorAxisSize,
+      double minorAxisSize, double orientationAngle) {
+    canvas.save();
+    canvas.translate(offset.dx, offset.dy);
+    canvas.rotate(orientationAngle);
+    canvas.translate(-offset.dx, -offset.dy);
     canvas.drawOval(
-        Rect.fromCenter(center: offset, width: width, height: height),
-        deepSkyObjectPaint);
+        Rect.fromCenter(
+            center: offset, width: majorAxisSize, height: minorAxisSize),
+        deepSkyObjectStrokePaint);
+    canvas.restore();
   }
 
   void _drawDoubleStar(Canvas canvas, Offset offset) {
     const radius = 1.5;
     canvas.drawCircle(
-        offset.translate(-radius * 3, 0.0), radius, deepSkyObjectPaint);
+        offset.translate(-radius * 3, 0.0), radius, deepSkyObjectStrokePaint);
     canvas.drawCircle(
-        offset.translate(radius * 3, 0.0), radius, deepSkyObjectPaint);
+        offset.translate(radius * 3, 0.0), radius, deepSkyObjectStrokePaint);
     canvas.drawRect(
         Rect.fromCenter(center: offset, width: radius * 6, height: radius * 2),
-        deepSkyObjectPaint);
-    canvas.drawCircle(offset, radius, deepSkyObjectPaint);
+        deepSkyObjectStrokePaint);
+    canvas.drawCircle(offset, radius, deepSkyObjectStrokePaint);
   }
 
   void _drawFOV(Canvas canvas, Size size) {
@@ -757,7 +767,7 @@ class _ProjectionRenderer extends CustomPainter {
     final unitLength = _getUnitLength(size);
 
     final pointList = projectionModel.pointsOnCircle(
-        center, unitLength, displaySettings.tfov / 2 * degInRad);
+        center, unitLength, displaySettings.trueFov / 2 * degInRad);
 
     final path = Path();
     if (pointList.first.dx < pointList.last.dx) {
@@ -799,6 +809,20 @@ class _ProjectionRenderer extends CustomPainter {
 
   double calculateMidPointOfMagnitude() =>
       -3.0 + log(projectionModel.scale) * 1.5;
+
+  /// Converts angle to length at a position in horizontal coordinator.
+  ///
+  /// [angle] is given in arc minutes.
+  double lengthOfAltitudeAngle(
+      Offset center, double unitLength, Equatorial equatorial, double angle) {
+    final dec = equatorial.dec;
+    final ra = equatorial.ra;
+    final angleInRadian = angle / 60.0 * degInRad;
+    final bottomCenter =
+        Equatorial.fromRadians(dec: dec - angleInRadian, ra: ra);
+    return projectionModel.equatorialToXy(bottomCenter, center, unitLength).dy -
+        projectionModel.equatorialToXy(equatorial, center, unitLength).dy;
+  }
 }
 
 double _getUnitLength(Size size) => size.height * 0.9 / halfTurn;

@@ -44,12 +44,16 @@ class MomentarySkyViewSettingProvider
     state = state.copyWith(isConstellationNameVisible: visibility);
   }
 
+  set messierObjectVisibility(bool visibility) {
+    state = state.copyWith(isMessierObjectVisible: visibility);
+  }
+
   set fovVisibility(bool visibility) {
     state = state.copyWith(isFovVisible: visibility);
   }
 
-  set tfov(double angle) {
-    state = state.copyWith(tfov: angle);
+  set trueFov(double angle) {
+    state = state.copyWith(trueFov: angle);
   }
 }
 
@@ -59,16 +63,18 @@ class MomentarySkyViewSettings {
   final bool isEquatorialGridVisible;
   final bool isConstellationLineVisible;
   final bool isConstellationNameVisible;
+  final bool isMessierObjectVisible;
   final bool isFovVisible;
-  final double tfov;
+  final double trueFov;
 
   const MomentarySkyViewSettings({
     this.isHorizontalGridVisible = false,
     this.isEquatorialGridVisible = false,
     this.isConstellationLineVisible = false,
     this.isConstellationNameVisible = false,
+    this.isMessierObjectVisible = true,
     this.isFovVisible = true,
-    this.tfov = defaultTfov,
+    this.trueFov = defaultTfov,
   });
 
   MomentarySkyViewSettings copyWith({
@@ -76,8 +82,9 @@ class MomentarySkyViewSettings {
     bool? isEquatorialGridVisible,
     bool? isConstellationLineVisible,
     bool? isConstellationNameVisible,
+    bool? isMessierObjectVisible,
     bool? isFovVisible,
-    double? tfov,
+    double? trueFov,
   }) =>
       MomentarySkyViewSettings(
         isHorizontalGridVisible:
@@ -88,8 +95,10 @@ class MomentarySkyViewSettings {
             isConstellationLineVisible ?? this.isConstellationLineVisible,
         isConstellationNameVisible:
             isConstellationNameVisible ?? this.isConstellationNameVisible,
+        isMessierObjectVisible:
+        isMessierObjectVisible ?? this.isMessierObjectVisible,
         isFovVisible: isFovVisible ?? this.isFovVisible,
-        tfov: tfov ?? this.tfov,
+        trueFov: trueFov ?? this.trueFov,
       );
 }
 

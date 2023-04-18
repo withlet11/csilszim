@@ -128,27 +128,27 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       planet.update(_timeModel.jd, _earth.heliocentric!);
     }
     _sun.update(_timeModel.jd, _earth.heliocentric!);
-    final appLocalizations = AppLocalizations.of(context)!;
+    final localizations = AppLocalizations.of(context)!;
     final nameList = {
-      CelestialId.sun: appLocalizations.sun,
-      CelestialId.mercury: appLocalizations.mercury,
-      CelestialId.venus: appLocalizations.venus,
-      CelestialId.mars: appLocalizations.mars,
-      CelestialId.jupiter: appLocalizations.jupiter,
-      CelestialId.saturn: appLocalizations.saturn,
-      CelestialId.uranus: appLocalizations.uranus,
-      CelestialId.neptune: appLocalizations.neptune,
+      CelestialId.sun: localizations.sun,
+      CelestialId.mercury: localizations.mercury,
+      CelestialId.venus: localizations.venus,
+      CelestialId.mars: localizations.mars,
+      CelestialId.jupiter: localizations.jupiter,
+      CelestialId.saturn: localizations.saturn,
+      CelestialId.uranus: localizations.uranus,
+      CelestialId.neptune: localizations.neptune,
     };
 
     final directionSignList = [
-      Tuple3<String, int, bool>(appLocalizations.northSign, 0, true),
-      Tuple3<String, int, bool>(appLocalizations.northEastSign, 45, false),
-      Tuple3<String, int, bool>(appLocalizations.eastSign, 90, true),
-      Tuple3<String, int, bool>(appLocalizations.southEastSign, 135, false),
-      Tuple3<String, int, bool>(appLocalizations.southSign, 180, true),
-      Tuple3<String, int, bool>(appLocalizations.southWestSign, 225, false),
-      Tuple3<String, int, bool>(appLocalizations.westSign, 270, true),
-      Tuple3<String, int, bool>(appLocalizations.northWestSign, 315, false),
+      Tuple3<String, int, bool>(localizations.northSign, 0, true),
+      Tuple3<String, int, bool>(localizations.northEastSign, 45, false),
+      Tuple3<String, int, bool>(localizations.eastSign, 90, true),
+      Tuple3<String, int, bool>(localizations.southEastSign, 135, false),
+      Tuple3<String, int, bool>(localizations.southSign, 180, true),
+      Tuple3<String, int, bool>(localizations.southWestSign, 225, false),
+      Tuple3<String, int, bool>(localizations.westSign, 270, true),
+      Tuple3<String, int, bool>(localizations.northWestSign, 315, false),
     ];
 
     final sphereModel = SphereModel(
@@ -182,8 +182,8 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
                       ? _makeGestureDetector
                       : _makeListener)(
             MomentarySkyMap(
+                // UniqueKey is needed for calling setState()
                 key: UniqueKey(),
-                // for calling setState()
                 projectionModel: projection,
                 sphereModel: sphereModel,
                 starCatalogue: widget.starCatalogue,

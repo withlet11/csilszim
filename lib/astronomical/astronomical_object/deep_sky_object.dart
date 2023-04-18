@@ -28,6 +28,9 @@ class DeepSkyObject implements AstronomicalObject {
   final int? ngcNumber;
   final Equatorial position;
   final String magnitude;
+  final double? majorAxisSize;
+  final double? minorAxisSize;
+  final double? orientationAngle;
   final String type;
   final List<String> name;
 
@@ -36,6 +39,9 @@ class DeepSkyObject implements AstronomicalObject {
     this.ngcNumber,
     required this.position,
     required this.magnitude,
+    this.majorAxisSize,
+    this.minorAxisSize,
+    this.orientationAngle,
     required this.type,
     this.name = const [],
   });

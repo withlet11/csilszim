@@ -42,7 +42,7 @@
   "shortIntroduction": "An astronomical simulator",
   "siderealTime": "Sidereal Time",
   "standardTime": "Standard Time",
-  "tfov": "True field fo view",
+  "trueFov": "True field fo view",
   "timeOffset": "Offset",
   "timeZone": "Time zone",
   "type": "Type",

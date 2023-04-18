@@ -148,11 +148,27 @@ class StarCatalogue {
             (decDeg + (decMin + decSec / 60.0) / 60.0) *
             degInRad;
 
+        double? majorAxisSize;
+        double? minorAxisSize;
+        double? orientationAngle;
+        if (e.length >= 11) {
+          majorAxisSize = double.parse(e[10]);
+          if (e.length >= 12) {
+            minorAxisSize = double.parse(e[11]);
+            if (e.length >= 13) {
+              orientationAngle = double.parse(e[12]);
+            }
+          }
+        }
+
         messierList.add(DeepSkyObject(
             messierNumber: messier,
             ngcNumber: ngc,
             position: Equatorial.fromRadians(dec: dec, ra: ra),
             magnitude: magnitude,
+            majorAxisSize: majorAxisSize,
+            minorAxisSize: minorAxisSize,
+            orientationAngle: orientationAngle,
             type: type,
             name: commonName.split(',')));
       }

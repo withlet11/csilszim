@@ -72,23 +72,33 @@ final constellationLinePaint = Paint()
 final starBlurPaint = Paint()
   ..color = Colors.grey
   ..imageFilter =
-      ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
+  ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
   ..style = PaintingStyle.fill;
 
 final starPaint = Paint()
   ..color = Colors.grey
   ..style = PaintingStyle.fill;
 
-final deepSkyObjectPaint = Paint()
+final deepSkyObjectStrokePaint = Paint()
   ..color = Colors.grey
   ..style = PaintingStyle.stroke
   ..strokeWidth = 1.0;
+
+final deepSkyObjectThickStrokePaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = 1.5;
+
+final deepSkyObjectFillPaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.fill
+  ..strokeWidth = 0;
 
 final fovPaint = Paint()
   ..color = Colors.red
   ..style = PaintingStyle.stroke;
 
-const planetLabelTextStyle = TextStyle(
+const celestialObjectLabelTextStyle = TextStyle(
     color: Colors.white, fontSize: 12.0, fontWeight: FontWeight.normal);
 
 const constellationLabelTextStyle = TextStyle(

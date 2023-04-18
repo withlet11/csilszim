@@ -42,7 +42,7 @@
   "shortIntroduction": "Csillagászati szimulátor",
   "siderealTime": "Csillagidő",
   "standardTime": "Zónaidő",
-  "tfov": "Valódi látómező",
+  "trueFov": "Valódi látómező",
   "timeOffset": "Időeltolódás",
   "timeZone": "Időzóna",
   "type": "Típus",

@@ -21,13 +21,13 @@
 
 import 'dart:math';
 
-import 'package:csilszim/astronomical/astronomical_object/celestial_id.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
+import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
@@ -68,7 +68,6 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     PlanetUranus(),
     PlanetNeptune()
   ];
-  late Map<CelestialId, String> _planetNameList;
   var _mouseEquatorial = Equatorial.zero;
   double? _scale;
   Offset? _pointerPosition;
@@ -92,9 +91,9 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
   @override
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
-    final settingData = ref.watch(wholeNightSkyViewSettingProvider);
+    final displaySettings = ref.watch(wholeNightSkyViewSettingProvider);
     final localizations = AppLocalizations.of(context)!;
-    _planetNameList = {
+    final planetNameList = {
       CelestialId.mercury: localizations.mercury,
       CelestialId.venus: localizations.venus,
       CelestialId.earth: localizations.earth,
@@ -127,11 +126,11 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
           projectionModel: _settings.projection,
           sphereModel: sphereModel,
           starCatalogue: widget.starCatalogue,
-          displaySettings: settingData.copyWith(),
+          displaySettings: displaySettings.copyWith(),
           mouseEquatorial: _mouseEquatorial,
           sunEquatorial: _sunEquatorial,
           planetList: _planetList,
-          planetNameList: _planetNameList,
+          planetNameList: planetNameList,
         ),
       )),
       Align(

@@ -161,8 +161,22 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ),
           if (viewSelect == View.momentary)
             SwitchListTile(
+              title: Text(appLocalization.messierObjects),
+              value: momentarySkyViewSetting.isMessierObjectVisible,
+              onChanged: (bool? value) {
+                setState(() {
+                  if (value != null) {
+                    ref
+                        .read(momentarySkyViewSettingProvider.notifier)
+                        .messierObjectVisibility = value;
+                  }
+                });
+              },
+            ),
+          if (viewSelect == View.momentary)
+            SwitchListTile(
               title: Text('${appLocalization.fov} '
-                  '(${momentarySkyViewSetting.tfov.toStringAsFixed(1)}$degSign)'),
+                  '(${momentarySkyViewSetting.trueFov.toStringAsFixed(1)}$degSign)'),
               value: momentarySkyViewSetting.isFovVisible,
               onChanged: (bool? value) {
                 setState(() {
@@ -177,17 +191,17 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
           if (viewSelect == View.momentary)
             ListTile(
               title: Slider(
-                label: momentarySkyViewSetting.tfov.toStringAsFixed(1),
+                label: momentarySkyViewSetting.trueFov.toStringAsFixed(1),
                 min: minimumTfov,
                 max: maximumTfov,
-                value: momentarySkyViewSetting.tfov,
+                value: momentarySkyViewSetting.trueFov,
                 onChanged: momentarySkyViewSetting.isFovVisible
                     ? (double? value) {
                         setState(() {
                           if (value != null) {
                             ref
                                 .read(momentarySkyViewSettingProvider.notifier)
-                                .tfov = value;
+                                .trueFov = value;
                           }
                         });
                       }
@@ -267,7 +281,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
           if (viewSelect == View.wholeNight)
             SwitchListTile(
               title: Text('${appLocalization.fov} '
-                  '(${wholeNightSkyViewSetting.tfov.toStringAsFixed(1)}$degSign)'),
+                  '(${wholeNightSkyViewSetting.trueFov.toStringAsFixed(1)}$degSign)'),
               value: wholeNightSkyViewSetting.isFovVisible,
               onChanged: (bool? value) {
                 setState(() {
@@ -282,17 +296,17 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
           if (viewSelect == View.wholeNight)
             ListTile(
               title: Slider(
-                label: wholeNightSkyViewSetting.tfov.toStringAsFixed(1),
+                label: wholeNightSkyViewSetting.trueFov.toStringAsFixed(1),
                 min: minimumTfov,
                 max: maximumTfov,
-                value: wholeNightSkyViewSetting.tfov,
+                value: wholeNightSkyViewSetting.trueFov,
                 onChanged: wholeNightSkyViewSetting.isFovVisible
                     ? (double? value) {
                         setState(() {
                           if (value != null) {
                             ref
                                 .read(wholeNightSkyViewSettingProvider.notifier)
-                                .tfov = value;
+                                .trueFov = value;
                           }
                         });
                       }
