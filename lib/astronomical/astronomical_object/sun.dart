@@ -36,15 +36,13 @@ class Sun implements AstronomicalObject {
   var heliocentric = Offset3D.zero;
   @override
   var geocentric = Offset3D.zero;
+  @override
+  var equatorial = const Equatorial.fromRadians(dec: 0.0, ra: 0.0);
 
   void update(double jd, Offset3D earthPosition) {
     this.jd = jd;
     geocentric = -earthPosition;
-  }
-
-  @override
-  Equatorial get equatorial {
     final ecliptic = Ecliptic.fromXyz(geocentric!);
-    return ecliptic.toEquatorial();
+    equatorial = ecliptic.toEquatorial();
   }
 }

@@ -21,6 +21,7 @@
 
 enum CelestialId {
   sun,
+  moon,
   mercury,
   venus,
   earth,

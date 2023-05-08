@@ -19,6 +19,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'package:csilszim/astronomical/orbit_calculation/elp82b2.dart';
 import 'package:flutter/services.dart';
 
 import '../constants.dart';
@@ -35,6 +36,7 @@ class StarCatalogue {
   List nameList = <ConstellationName>[];
   List messierList = <DeepSkyObject>[];
   List brightestStarList = <Star>[];
+  late Elp82b2 elp82b2;
 
   static Future<StarCatalogue> make() async {
     final starCatalogue = StarCatalogue();
@@ -45,6 +47,7 @@ class StarCatalogue {
     await starCatalogue._loadConstellationNameData('constellation_name.csv');
     await starCatalogue._loadDeepSkyObjectData('messier.csv');
     await starCatalogue._loadBrightestStarData('brightest_stars.csv');
+    starCatalogue.elp82b2 = await Elp82b2.make(prec: 4.85e-11);
 
     return Future.value(starCatalogue);
   }

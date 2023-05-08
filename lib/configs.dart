@@ -79,6 +79,20 @@ final starPaint = Paint()
   ..color = Colors.grey
   ..style = PaintingStyle.fill;
 
+final moonBlurPaint = Paint()
+  ..color = Colors.grey
+  ..imageFilter =
+  ImageFilter.blur(sigmaX: 8.0, sigmaY: 8.0, tileMode: TileMode.decal)
+  ..style = PaintingStyle.fill;
+
+final moonLightSidePaint = Paint()
+  ..color = Colors.grey
+  ..style = PaintingStyle.fill;
+
+final moonDarkSidePaint = Paint()
+  ..color = Colors.black
+  ..style = PaintingStyle.fill;
+
 final deepSkyObjectStrokePaint = Paint()
   ..color = Colors.grey
   ..style = PaintingStyle.stroke

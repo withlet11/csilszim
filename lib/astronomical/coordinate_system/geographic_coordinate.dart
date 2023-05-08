@@ -28,21 +28,21 @@ import '../../utilities/sexagesimal_angle.dart';
 @immutable
 class Geographic {
   /// [lat] & [long] are provided latitude and longitude in radians.
-  final double lat, long;
+  final double lat, long, h;
 
-  const Geographic.fromDegrees({required double lat, required double long})
+  const Geographic.fromDegrees(
+      {required double lat, required double long, this.h = 164.0})
       : lat = lat * degInRad,
         long = long * degInRad;
 
-  const Geographic.fromRadians({required this.lat, required this.long});
+  const Geographic.fromRadians(
+      {required this.lat, required this.long, this.h = 0.0});
 
   double latInDegrees() => lat / degInRad;
 
   double longInDegrees() => long / degInRad;
 
-  String latToString() =>
-      DmsAngle.fromDegrees(latInDegrees()).toDmsWithNS();
+  String latToString() => DmsAngle.fromDegrees(latInDegrees()).toDmsWithNS();
 
-  String longToString() =>
-      DmsAngle.fromDegrees(longInDegrees()).toDmsWithEW();
+  String longToString() => DmsAngle.fromDegrees(longInDegrees()).toDmsWithEW();
 }

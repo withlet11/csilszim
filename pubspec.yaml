@@ -79,6 +79,42 @@ flutter:
     - assets/constellation_name.csv
     - assets/messier.csv
     - assets/brightest_stars.csv
+    - assets/elp82b/ELP1
+    - assets/elp82b/ELP2
+    - assets/elp82b/ELP3
+    - assets/elp82b/ELP4
+    - assets/elp82b/ELP5
+    - assets/elp82b/ELP6
+    - assets/elp82b/ELP7
+    - assets/elp82b/ELP8
+    - assets/elp82b/ELP9
+    - assets/elp82b/ELP10
+    - assets/elp82b/ELP11
+    - assets/elp82b/ELP12
+    - assets/elp82b/ELP13
+    - assets/elp82b/ELP14
+    - assets/elp82b/ELP15
+    - assets/elp82b/ELP16
+    - assets/elp82b/ELP17
+    - assets/elp82b/ELP18
+    - assets/elp82b/ELP19
+    - assets/elp82b/ELP20
+    - assets/elp82b/ELP21
+    - assets/elp82b/ELP22
+    - assets/elp82b/ELP23
+    - assets/elp82b/ELP24
+    - assets/elp82b/ELP25
+    - assets/elp82b/ELP26
+    - assets/elp82b/ELP27
+    - assets/elp82b/ELP28
+    - assets/elp82b/ELP29
+    - assets/elp82b/ELP30
+    - assets/elp82b/ELP31
+    - assets/elp82b/ELP32
+    - assets/elp82b/ELP33
+    - assets/elp82b/ELP34
+    - assets/elp82b/ELP35
+    - assets/elp82b/ELP36
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

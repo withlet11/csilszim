@@ -28,17 +28,18 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
+import '../astronomical/astronomical_object/moon.dart';
 import '../astronomical/astronomical_object/planet.dart';
-import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
+import '../astronomical/astronomical_object/sun.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
+import '../astronomical/grs80.dart';
 import '../astronomical/orbit_calculation/orbit_calculation.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../provider/location_provider.dart';
-import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'date_chooser_dial.dart';
 import 'mercator_projection.dart';
@@ -68,13 +69,14 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     PlanetUranus(),
     PlanetNeptune()
   ];
+  late Moon _moon;
   var _mouseEquatorial = Equatorial.zero;
   double? _scale;
   Offset? _pointerPosition;
 
   @override
   void initState() {
-    _updateSunPosition();
+    _moon = Moon(widget.starCatalogue.elp82b2);
     super.initState();
   }
 
@@ -83,8 +85,6 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     final pageStorage = PageStorage.of(context);
     _settings = pageStorage.readState(context) as _Settings? ??
         _Settings.defaultValue();
-
-    _updateSunPosition();
     super.didChangeDependencies();
   }
 
@@ -107,6 +107,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
       CelestialId.haumea: localizations.haumea,
       CelestialId.makemake: localizations.makemake,
       CelestialId.eris: localizations.eris,
+      CelestialId.moon: localizations.moon,
     };
 
     final sphereModel = SphereModel(
@@ -114,7 +115,8 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
             lat: locationData.latInDegrees(),
             long: locationData.longInDegrees()));
 
-    _updateSunPosition();
+    _updateSolarSystem(locationData);
+
     return Stack(fit: StackFit.expand, children: [
       ClipRect(
           child: (defaultTargetPlatform == TargetPlatform.android
@@ -130,6 +132,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
           mouseEquatorial: _mouseEquatorial,
           sunEquatorial: _sunEquatorial,
           planetList: _planetList,
+          moon: _moon,
           planetNameList: planetNameList,
         ),
       )),
@@ -282,17 +285,18 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     _scale = details.scale;
   }
 
-  void _updateSunPosition() {
+  void _updateSolarSystem(Geographic locationData) {
+    _moon.observationPosition = Grs80.from(locationData);
     final time = TimeModel.fromLocalTime(_settings.date);
     final orbitCalculation = OrbitCalculationWithMeanLongitude(time);
-    final earthPosition =
+    final earthPosition = // PlanetEarth().calculateWithVsop87(time.jd);
         orbitCalculation.calculatePosition(PlanetEarth().orbitalElement);
-    const sunPosition = Offset3D.zero;
-    final sunEcliptic = Ecliptic.fromXyz(sunPosition - earthPosition);
-    _sunEquatorial = sunEcliptic.toEquatorial();
+    final sun = Sun()..update(time.jd, earthPosition);
+    _sunEquatorial = sun.equatorial;
     for (final planet in _planetList) {
       planet.update(time.jd, earthPosition);
     }
+    _moon.update(time, earthPosition, sun);
   }
 }
 

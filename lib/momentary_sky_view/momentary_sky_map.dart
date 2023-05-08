@@ -26,6 +26,7 @@ import 'package:tuple/tuple.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/deep_sky_object.dart';
+import '../astronomical/astronomical_object/moon.dart';
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/astronomical_object/sun.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
@@ -46,6 +47,7 @@ class MomentarySkyMap extends StatelessWidget {
   final StarCatalogue starCatalogue;
   final List<Planet> planetList;
   final Sun sun;
+  final Moon moon;
   final Map<CelestialId, String> nameList;
   final List<Tuple3<String, int, bool>> directionSignList;
   final MomentarySkyViewSettings displaySettings;
@@ -58,6 +60,7 @@ class MomentarySkyMap extends StatelessWidget {
     required this.starCatalogue,
     required this.planetList,
     required this.sun,
+    required this.moon,
     required this.directionSignList,
     required this.nameList,
     required this.displaySettings,
@@ -74,6 +77,7 @@ class MomentarySkyMap extends StatelessWidget {
             starCatalogue,
             planetList,
             sun,
+            moon,
             nameList,
             directionSignList,
             displaySettings));
@@ -86,6 +90,7 @@ class _ProjectionRenderer extends CustomPainter {
   final StarCatalogue starCatalogue;
   final List<Planet> planetList;
   final Sun sun;
+  final Moon moon;
   final Map<CelestialId, String> nameList;
   final List<Tuple3<String, int, bool>> directionSignList;
   final MomentarySkyViewSettings displaySettings;
@@ -98,6 +103,7 @@ class _ProjectionRenderer extends CustomPainter {
       this.starCatalogue,
       this.planetList,
       this.sun,
+      this.moon,
       this.nameList,
       this.directionSignList,
       this.displaySettings);
@@ -136,6 +142,7 @@ class _ProjectionRenderer extends CustomPainter {
     }
 
     _drawSun(canvas, size, midPoint);
+    _drawMoon(canvas, size, midPoint);
 
     if (displaySettings.isFovVisible) {
       _drawFOV(canvas, size);
@@ -356,6 +363,20 @@ class _ProjectionRenderer extends CustomPainter {
         canvas.drawCircle(offset, radius, starPaint);
       }
       _drawPlanetLabel(canvas, size, offset, nameList[planet.id]!);
+    }
+  }
+
+  void _drawMoon(Canvas canvas, Size size, double midPoint) {
+    final equatorial = moon.equatorial;
+    final altAz = sphereModel.equatorialToHorizontal(equatorial);
+    if (altAz.alt > 0) {
+      final center = size.center(Offset.zero);
+      final unitLength = _getUnitLength(size);
+      final offset = projectionModel.horizontalToXy(altAz, center, unitLength);
+      final radius = radiusOfObject(Sun.magnitude, midPoint);
+      canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+      canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.5, starPaint);
+      _drawPlanetLabel(canvas, size, offset, nameList[CelestialId.moon]!);
     }
   }
 

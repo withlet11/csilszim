@@ -25,6 +25,7 @@ import 'package:csilszim/astronomical/astronomical_object/celestial_id.dart';
 import 'package:flutter/material.dart';
 
 import '../astronomical/astronomical_object/deep_sky_object.dart';
+import '../astronomical/astronomical_object/moon.dart';
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
@@ -47,6 +48,7 @@ class WholeNightSkyMap extends StatelessWidget {
   final Equatorial mouseEquatorial;
   final Equatorial sunEquatorial;
   final List<Planet> planetList;
+  final Moon moon;
   final Map<CelestialId, String> planetNameList;
 
   const WholeNightSkyMap({
@@ -58,6 +60,7 @@ class WholeNightSkyMap extends StatelessWidget {
     required this.mouseEquatorial,
     required this.sunEquatorial,
     required this.planetList,
+    required this.moon,
     required this.planetNameList,
   });
 
@@ -73,6 +76,7 @@ class WholeNightSkyMap extends StatelessWidget {
       sunEquatorial,
       planetList,
       planetNameList,
+      moon,
     ));
   }
 }
@@ -86,6 +90,7 @@ class _ProjectionRenderer extends CustomPainter {
   final Equatorial sunEquatorial;
   final List<Planet> planetList;
   final Map<CelestialId, String> planetNameList;
+  final Moon moon;
 
   const _ProjectionRenderer(
     this.projectionModel,
@@ -96,6 +101,7 @@ class _ProjectionRenderer extends CustomPainter {
     this.sunEquatorial,
     this.planetList,
     this.planetNameList,
+    this.moon,
   );
 
   @override
@@ -125,6 +131,7 @@ class _ProjectionRenderer extends CustomPainter {
 
     if (displaySettings.isPlanetVisible) {
       _drawPlanet(canvas, size, midPoint);
+      _drawMoon(canvas, size, midPoint);
     }
 
     if (displaySettings.isFovVisible) {
@@ -684,6 +691,74 @@ class _ProjectionRenderer extends CustomPainter {
         final textPosition = position + const Offset(40.0, -22.0);
         nameTextPainter.paint(canvas, textPosition);
       }
+    }
+  }
+
+  void _drawMoon(Canvas canvas, Size size, double midPoint) {
+    final width = size.width;
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+
+    final xy =
+        projectionModel.equatorialToXy(moon.equatorial, center, unitLength);
+    final pole = Equatorial.fromRadians(
+        dec: moon.equatorial.dec + moon.apparentRadius, ra: moon.equatorial.ra);
+    final poleXy = projectionModel.equatorialToXy(pole, center, unitLength);
+    final y = xy.dy;
+    final magnitudeBaseRadius = radiusOfObject(moon.magnitude, midPoint);
+    final radius = (y - poleXy.dy).abs();
+    for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
+      canvas.save();
+      canvas.translate(x, y);
+
+      final path = Path()
+        ..moveTo(Offset.zero.dx + 4, Offset.zero.dy - 4)
+        ..relativeLineTo(12.0, -12.0)
+        ..relativeLineTo(20.0, 0.0);
+      canvas.drawPath(path, planetPointerPaint);
+
+      final locationTextSpan = TextSpan(
+          style: celestialObjectLabelTextStyle,
+          text: planetNameList[CelestialId.moon]);
+
+      final nameTextPainter = TextPainter(
+        text: locationTextSpan,
+        textAlign: TextAlign.left,
+        textDirection: TextDirection.ltr,
+      );
+
+      nameTextPainter.layout();
+      final textPosition = Offset.zero + const Offset(40.0, -22.0);
+      nameTextPainter.paint(canvas, textPosition);
+
+      final moonRadius = max(radius, 10.0);
+      final moonSize = 2 * moonRadius;
+      canvas.drawCircle(
+          Offset.zero, 3.0 + (magnitudeBaseRadius - 3.0) * 0.8, starBlurPaint);
+      canvas.drawCircle(Offset.zero, moonRadius, moonLightSidePaint);
+      final Paint backgroundPaint, foregroundPaint;
+      final double arcStart;
+      if ((moon.phaseAngle - halfTurn).abs() > quarterTurn) {
+        backgroundPaint = moonDarkSidePaint;
+        foregroundPaint = moonLightSidePaint;
+        arcStart = quarterTurn;
+      } else {
+        backgroundPaint = moonLightSidePaint;
+        foregroundPaint = moonDarkSidePaint;
+        arcStart = -quarterTurn;
+      }
+      canvas.rotate(moon.tilt + quarterTurn);
+      canvas.drawCircle(Offset.zero, moonRadius, backgroundPaint);
+      canvas.drawArc(Rect.fromCircle(center: Offset.zero, radius: moonRadius),
+          arcStart, halfTurn, false, foregroundPaint);
+      canvas.drawOval(
+          Rect.fromCenter(
+              center: Offset.zero,
+              width: moonSize * cos(moon.phaseAngle),
+              height: moonSize),
+          foregroundPaint);
+      canvas.restore();
     }
   }
 

@@ -21,6 +21,7 @@
 
 import 'dart:math';
 
+import 'package:csilszim/astronomical/grs80.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -30,6 +31,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:tuple/tuple.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
+import '../astronomical/astronomical_object/moon.dart';
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/astronomical_object/sun.dart';
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
@@ -71,6 +73,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   late final Planet _earth;
   late final List<Planet> _planetList;
   late final Sun _sun;
+  late final Moon _moon;
 
   @override
   void initState() {
@@ -88,6 +91,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       planet.update(_timeModel.jd, _earth.heliocentric!);
     }
     _sun = Sun()..update(_timeModel.jd, _earth.heliocentric!);
+    _moon = Moon(widget.starCatalogue.elp82b2);
 
     // For Ticker. It should be disposed when this widget is disposed.
     // Ticker is also paused when the widget is paused. It is good for
@@ -128,9 +132,12 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       planet.update(_timeModel.jd, _earth.heliocentric!);
     }
     _sun.update(_timeModel.jd, _earth.heliocentric!);
+    _moon.observationPosition = Grs80.from(locationData);
+    _moon.update(_timeModel, _earth.heliocentric!, _sun);
     final localizations = AppLocalizations.of(context)!;
     final nameList = {
       CelestialId.sun: localizations.sun,
+      CelestialId.moon: localizations.moon,
       CelestialId.mercury: localizations.mercury,
       CelestialId.venus: localizations.venus,
       CelestialId.mars: localizations.mars,
@@ -189,6 +196,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
                 starCatalogue: widget.starCatalogue,
                 planetList: _planetList,
                 sun: _sun,
+                moon: _moon,
                 nameList: nameList,
                 directionSignList: directionSignList,
                 displaySettings: displaySettings.copyWith(),
