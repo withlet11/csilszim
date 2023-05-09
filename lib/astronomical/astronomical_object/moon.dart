@@ -102,18 +102,18 @@ class Moon implements AstronomicalObject {
     final sinE = sqrt(1 - cosE * cosE);
 
     // T: Tilt of the Moon phase
-    final sinT = sinE * cos(sunDec) / sin(moonRa - sunRa);
+    tilt = asin(sinE * cos(sunDec) / sin(moonRa - sunRa));
 
     if ((moonRa - sunRa) % fullTurn < halfTurn) {
       phaseAngle = fullTurn - acos(cosPhaseAngle);
     } else {
       phaseAngle = acos(cosPhaseAngle);
     }
-    tilt = asin(sinT);
     apparentRadius = atan(radius / distanceFromEarth);
 
     // http://astro.if.ufrgs.br/trigesf/position.html#15
-    final fv = (phaseAngle > halfTurn ? fullTurn - phaseAngle : phaseAngle) * radInDeg;
+    final fv =
+        (phaseAngle > halfTurn ? fullTurn - phaseAngle : phaseAngle) * radInDeg;
     magnitude = absoluteMagnitude +
         5 * log(1.0 * 0.00257) * log10e +
         0.026 * fv +

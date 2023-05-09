@@ -35,6 +35,7 @@ import '../astronomical/star_catalogue.dart';
 import '../configs.dart';
 import '../constants.dart';
 import '../utilities/sexagesimal_angle.dart';
+import '../utilities/star_size_on_screen.dart';
 import 'configs.dart';
 import 'mercator_projection.dart';
 import 'whole_night_sky_view_setting_provider.dart';
@@ -122,7 +123,7 @@ class _ProjectionRenderer extends CustomPainter {
       _drawConstellationName(canvas, size);
     }
 
-    final midPoint = calculateMidPointOfMagnitude();
+    final midPoint = calculateMidPointOfMagnitude(-3.0, projectionModel.scale);
     _drawStars(canvas, size, midPoint);
 
     if (displaySettings.isMessierObjectVisible) {
@@ -212,7 +213,6 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawEclipticLine(Canvas canvas, Size size) {
-    final width = size.width;
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
@@ -225,7 +225,7 @@ class _ProjectionRenderer extends CustomPainter {
           .add(projectionModel.equatorialToXy(equatorial, center, unitLength));
     }
 
-    final firstX = fullTurnList.first.dx % width + width;
+    final firstX = fullTurnList.first.dx % lengthOfFullTurn + lengthOfFullTurn;
     final fullScreenList = <Offset>[];
     for (var shift = firstX - fullTurnList.first.dx;
         fullTurnList.first.dx + shift > 0;
@@ -479,26 +479,25 @@ class _ProjectionRenderer extends CustomPainter {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+    const minimumRadius = 0.2;
+    final magnitudeLimit = faintestMagnitude(minimumRadius, midPoint);
 
     for (final star in starCatalogue.starList) {
-      if (star.hipNumber > 0) {
+      if (star.hipNumber > 0 && star.magnitude < magnitudeLimit) {
+        final xy =
+            projectionModel.equatorialToXy(star.position, center, unitLength);
+        final y = xy.dy;
         final radius = radiusOfObject(star.magnitude, midPoint);
-        if (radius > 0.2) {
-          final xy =
-              projectionModel.equatorialToXy(star.position, center, unitLength);
-          final y = xy.dy;
-          for (var x = xy.dx % lengthOfFullTurn;
-              x < width;
-              x += lengthOfFullTurn) {
-            final position = Offset(x, y);
-            if (radius > 3.0) {
-              canvas.drawCircle(
-                  position, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
-              canvas.drawCircle(
-                  position, 3.0 + (radius - 3.0) * 0.5, starPaint);
-            } else {
-              canvas.drawCircle(position, radius, starPaint);
-            }
+        for (var x = xy.dx % lengthOfFullTurn;
+            x < width;
+            x += lengthOfFullTurn) {
+          final position = Offset(x, y);
+          if (radius > 3.0) {
+            canvas.drawCircle(
+                position, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+            canvas.drawCircle(position, 3.0 + (radius - 3.0) * 0.5, starPaint);
+          } else {
+            canvas.drawCircle(position, radius, starPaint);
           }
         }
       }
@@ -702,12 +701,12 @@ class _ProjectionRenderer extends CustomPainter {
 
     final xy =
         projectionModel.equatorialToXy(moon.equatorial, center, unitLength);
-    final pole = Equatorial.fromRadians(
+    final top = Equatorial.fromRadians(
         dec: moon.equatorial.dec + moon.apparentRadius, ra: moon.equatorial.ra);
-    final poleXy = projectionModel.equatorialToXy(pole, center, unitLength);
+    final topXy = projectionModel.equatorialToXy(top, center, unitLength);
     final y = xy.dy;
     final magnitudeBaseRadius = radiusOfObject(moon.magnitude, midPoint);
-    final radius = (y - poleXy.dy).abs();
+    final radius = (y - topXy.dy).abs();
     for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
       canvas.save();
       canvas.translate(x, y);
@@ -867,23 +866,6 @@ class _ProjectionRenderer extends CustomPainter {
     }
     canvas.drawPath(path, fovPaint);
   }
-
-  /// Calculates the radius of objects on the canvas with the logistic function.
-  ///
-  /// [midPoint] should be calculated with [calculateMidPointOfMagnitude] once.
-  /// Don't calculate [midPoint] every time.
-  double radiusOfObject(double magnitude, double midPoint) {
-    const l = 24.0;
-
-    // r = log(sqrt((1/100)^(1/5))) ∵ magnitude 1 star is exactly 100 times
-    // brighter than a magnitude 6 star, and the radius is proportional to the
-    // square root of the area.
-    const r = -2 * (1 / 5) * (1 / 2) / log10e;
-    return l / (1 + exp(-r * (magnitude - midPoint)));
-  }
-
-  double calculateMidPointOfMagnitude() =>
-      -3.0 + log(projectionModel.scale) * 1.5;
 
   /// Converts angle to length at a position in horizontal coordinator.
   ///

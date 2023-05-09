@@ -36,6 +36,7 @@ import '../astronomical/star_catalogue.dart';
 import '../configs.dart';
 import '../constants.dart';
 import '../utilities/sexagesimal_angle.dart';
+import '../utilities/star_size_on_screen.dart';
 import 'configs.dart';
 import 'momentary_sky_view_setting_provider.dart';
 import 'stereographic_projection.dart';
@@ -130,7 +131,7 @@ class _ProjectionRenderer extends CustomPainter {
       _drawConstellationName(canvas, size);
     }
 
-    final midPoint = calculateMidPointOfMagnitude();
+    final midPoint = calculateMidPointOfMagnitude(-4.0, projectionModel.scale);
     _drawStars(canvas, size, midPoint);
 
     if (displaySettings.isMessierObjectVisible) {
@@ -329,20 +330,19 @@ class _ProjectionRenderer extends CustomPainter {
   void _drawStars(Canvas canvas, Size size, double midPoint) {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
+    const minimumRadius = 0.25;
+    final magnitudeLimit = faintestMagnitude(minimumRadius, midPoint);
     for (final star in starCatalogue.starList) {
-      if (star.hipNumber > 0) {
-        final radius = radiusOfObject(star.magnitude, midPoint);
-        if (radius > 0.25) {
-          final altAz = sphereModel.equatorialToHorizontal(star.position);
-          if (!altAz.alt.isNegative) {
-            final xy =
-                projectionModel.horizontalToXy(altAz, center, unitLength);
-            if (radius > 3.0) {
-              canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
-              canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.5, starPaint);
-            } else {
-              canvas.drawCircle(xy, radius, starPaint);
-            }
+      if (star.hipNumber > 0 && star.magnitude < magnitudeLimit) {
+        final altAz = sphereModel.equatorialToHorizontal(star.position);
+        if (!altAz.alt.isNegative) {
+          final xy = projectionModel.horizontalToXy(altAz, center, unitLength);
+          final radius = radiusOfObject(star.magnitude, midPoint);
+          if (radius > 3.0) {
+            canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+            canvas.drawCircle(xy, 3.0 + (radius - 3.0) * 0.5, starPaint);
+          } else {
+            canvas.drawCircle(xy, radius, starPaint);
           }
         }
       }
@@ -369,14 +369,49 @@ class _ProjectionRenderer extends CustomPainter {
   void _drawMoon(Canvas canvas, Size size, double midPoint) {
     final equatorial = moon.equatorial;
     final altAz = sphereModel.equatorialToHorizontal(equatorial);
-    if (altAz.alt > 0) {
+    if (/*altAz.alt > 0*/ true) {
       final center = size.center(Offset.zero);
       final unitLength = _getUnitLength(size);
       final offset = projectionModel.horizontalToXy(altAz, center, unitLength);
-      final radius = radiusOfObject(Sun.magnitude, midPoint);
-      canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
-      canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.5, starPaint);
-      _drawPlanetLabel(canvas, size, offset, nameList[CelestialId.moon]!);
+      final top = Equatorial.fromRadians(
+          dec: moon.equatorial.dec + moon.apparentRadius,
+          ra: moon.equatorial.ra);
+      final topOffset = projectionModel.horizontalToXy(
+              sphereModel.equatorialToHorizontal(top), center, unitLength) -
+          offset;
+      final magnitudeBaseRadius = radiusOfObject(moon.magnitude, midPoint);
+      final radius = topOffset.distance;
+      final direction = topOffset.direction;
+      canvas.save();
+      canvas.translate(offset.dx, offset.dy);
+      _drawPlanetLabel(canvas, size, Offset.zero, nameList[CelestialId.moon]!);
+      final moonRadius = max(radius, 10.0);
+      final moonSize = 2 * moonRadius;
+      canvas.drawCircle(
+          Offset.zero, 3.0 + (magnitudeBaseRadius - 3.0) * 0.8, starBlurPaint);
+      canvas.drawCircle(Offset.zero, moonRadius, moonLightSidePaint);
+      final Paint backgroundPaint, foregroundPaint;
+      final double arcStart;
+      if ((moon.phaseAngle - halfTurn).abs() > quarterTurn) {
+        backgroundPaint = moonDarkSidePaint;
+        foregroundPaint = moonLightSidePaint;
+        arcStart = quarterTurn;
+      } else {
+        backgroundPaint = moonLightSidePaint;
+        foregroundPaint = moonDarkSidePaint;
+        arcStart = -quarterTurn;
+      }
+      canvas.rotate(moon.tilt + direction + halfTurn);
+      canvas.drawCircle(Offset.zero, moonRadius, backgroundPaint);
+      canvas.drawArc(Rect.fromCircle(center: Offset.zero, radius: moonRadius),
+          arcStart, halfTurn, false, foregroundPaint);
+      canvas.drawOval(
+          Rect.fromCenter(
+              center: Offset.zero,
+              width: moonSize * cos(moon.phaseAngle),
+              height: moonSize),
+          foregroundPaint);
+      canvas.restore();
     }
   }
 
@@ -612,23 +647,6 @@ class _ProjectionRenderer extends CustomPainter {
     }
     canvas.drawPath(path, fovPaint);
   }
-
-  /// Calculates the radius of objects on the canvas with the logistic function.
-  ///
-  /// [midPoint] should be calculated with [calculateMidPointOfMagnitude] once.
-  /// Don't calculate [midPoint] every time.
-  double radiusOfObject(double magnitude, double midPoint) {
-    const l = 24.0;
-
-    // r = log(sqrt((1/100)^(1/5))) ∵ magnitude 1 star is exactly 100 times
-    // brighter than a magnitude 6 star, and the radius is proportional to the
-    // square root of the area.
-    const r = -2 * (1 / 5) * (1 / 2) / log10e;
-    return l / (1 + exp(-r * (magnitude - midPoint)));
-  }
-
-  double calculateMidPointOfMagnitude() =>
-      -4.0 + log(projectionModel.scale) * 1.5;
 
   /// Converts angle to length at a position in horizontal coordinator.
   ///
