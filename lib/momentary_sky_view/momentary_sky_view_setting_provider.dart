@@ -70,7 +70,7 @@ class MomentarySkyViewSettings {
   const MomentarySkyViewSettings({
     this.isHorizontalGridVisible = false,
     this.isEquatorialGridVisible = false,
-    this.isConstellationLineVisible = false,
+    this.isConstellationLineVisible = true,
     this.isConstellationNameVisible = false,
     this.isMessierObjectVisible = true,
     this.isFovVisible = true,

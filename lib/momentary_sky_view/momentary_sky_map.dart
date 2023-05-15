@@ -52,7 +52,7 @@ class MomentarySkyMap extends StatelessWidget {
   final Map<CelestialId, String> nameList;
   final List<Tuple3<String, int, bool>> directionSignList;
   final MomentarySkyViewSettings displaySettings;
-  final Horizontal mouseAltAz;
+  final Horizontal centerAltAz;
 
   const MomentarySkyMap({
     super.key,
@@ -65,7 +65,7 @@ class MomentarySkyMap extends StatelessWidget {
     required this.directionSignList,
     required this.nameList,
     required this.displaySettings,
-    required this.mouseAltAz,
+    required this.centerAltAz,
   });
 
   @override
@@ -73,7 +73,7 @@ class MomentarySkyMap extends StatelessWidget {
     return CustomPaint(
         painter: _ProjectionRenderer(
             projectionModel,
-            mouseAltAz,
+            centerAltAz,
             sphereModel,
             starCatalogue,
             planetList,
@@ -95,11 +95,11 @@ class _ProjectionRenderer extends CustomPainter {
   final Map<CelestialId, String> nameList;
   final List<Tuple3<String, int, bool>> directionSignList;
   final MomentarySkyViewSettings displaySettings;
-  final Horizontal mouseAltAz;
+  final Horizontal centerAltAz;
 
   const _ProjectionRenderer(
       this.projectionModel,
-      this.mouseAltAz,
+      this.centerAltAz,
       this.sphereModel,
       this.starCatalogue,
       this.planetList,
@@ -152,8 +152,8 @@ class _ProjectionRenderer extends CustomPainter {
     final altAzText = TextSpan(
       style: altAzTextStyle,
       text:
-          'alt: ${DmsAngle.fromDegrees(mouseAltAz.altInDegrees()).toDmsWithSign()}, '
-          'az: ${DmsAngle.fromDegrees(mouseAltAz.azInDegrees()).toDmsWithoutSign()}',
+          'alt: ${DmsAngle.fromDegrees(centerAltAz.altInDegrees()).toDmsWithSign()}, '
+          'az: ${DmsAngle.fromDegrees(centerAltAz.azInDegrees()).toDmsWithoutSign()}',
     );
     final altAzTextPainter = TextPainter(
       text: altAzText,
@@ -166,8 +166,8 @@ class _ProjectionRenderer extends CustomPainter {
     final decRaText = TextSpan(
       style: decRaTextStyle,
       text:
-          'dec: ${DmsAngle.fromDegrees(sphereModel.horizontalToEquatorial(mouseAltAz).decInDegrees()).toDmsWithSign()}, '
-          'ra: ${HmsAngle.fromHours(sphereModel.horizontalToEquatorial(mouseAltAz).raInHours()).toHms()}',
+          'dec: ${DmsAngle.fromDegrees(sphereModel.horizontalToEquatorial(centerAltAz).decInDegrees()).toDmsWithSign()}, '
+          'ra: ${HmsAngle.fromHours(sphereModel.horizontalToEquatorial(centerAltAz).raInHours()).toHms()}',
     );
     final decRaTextPainter = TextPainter(
       text: decRaText,

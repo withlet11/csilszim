@@ -19,8 +19,6 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'dart:math';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
@@ -41,7 +39,7 @@ import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../provider/location_provider.dart';
 import 'configs.dart';
-import 'date_chooser_dial.dart';
+import '../gui/date_chooser_dial.dart';
 import 'mercator_projection.dart';
 import 'whole_night_sky_map.dart';
 import 'whole_night_sky_view_setting_provider.dart';
@@ -70,7 +68,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     PlanetNeptune()
   ];
   late Moon _moon;
-  var _mouseEquatorial = Equatorial.zero;
+  var _centerEquatorial = Equatorial.zero;
   double? _scale;
   Offset? _pointerPosition;
 
@@ -129,7 +127,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
           sphereModel: sphereModel,
           starCatalogue: widget.starCatalogue,
           displaySettings: displaySettings.copyWith(),
-          mouseEquatorial: _mouseEquatorial,
+          centerEquatorial: _centerEquatorial,
           sunEquatorial: _sunEquatorial,
           planetList: _planetList,
           moon: _moon,
@@ -138,13 +136,14 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
       )),
       Align(
         alignment: Alignment.topRight,
-        child: Listener(
-          child: DateChooserDial(
-              dateString: _settings.date.toIso8601String().substring(0, 10),
-              angle: _settings.dialAngle,
-              isLeapYear: _settings.isLeapYear),
-          onPointerDown: (event) => _rotateDial(event.localPosition),
-          onPointerMove: (event) => _rotateDial(event.localPosition),
+        child: DateChooserDial(
+          dateTime: _settings.date,
+          onChanged: (dateTime) {
+            setState(() {
+              _settings.date = dateTime;
+              PageStorage.of(context).writeState(context, _settings);
+            });
+          },
         ),
       ),
     ]);
@@ -154,7 +153,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     return GestureDetector(
       key: _wholeNightSkyViewKey,
       behavior: HitTestBehavior.opaque,
-      onTapDown: (details) => _showPosition(details.localPosition),
+      // onTapDown: (details) => _showPosition(details.localPosition),
       onScaleStart: (details) {
         _scale = 1;
         _pointerPosition = null;
@@ -172,7 +171,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     return Listener(
       key: _wholeNightSkyViewKey,
       onPointerDown: (event) => _showPosition(event.localPosition),
-      onPointerHover: (event) => _showPosition(event.localPosition),
+      // onPointerHover: (event) => _showPosition(event.localPosition),
       onPointerMove: (event) => _moveViewPoint(event.localPosition),
       onPointerSignal: (event) => _zoomWithWheel(event),
       child: child,
@@ -189,7 +188,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
 
       final equatorial =
           _settings.projection.xyToEquatorial(offset).normalized();
-      _mouseEquatorial = equatorial;
+      _centerEquatorial = equatorial;
       _pointerPosition = null;
       PageStorage.of(context).writeState(context, _settings);
     });
@@ -212,7 +211,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
         final currentXY = (position - center) / scale;
         final currentEquatorial =
             _settings.projection.xyToEquatorial(currentXY);
-        _mouseEquatorial = currentEquatorial.normalized();
+        _centerEquatorial = currentEquatorial.normalized();
 
         if (_pointerPosition != null) {
           final previousXY = (_pointerPosition! - center) / scale;
@@ -227,36 +226,6 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
         PageStorage.of(context).writeState(context, _settings);
       });
     }
-  }
-
-  void _rotateDial(Offset position) {
-    setState(() {
-      final offset = position - DateChooserDial.dialCenter;
-      final distance = offset.distance;
-      if (distance < DateChooserDial.dialInnerBorderSize * 0.125 ||
-          distance > DateChooserDial.dialOuterBorderSize * 0.75) return;
-      final angle = (atan2(offset.dx, -offset.dy) + fullTurn) % fullTurn;
-      final overYear = (angle - _settings.dialAngle > 0.75 * fullTurn)
-          ? -1
-          : (angle - _settings.dialAngle < -0.75 * fullTurn)
-              ? 1
-              : 0;
-
-      _updateWithNewAngle(angle, overYear);
-    });
-  }
-
-  void _updateWithNewAngle(double angle, int overYear) {
-    final year = _settings.date.year + overYear;
-    final yearBegin = DateTime(year).millisecondsSinceEpoch;
-    final yearEnd = DateTime(year + 1).millisecondsSinceEpoch;
-    final lengthOfYear = yearEnd - yearBegin;
-    _settings.date = DateTime.fromMillisecondsSinceEpoch(
-        (lengthOfYear * angle / fullTurn + yearBegin).round());
-    _settings.isLeapYear = lengthOfYear == 366 * 86400 * 1000;
-    _settings.dialAngle = angle;
-
-    PageStorage.of(context).writeState(context, _settings);
   }
 
   void _zoomWithWheel(PointerSignalEvent event) {

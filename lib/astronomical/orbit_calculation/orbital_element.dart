@@ -37,7 +37,7 @@
 // - Dálya, Gergely (2021). _Bevezetés a Csillagászatba: Az Atommagoktól a
 // Galaxis-szuperhalmazokig_, OOK-Press Kft. 137-139. ISBN 978-963-8361-58-5
 
-import '../../utilities/LinearInterpolation.dart';
+import '../../utilities/linear_interpolation.dart';
 
 /// A class of orbital element
 ///

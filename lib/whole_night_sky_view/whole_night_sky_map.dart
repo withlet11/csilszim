@@ -46,7 +46,7 @@ class WholeNightSkyMap extends StatelessWidget {
   final SphereModel sphereModel;
   final StarCatalogue starCatalogue;
   final WholeNightSkyViewSettings displaySettings;
-  final Equatorial mouseEquatorial;
+  final Equatorial centerEquatorial;
   final Equatorial sunEquatorial;
   final List<Planet> planetList;
   final Moon moon;
@@ -58,7 +58,7 @@ class WholeNightSkyMap extends StatelessWidget {
     required this.sphereModel,
     required this.starCatalogue,
     required this.displaySettings,
-    required this.mouseEquatorial,
+    required this.centerEquatorial,
     required this.sunEquatorial,
     required this.planetList,
     required this.moon,
@@ -70,7 +70,7 @@ class WholeNightSkyMap extends StatelessWidget {
     return CustomPaint(
         painter: _ProjectionRenderer(
       projectionModel,
-      mouseEquatorial,
+      centerEquatorial,
       sphereModel,
       starCatalogue,
       displaySettings,
@@ -87,7 +87,7 @@ class _ProjectionRenderer extends CustomPainter {
   final SphereModel sphereModel;
   final StarCatalogue starCatalogue;
   final WholeNightSkyViewSettings displaySettings;
-  final Equatorial mouseEquatorial;
+  final Equatorial centerEquatorial;
   final Equatorial sunEquatorial;
   final List<Planet> planetList;
   final Map<CelestialId, String> planetNameList;
@@ -95,7 +95,7 @@ class _ProjectionRenderer extends CustomPainter {
 
   const _ProjectionRenderer(
     this.projectionModel,
-    this.mouseEquatorial,
+    this.centerEquatorial,
     this.sphereModel,
     this.starCatalogue,
     this.displaySettings,
@@ -148,8 +148,8 @@ class _ProjectionRenderer extends CustomPainter {
     final decRaText = TextSpan(
       style: decRaTextStyle,
       text:
-          'dec: ${DmsAngle.fromDegrees(mouseEquatorial.decInDegrees()).toDmsWithSign()}, '
-          'ra: ${HmsAngle.fromHours(mouseEquatorial.raInHours()).toHms()}',
+          'dec: ${DmsAngle.fromDegrees(centerEquatorial.decInDegrees()).toDmsWithSign()}, '
+          'ra: ${HmsAngle.fromHours(centerEquatorial.raInHours()).toHms()}',
     );
 
     final decRaTextPainter = TextPainter(
@@ -159,7 +159,7 @@ class _ProjectionRenderer extends CustomPainter {
     );
 
     decRaTextPainter.layout();
-    decRaTextPainter.paint(canvas, const Offset(0, 16));
+    decRaTextPainter.paint(canvas, const Offset(8, 16));
   }
 
   @override

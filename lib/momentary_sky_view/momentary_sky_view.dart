@@ -40,7 +40,7 @@ import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
-import '../utilities/fps_counter.dart';
+import '../gui/date_chooser_dial.dart';
 import '../provider/location_provider.dart';
 import '../utilities/offset_3d.dart';
 import 'configs.dart';
@@ -61,7 +61,7 @@ class MomentarySkyView extends ConsumerStatefulWidget {
 class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     with SingleTickerProviderStateMixin {
   final _momentarySkyViewKey = GlobalKey();
-  final _fpsCounter = FpsCounter();
+  // final _fpsCounter = FpsCounter();
   late Ticker _ticker;
   var _timeModel = TimeModel.fromLocalTime();
   var _elapsed = Duration.zero;
@@ -70,6 +70,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   double? _previousScale;
   Offset? _previousPosition;
   var mouseAltAz = const Horizontal.fromRadians(alt: 0, az: 0);
+  var centerAltAz = const Horizontal.fromRadians(alt: 0, az: 0);
   late final Planet _earth;
   late final List<Planet> _planetList;
   late final Sun _sun;
@@ -77,6 +78,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
 
   @override
   void initState() {
+    _timeModel = TimeModel.fromLocalTime();
     _earth = PlanetEarth()..update(_timeModel.jd, Offset3D.zero);
     _planetList = [
       PlanetMercury(),
@@ -109,6 +111,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
 
   @override
   void didChangeDependencies() {
+    _timeModel = TimeModel.fromLocalTime();
     final pageStorage = PageStorage.of(context);
     projection = pageStorage.readState(context) as StereographicProjection? ??
         StereographicProjection(
@@ -126,7 +129,9 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
     final displaySettings = ref.watch(momentarySkyViewSettingProvider);
-    _timeModel = TimeModel.fromLocalTime();
+    final current = DateTime.now();
+    final dateTime = _timeModel.localTime.copyWith(hour: current.hour, minute: current.minute, second: current.second);
+    _timeModel = TimeModel.fromUtc(dateTime);
     _earth.update(_timeModel.jd, Offset3D.zero);
     for (final planet in _planetList) {
       planet.update(_timeModel.jd, _earth.heliocentric!);
@@ -163,7 +168,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
             lat: locationData.latInDegrees(),
             long: locationData.longInDegrees()),
         gmstMicroseconds: _timeModel.gmst);
-    return Column(
+    return /* Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: <Widget>[
           Row(
@@ -183,26 +188,52 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
               ),
             ],
           ),
-          Expanded(
-              child: ClipRect(
-                  child: (defaultTargetPlatform == TargetPlatform.android
-                      ? _makeGestureDetector
-                      : _makeListener)(
-            MomentarySkyMap(
-                // UniqueKey is needed for calling setState()
-                key: UniqueKey(),
-                projectionModel: projection,
-                sphereModel: sphereModel,
-                starCatalogue: widget.starCatalogue,
-                planetList: _planetList,
-                sun: _sun,
-                moon: _moon,
-                nameList: nameList,
-                directionSignList: directionSignList,
-                displaySettings: displaySettings.copyWith(),
-                mouseAltAz: mouseAltAz),
-          )))
-        ]);
+
+            child: Expanded(
+           */
+          Stack(
+            fit: StackFit.expand,
+            children: [
+              SizedBox(
+              width: double.infinity,
+              height: double.infinity,
+                  child: ClipRect(
+                      child: (defaultTargetPlatform == TargetPlatform.android
+                          ? _makeGestureDetector
+                          : _makeListener)(
+                MomentarySkyMap(
+                    // UniqueKey is needed for calling setState()
+                    key: UniqueKey(),
+                    projectionModel: projection,
+                    sphereModel: sphereModel,
+                    starCatalogue: widget.starCatalogue,
+                    planetList: _planetList,
+                    sun: _sun,
+                    moon: _moon,
+                    nameList: nameList,
+                    directionSignList: directionSignList,
+                    displaySettings: displaySettings.copyWith(),
+                    centerAltAz: centerAltAz),
+              ))),
+              Align(
+                alignment: Alignment.topRight,
+                child: DateChooserDial(
+                  dateTime: _timeModel.localTime,
+                  onChanged: (date) {
+                    setState(() {
+                      final current = DateTime.now();
+                      final dateTime = date.copyWith(hour: current.hour, minute: current.minute, second: current.second);
+                      _timeModel = TimeModel.fromUtc(dateTime);
+                      // PageStorage.of(context).writeState(context, _settings);
+                    });
+                  },
+                ),
+              ),
+            ],
+          )
+          // ),
+        //])
+    ;
   }
 
   Widget _makeGestureDetector(Widget child) {
@@ -269,6 +300,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
 
       final horizontal = projection.xyToHorizontal(offset);
       mouseAltAz = horizontal;
+      centerAltAz = projection.xyToHorizontal(Offset.zero);
       _previousPosition = null;
       PageStorage.of(context).writeState(context, projection);
     });
@@ -290,6 +322,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       final currentXY = (position - center) / scale;
       final currentAltAz = projection.xyToHorizontal(currentXY);
       mouseAltAz = currentAltAz;
+      centerAltAz = projection.xyToHorizontal(Offset.zero);
 
       if (_previousPosition != null) {
         final previousXY = (_previousPosition! - center) / scale;

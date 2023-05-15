@@ -29,7 +29,9 @@ import '../constants.dart';
 import '../orbit_view/orbitViewSettingProvider.dart';
 import '../provider/language_select_provider.dart';
 import '../momentary_sky_view/momentary_sky_view_setting_provider.dart';
+import '../provider/location_provider.dart';
 import '../provider/view_select_provider.dart';
+import '../utilities/sexagesimal_angle.dart';
 import '../whole_night_sky_view/configs.dart';
 import '../whole_night_sky_view/whole_night_sky_view_setting_provider.dart';
 import '../utilities/language_selection.dart';
@@ -47,6 +49,7 @@ class SettingDrawer extends ConsumerStatefulWidget {
 class _SettingDrawerState extends ConsumerState<SettingDrawer> {
   @override
   Widget build(BuildContext context) {
+    final locationData = ref.watch(locationProvider);
     final displaySetting = ref.watch(momentarySkyViewSettingProvider);
     final momentarySkyViewSetting = ref.watch(momentarySkyViewSettingProvider);
     final wholeNightSkyViewSetting =
@@ -71,24 +74,39 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
               const Text(appName, style: TextStyle(fontSize: 24.0)),
               Text(appLocalization.shortIntroduction,
                   style: const TextStyle(fontSize: 12.0)),
-              Theme(
-                data: Theme.of(context).copyWith(canvasColor: null),
-                child: DropdownButtonHideUnderline(
-                    child: DropdownButton<String>(
-                        items: [
-                      for (final e in LanguageSelection().languageMap.entries)
-                        DropdownMenuItem<String>(
-                            value: e.key, child: Text(e.value)),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.language),
+                  DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                          items: [
+                            for (final e in LanguageSelection().languageMap.entries)
+                              DropdownMenuItem<String>(
+                                  value: e.key, child: Text(e.value)),
+                          ],
+                          onChanged: (String? value) {
+                            if (value != null) {
+                              ref.read(languageSelectProvider.notifier).state =
+                                  Locale(value);
+                              saveLanguageData(value);
+                            }
+                          },
+                          value: languageSelect.languageCode)),
+                ],
+              ),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.my_location),
+                  Column(
+                    children: [
+                      Text('${appLocalization.latitude} ${DmsAngle.fromDegrees(locationData.lat * radInDeg).toDmsWithNS()}'),
+                      Text('${appLocalization.longitude} ${DmsAngle.fromDegrees(locationData.long * radInDeg).toDmsWithEW()}'),
                     ],
-                        onChanged: (String? value) {
-                          if (value != null) {
-                            ref.read(languageSelectProvider.notifier).state =
-                                Locale(value);
-                            saveLanguageData(value);
-                          }
-                        },
-                        value: languageSelect.languageCode)),
-              )
+                  )
+                ],
+              ),
             ],
           )),
           for (final entry in viewList.entries)
