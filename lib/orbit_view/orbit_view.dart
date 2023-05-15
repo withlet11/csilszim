@@ -167,8 +167,7 @@ class _OrbitViewState extends State<OrbitView> {
   List<Widget> _settingBar() {
     return [
       Row(children: [
-        Text(
-            AppLocalizations.of(context)!.startUTC(_settings.timeModel.utc)),
+        Text(AppLocalizations.of(context)!.startUTC(_settings.timeModel.utc)),
         IconButton(
           icon: const Icon(Icons.calendar_month),
           onPressed: () {
@@ -221,11 +220,11 @@ class _OrbitViewState extends State<OrbitView> {
         } else if (_previousScale != null) {
           final delta = details.scale - _previousScale!;
           setState(() {
-            _settings.zoom = delta > 0
-                ? min(_settings.zoom * zoomingRate2, 10000)
-                : delta.isNegative
-                    ? max(_settings.zoom / zoomingRate2, 1)
-                    : _settings.zoom;
+            _settings.zoom = switch (delta) {
+              > 0 => min(_settings.zoom * zoomingRate2, 10000),
+              < 0 => max(_settings.zoom / zoomingRate2, 1),
+              _ => _settings.zoom
+            };
           });
           PageStorage.of(context).writeState(context, _settings);
         }
@@ -249,11 +248,11 @@ class _OrbitViewState extends State<OrbitView> {
       onPointerSignal: (event) {
         if (event is PointerScrollEvent) {
           setState(() {
-            _settings.zoom = event.scrollDelta.dy > 0
-                ? min(_settings.zoom * zoomingRate1, 10000)
-                : event.scrollDelta.dy.isNegative
-                    ? max(_settings.zoom / zoomingRate1, 1)
-                    : _settings.zoom;
+            _settings.zoom = switch (event.scrollDelta.dy) {
+              > 0 => min(_settings.zoom * zoomingRate1, 10000),
+              < 0 => max(_settings.zoom / zoomingRate1, 1),
+              _ => _settings.zoom
+            };
           });
           PageStorage.of(context).writeState(context, _settings);
         }

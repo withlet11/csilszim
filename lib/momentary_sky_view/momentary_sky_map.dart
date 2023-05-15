@@ -537,16 +537,10 @@ class _ProjectionRenderer extends CustomPainter {
           switch (object.messierNumber) {
             case 1:
               _drawNebula(canvas, xy, majorAxisSize);
-              break;
-            case 24:
-            case 73:
+            case 24 || 73:
               _drawOpenCluster(canvas, xy, majorAxisSize);
-              break;
             case 40:
               _drawDoubleStar(canvas, xy);
-              break;
-            default:
-              break;
           }
         }
         locationTextPainter.paint(canvas, xy + const Offset(10.0, -6.0));

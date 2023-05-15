@@ -136,21 +136,8 @@ class Elp82b2 {
 
     // Substitution of time
     for (var iv = 0; iv < 3; ++iv) {
-      final List<List<double>> pc, per;
-      switch (iv) {
-        case 0:
-          pc = pc1;
-          per = per1;
-          break;
-        case 1:
-          pc = pc2;
-          per = per2;
-          break;
-        default:
-          pc = pc3;
-          per = per3;
-          break;
-      }
+      final (List<List<double>> pc, per) =
+          switch (iv) { 0 => (pc1, per1), 1 => (pc2, per2), _ => (pc3, per3) };
       for (var itab = 0; itab < 12; ++itab) {
         for (var nt = 0; nt < nterm[iv][itab]; ++nt) {
           double x, y;
@@ -165,17 +152,10 @@ class Elp82b2 {
             x = per[0][j];
             y = per[1][j] + per[2][j] * t[1];
             switch (itab) {
-              case 2:
-              case 4:
-              case 6:
-              case 8:
+              case 2 || 4 || 6 || 8:
                 x *= t[1];
-                break;
               case 11:
                 x *= t[2];
-                break;
-              default:
-                break;
             }
           }
 
@@ -341,11 +321,7 @@ class Elp82b2 {
       zone[k + 1] = y;
     }
     if (iv == 2) zone[1] += _pis2;
-    final pc = iv == 0
-        ? pc1
-        : iv == 1
-            ? pc2
-            : pc3;
+    final pc = switch (iv) { 0 => pc1, 1 => pc2, _ => pc3 };
     for (var i = 0; i < 6; ++i) {
       pc[i][ir] = zone[i];
     }
@@ -385,11 +361,7 @@ class Elp82b2 {
       zone[k + 1] = y;
     }
     final j = nrang[iv][itab - 1] + ir;
-    final per = iv == 0
-        ? per1
-        : iv == 1
-            ? per2
-            : per3;
+    final per = switch (iv) { 0 => per1, 1 => per2, _ => per3 };
     for (var i = 0; i < 3; ++i) {
       per[i][j] = zone[i];
     }
@@ -452,11 +424,7 @@ class Elp82b2 {
       }
     }
     final j = nrang[iv][itab - 1] + ir;
-    final per = iv == 0
-        ? per1
-        : iv == 1
-            ? per2
-            : per3;
+    final per = switch (iv) { 0 => per1, 1 => per2, _ => per3 };
     for (var i = 0; i < 3; ++i) {
       per[i][j] = zone[i];
     }

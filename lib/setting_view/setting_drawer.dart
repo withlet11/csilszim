@@ -30,7 +30,7 @@ import '../orbit_view/orbitViewSettingProvider.dart';
 import '../provider/language_select_provider.dart';
 import '../momentary_sky_view/momentary_sky_view_setting_provider.dart';
 import '../provider/location_provider.dart';
-import '../provider/view_select_provider.dart';
+import '../provider/view_select_provider.dart' as csilszim;
 import '../utilities/sexagesimal_angle.dart';
 import '../whole_night_sky_view/configs.dart';
 import '../whole_night_sky_view/whole_night_sky_view_setting_provider.dart';
@@ -55,15 +55,15 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
     final wholeNightSkyViewSetting =
         ref.watch(wholeNightSkyViewSettingProvider);
     final orbitViewSetting = ref.watch(orbitViewSettingProvider);
-    final viewSelect = ref.watch(viewSelectProvider);
+    final viewSelect = ref.watch(csilszim.viewSelectProvider);
     final languageSelect = ref.watch(languageSelectProvider);
     final appLocalization = AppLocalizations.of(context)!;
     final viewList = {
-      appLocalization.clock: View.clock,
-      appLocalization.momentarySkyView: View.momentary,
-      appLocalization.wholeNightSkyView: View.wholeNight,
-      appLocalization.orbit: View.orbit,
-      appLocalization.objectList: View.objectList
+      appLocalization.clock: csilszim.View.clock,
+      appLocalization.momentarySkyView: csilszim.View.momentary,
+      appLocalization.wholeNightSkyView: csilszim.View.wholeNight,
+      appLocalization.orbit: csilszim.View.orbit,
+      appLocalization.objectList: csilszim.View.objectList
     };
     return Drawer(
       child: ListView(
@@ -81,10 +81,10 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                   DropdownButtonHideUnderline(
                       child: DropdownButton<String>(
                           items: [
-                            for (final e in LanguageSelection().languageMap.entries)
-                              DropdownMenuItem<String>(
-                                  value: e.key, child: Text(e.value)),
-                          ],
+                        for (final e in LanguageSelection().languageMap.entries)
+                          DropdownMenuItem<String>(
+                              value: e.key, child: Text(e.value)),
+                      ],
                           onChanged: (String? value) {
                             if (value != null) {
                               ref.read(languageSelectProvider.notifier).state =
@@ -101,8 +101,10 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                   const Icon(Icons.my_location),
                   Column(
                     children: [
-                      Text('${appLocalization.latitude} ${DmsAngle.fromDegrees(locationData.lat * radInDeg).toDmsWithNS()}'),
-                      Text('${appLocalization.longitude} ${DmsAngle.fromDegrees(locationData.long * radInDeg).toDmsWithEW()}'),
+                      Text(
+                          '${appLocalization.latitude} ${DmsAngle.fromDegrees(locationData.lat * radInDeg).toDmsWithNS()}'),
+                      Text(
+                          '${appLocalization.longitude} ${DmsAngle.fromDegrees(locationData.long * radInDeg).toDmsWithEW()}'),
                     ],
                   )
                 ],
@@ -110,18 +112,18 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
             ],
           )),
           for (final entry in viewList.entries)
-            RadioListTile<View>(
+            RadioListTile<csilszim.View>(
               title: Text(entry.key),
               value: entry.value,
               groupValue: viewSelect,
-              onChanged: (View? value) {
+              onChanged: (csilszim.View? value) {
                 if (value != null) {
-                  ref.read(viewSelectProvider.notifier).state = value;
+                  ref.read(csilszim.viewSelectProvider.notifier).state = value;
                 }
               },
             ),
           const Divider(),
-          if (viewSelect == View.momentary)
+          if (viewSelect == csilszim.View.momentary)
             SwitchListTile(
               title: Text(appLocalization.azimuthalGrid),
               value: displaySetting.isHorizontalGridVisible,
@@ -135,7 +137,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.momentary)
+          if (viewSelect == csilszim.View.momentary)
             SwitchListTile(
               title: Text(appLocalization.equatorialGrid),
               value: displaySetting.isEquatorialGridVisible,
@@ -149,7 +151,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.momentary)
+          if (viewSelect == csilszim.View.momentary)
             SwitchListTile(
               title: Text(appLocalization.constellationLines),
               value: displaySetting.isConstellationLineVisible,
@@ -163,7 +165,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.momentary)
+          if (viewSelect == csilszim.View.momentary)
             SwitchListTile(
               title: Text(appLocalization.constellationLabels),
               value: displaySetting.isConstellationNameVisible,
@@ -177,7 +179,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.momentary)
+          if (viewSelect == csilszim.View.momentary)
             SwitchListTile(
               title: Text(appLocalization.messierObjects),
               value: momentarySkyViewSetting.isMessierObjectVisible,
@@ -191,7 +193,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.momentary)
+          if (viewSelect == csilszim.View.momentary)
             SwitchListTile(
               title: Text('${appLocalization.fov} '
                   '(${momentarySkyViewSetting.trueFov.toStringAsFixed(1)}$degSign)'),
@@ -206,7 +208,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.momentary)
+          if (viewSelect == csilszim.View.momentary)
             ListTile(
               title: Slider(
                 label: momentarySkyViewSetting.trueFov.toStringAsFixed(1),
@@ -226,7 +228,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                     : null,
               ),
             ),
-          if (viewSelect == View.wholeNight)
+          if (viewSelect == csilszim.View.wholeNight)
             SwitchListTile(
               title: Text(appLocalization.equatorialGrid),
               value: wholeNightSkyViewSetting.isEquatorialGridVisible,
@@ -240,7 +242,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.wholeNight)
+          if (viewSelect == csilszim.View.wholeNight)
             SwitchListTile(
               title: Text(appLocalization.constellationLines),
               value: wholeNightSkyViewSetting.isConstellationLineVisible,
@@ -254,7 +256,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.wholeNight)
+          if (viewSelect == csilszim.View.wholeNight)
             SwitchListTile(
               title: Text(appLocalization.constellationLabels),
               value: wholeNightSkyViewSetting.isConstellationNameVisible,
@@ -268,7 +270,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.wholeNight)
+          if (viewSelect == csilszim.View.wholeNight)
             SwitchListTile(
               title: Text(appLocalization.planets),
               value: wholeNightSkyViewSetting.isPlanetVisible,
@@ -282,7 +284,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.wholeNight)
+          if (viewSelect == csilszim.View.wholeNight)
             SwitchListTile(
               title: Text(appLocalization.messierObjects),
               value: wholeNightSkyViewSetting.isMessierObjectVisible,
@@ -296,7 +298,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.wholeNight)
+          if (viewSelect == csilszim.View.wholeNight)
             SwitchListTile(
               title: Text('${appLocalization.fov} '
                   '(${wholeNightSkyViewSetting.trueFov.toStringAsFixed(1)}$degSign)'),
@@ -311,7 +313,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 });
               },
             ),
-          if (viewSelect == View.wholeNight)
+          if (viewSelect == csilszim.View.wholeNight)
             ListTile(
               title: Slider(
                 label: wholeNightSkyViewSetting.trueFov.toStringAsFixed(1),
@@ -331,7 +333,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                     : null,
               ),
             ),
-          if (viewSelect == View.orbit)
+          if (viewSelect == csilszim.View.orbit)
             ExpansionTile(
               title: Text(appLocalization.planets),
               children: [
@@ -441,7 +443,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 ),
               ],
             ),
-          if (viewSelect == View.orbit)
+          if (viewSelect == csilszim.View.orbit)
             ExpansionTile(
               title: Text(appLocalization.dwarfPlanets),
               children: [
@@ -512,7 +514,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 ),
               ],
             ),
-          if (viewSelect == View.orbit)
+          if (viewSelect == csilszim.View.orbit)
             ExpansionTile(
               title: Text(appLocalization.comets),
               children: [

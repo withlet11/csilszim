@@ -301,13 +301,12 @@ class _ObjectListView extends ConsumerState<ObjectListView>
               24.0)
           .toHms();
       final haAsHm = haAsHms.substring(0, haAsHms.length - 3);
-      final color = altAz.alt > highAltitude
-          ? highAltitudeColor
-          : altAz.alt > middleAltitude
-              ? middleAltitudeColor
-              : altAz.alt > lowAltitude
-                  ? lowAltitudeColor
-                  : invisible;
+      final color = switch (altAz.alt) {
+        > highAltitude => highAltitudeColor,
+        > middleAltitude => middleAltitudeColor,
+        > lowAltitude => lowAltitudeColor,
+        _ => invisible
+      };
       final textStyle = TextStyle(color: color);
 
       return <Widget>[
@@ -336,13 +335,12 @@ class _ObjectListView extends ConsumerState<ObjectListView>
               24.0)
           .toHms();
       final haAsHm = haAsHms.substring(0, haAsHms.length - 3);
-      final color = altAz.alt > highAltitude
-          ? highAltitudeColor
-          : altAz.alt > middleAltitude
-              ? middleAltitudeColor
-              : altAz.alt > lowAltitude
-                  ? lowAltitudeColor
-                  : invisible;
+      final color = switch (altAz.alt) {
+        > highAltitude => highAltitudeColor,
+        > middleAltitude => middleAltitudeColor,
+        > lowAltitude => lowAltitudeColor,
+        _ => invisible
+      };
       final textStyle = TextStyle(color: color);
 
       return <Widget>[
@@ -367,17 +365,12 @@ class _ObjectListView extends ConsumerState<ObjectListView>
     } else if (object.type.contains('galaxy')) {
       return _GalaxySign(color);
     } else {
-      switch (object.messierNumber) {
-        case 1:
-          return _NebulaSign(color);
-        case 24:
-        case 73:
-          return _OpenClusterSign(color);
-        case 40:
-          return _DoubleStarSign(color);
-        default:
-          return Text('-', style: TextStyle(color: color));
-      }
+      return switch (object.messierNumber) {
+        1 => _NebulaSign(color),
+        24 || 73 => _OpenClusterSign(color),
+        40 => _DoubleStarSign(color),
+        _ => Text('-', style: TextStyle(color: color))
+      };
     }
   }
 }

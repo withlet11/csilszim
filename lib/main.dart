@@ -33,7 +33,7 @@ import 'object_list_view/object_list_view.dart';
 import 'orbit_view/orbit_view.dart';
 import 'provider/language_select_provider.dart';
 import 'provider/location_provider.dart';
-import 'provider/view_select_provider.dart';
+import 'provider/view_select_provider.dart' as csilszim;
 import 'setting_view/location_setting_view.dart';
 import 'setting_view/setting_drawer.dart';
 import 'utilities/language_selection.dart';
@@ -95,7 +95,8 @@ class HomePage extends ConsumerStatefulWidget {
   ConsumerState<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMixin {
+class _HomePageState extends ConsumerState<HomePage>
+    with TickerProviderStateMixin {
   late Future<StarCatalogue> starCatalogue;
   late TabController _tabController;
 
@@ -111,7 +112,7 @@ class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMix
   @override
   Widget build(BuildContext context) {
     final locationData = ref.watch(locationProvider);
-    final viewSelect = ref.watch(viewSelectProvider);
+    final viewSelect = ref.watch(csilszim.viewSelectProvider);
 
     return FutureBuilder<StarCatalogue>(
         future: starCatalogue,
@@ -121,7 +122,7 @@ class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMix
           } else if (snapshot.hasData) {
             final localizations = AppLocalizations.of(context)!;
             return Scaffold(
-                appBar: AppBar(
+              appBar: AppBar(
                   title: const Text(appName),
                   actions: <Widget>[
                     IconButton(
@@ -137,37 +138,33 @@ class _HomePageState extends ConsumerState<HomePage> with TickerProviderStateMix
                           saveLocationData(newOne);
                         })
                   ],
-                  bottom: viewSelect == View.objectList ? TabBar(
-                    controller: _tabController,
-                    tabs: [
-                      Tab(text: localizations.messierObjects),
-                      Tab(text: localizations.brightestStars),
-                    ],
-                  ) : null
-                ),
-                drawer: const SettingDrawer(),
-                body: viewSelect == View.clock
-                    ? const ClockView()
-                    : viewSelect == View.momentary
-                        ? MomentarySkyView(
-                            key: const PageStorageKey<String>(
-                                _keyMomentarySkyView),
-                            starCatalogue: snapshot.data as StarCatalogue,
-                          )
-                        : viewSelect == View.orbit
-                            ? const OrbitView(
-                                key: PageStorageKey<String>(_keyOrbitView))
-                            : viewSelect == View.wholeNight
-                                ? WholeNightSkyView(
-                                    key: const PageStorageKey<String>(
-                                        _keyWholeNightSkyView),
-                                    starCatalogue:
-                                        snapshot.data as StarCatalogue,
-                                  )
-                                : ObjectListView(
-                  tabController: _tabController,
-                                    starCatalogue:
-                                        snapshot.data as StarCatalogue));
+                  bottom: viewSelect == csilszim.View.objectList
+                      ? TabBar(
+                          controller: _tabController,
+                          tabs: [
+                            Tab(text: localizations.messierObjects),
+                            Tab(text: localizations.brightestStars),
+                          ],
+                        )
+                      : null),
+              drawer: const SettingDrawer(),
+              body: switch (viewSelect) {
+                csilszim.View.clock => const ClockView(),
+                csilszim.View.momentary => MomentarySkyView(
+                    key: const PageStorageKey<String>(_keyMomentarySkyView),
+                    starCatalogue: snapshot.data as StarCatalogue,
+                  ),
+                csilszim.View.orbit =>
+                  const OrbitView(key: PageStorageKey<String>(_keyOrbitView)),
+                csilszim.View.wholeNight => WholeNightSkyView(
+                    key: const PageStorageKey<String>(_keyWholeNightSkyView),
+                    starCatalogue: snapshot.data as StarCatalogue,
+                  ),
+                _ => ObjectListView(
+                    tabController: _tabController,
+                    starCatalogue: snapshot.data as StarCatalogue)
+              },
+            );
           } else {
             return Theme(
                 data: ThemeData.dark(),

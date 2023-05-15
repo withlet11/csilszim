@@ -231,11 +231,11 @@ class _DateChooserDial extends State<DateChooserDial> {
       if (distance < dialInnerBorderSize * 0.125 ||
           distance > dialOuterBorderSize * 0.75) return;
       final angle = (atan2(offset.dx, -offset.dy) + fullTurn) % fullTurn;
-      final overYear = (angle - _angle > 0.75 * fullTurn)
-          ? -1
-          : (angle - _angle < -0.75 * fullTurn)
-              ? 1
-              : 0;
+      final overYear = switch (angle - _angle) {
+        > 0.75 * fullTurn => -1,
+        < -0.75 * fullTurn => 1,
+        _ => 0
+      };
 
       _updateWithAngle(angle, overYear);
     });

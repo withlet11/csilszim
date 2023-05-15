@@ -269,11 +269,11 @@ class PlanetMars extends Planet {
 
   @override
   double phaseIntegral() {
-    return phaseAngle <= 50
-        ? phaseAngle * (2.267e-2 + phaseAngle * -1.302e-4)
-        : phaseAngle <= 120
-            ? 1.234 + phaseAngle * (-2.573e-2 + phaseAngle * 3.445e-4)
-            : super.phaseIntegral();
+    return switch (phaseAngle) {
+      <= 50 => phaseAngle * (2.267e-2 + phaseAngle * -1.302e-4),
+      <= 120 => 1.234 + phaseAngle * (-2.573e-2 + phaseAngle * 3.445e-4),
+      _ => super.phaseIntegral()
+    };
   }
 }
 
@@ -341,17 +341,16 @@ class PlanetSaturn extends Planet {
 
   @override
   double phaseIntegral() {
-    return phaseAngle <= 6
-        ? -0.036 + phaseAngle * (-3.7e-4 + phaseAngle * 6.16e-4)
-        : phaseAngle < 150
-            ? 0.026 +
-                phaseAngle *
-                    (2.466e-4 +
-                        phaseAngle *
-                            (2.672e-4 +
-                                phaseAngle *
-                                    (-1.505e-6 + 4.767e-9 * phaseAngle)))
-            : super.phaseIntegral();
+    return switch (phaseAngle) {
+      <= 6 => -0.036 + phaseAngle * (-3.7e-4 + phaseAngle * 6.16e-4),
+      < 150 => 0.026 +
+          phaseAngle *
+              (2.466e-4 +
+                  phaseAngle *
+                      (2.672e-4 +
+                          phaseAngle * (-1.505e-6 + 4.767e-9 * phaseAngle))),
+      _ => super.phaseIntegral()
+    };
   }
 
   double saturnRingAngle() {
