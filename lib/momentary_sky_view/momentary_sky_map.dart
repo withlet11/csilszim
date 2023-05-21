@@ -369,7 +369,7 @@ class _ProjectionRenderer extends CustomPainter {
   void _drawMoon(Canvas canvas, Size size, double midPoint) {
     final equatorial = moon.equatorial;
     final altAz = sphereModel.equatorialToHorizontal(equatorial);
-    if (/*altAz.alt > 0*/ true) {
+    if (altAz.alt > 0) {
       final center = size.center(Offset.zero);
       final unitLength = _getUnitLength(size);
       final offset = projectionModel.horizontalToXy(altAz, center, unitLength);

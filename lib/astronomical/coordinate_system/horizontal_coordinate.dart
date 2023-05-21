@@ -45,10 +45,11 @@ class Horizontal {
       return this;
     }
 
-    if (tempAz > fullTurn) {
-      tempAz -= fullTurn;
-    } else if (tempAz.isNegative) {
-      tempAz += fullTurn;
+    switch (tempAz) {
+      case > fullTurn:
+        tempAz -= fullTurn;
+      case < 0:
+        tempAz += fullTurn;
     }
     return Horizontal.fromRadians(alt: tempAlt, az: tempAz);
   }

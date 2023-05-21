@@ -26,7 +26,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import '../configs.dart';
 import '../constants.dart';
-import '../orbit_view/orbitViewSettingProvider.dart';
+import '../orbit_view/orbit_view_setting_provider.dart';
 import '../provider/language_select_provider.dart';
 import '../momentary_sky_view/momentary_sky_view_setting_provider.dart';
 import '../provider/location_provider.dart';

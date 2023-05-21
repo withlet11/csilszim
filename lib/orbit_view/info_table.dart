@@ -26,7 +26,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/time_model.dart';
 import 'configs.dart';
-import 'orbitViewSettingProvider.dart';
+import 'orbit_view_setting_provider.dart';
 
 class InfoTable extends ConsumerWidget {
   final TimeModel timeModel;

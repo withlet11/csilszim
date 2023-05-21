@@ -37,9 +37,9 @@ import '../astronomical/orbit_calculation/orbit_calculation.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
+import '../gui/date_time_chooser_dial.dart';
 import '../provider/location_provider.dart';
 import 'configs.dart';
-import '../gui/date_chooser_dial.dart';
 import 'mercator_projection.dart';
 import 'whole_night_sky_map.dart';
 import 'whole_night_sky_view_setting_provider.dart';
@@ -136,15 +136,18 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
       )),
       Align(
         alignment: Alignment.topRight,
-        child: DateChooserDial(
-          dateTime: _settings.date,
-          onChanged: (dateTime) {
-            setState(() {
-              _settings.date = dateTime;
-              PageStorage.of(context).writeState(context, _settings);
-            });
-          },
-        ),
+        child: DateTimeChooserDial(
+            dateTimeOffset: _settings.dateTimeOffset,
+            onDateChange: (duration) {
+              setState(() {
+                _settings.dateTimeOffset = duration;
+                PageStorage.of(context).writeState(context, _settings);
+              });
+            },
+            onModeChange: (isDateMode) {
+              _settings.isDateMode = isDateMode;
+            },
+            isDateMode: _settings.isDateMode),
       ),
     ]);
   }
@@ -255,8 +258,9 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
   }
 
   void _updateSolarSystem(Geographic locationData) {
+    DateTime dateTime = DateTime.now().add(_settings.dateTimeOffset);
     _moon.observationPosition = Grs80.from(locationData);
-    final time = TimeModel.fromLocalTime(_settings.date);
+    final time = TimeModel.fromLocalTime(dateTime);
     final orbitCalculation = OrbitCalculationWithMeanLongitude(time);
     final earthPosition = // PlanetEarth().calculateWithVsop87(time.jd);
         orbitCalculation.calculatePosition(PlanetEarth().orbitalElement);
@@ -271,29 +275,20 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
 
 class _Settings {
   MercatorProjection projection;
-  DateTime date;
-  bool isLeapYear;
-  double dialAngle;
+  Duration dateTimeOffset;
+  bool isDateMode;
 
-  _Settings(
-      {required this.projection,
-      required this.date,
-      required this.isLeapYear,
-      required this.dialAngle});
+  _Settings({
+    required this.projection,
+    required this.dateTimeOffset,
+    required this.isDateMode,
+  });
 
   static _Settings defaultValue() {
-    final date = DateTime.now();
-    final year = date.year;
-    final yearBegin = DateTime(year).millisecondsSinceEpoch;
-    final yearEnd = DateTime(year + 1).millisecondsSinceEpoch;
-    final lengthOfYear = yearEnd - yearBegin;
-
     return _Settings(
         projection: MercatorProjection(const Equatorial.fromDegreesAndHours(
             dec: defaultDec, ra: defaultRa)),
-        date: date,
-        dialAngle:
-            (date.millisecondsSinceEpoch - yearBegin) / lengthOfYear * fullTurn,
-        isLeapYear: lengthOfYear == 366 * 86400 * 1000);
+        dateTimeOffset: Duration.zero,
+        isDateMode: true);
   }
 }

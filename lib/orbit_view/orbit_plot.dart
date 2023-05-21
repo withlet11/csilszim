@@ -34,7 +34,7 @@ import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'graphical_projection/graphical_projection.dart';
 import 'graphical_projection/perspective.dart';
-import 'orbitViewSettingProvider.dart';
+import 'orbit_view_setting_provider.dart';
 
 /// A widget that displays the solar system.
 class OrbitPlot extends ConsumerWidget {

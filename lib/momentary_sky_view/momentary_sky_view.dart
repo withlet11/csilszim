@@ -25,7 +25,6 @@ import 'package:csilszim/astronomical/grs80.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:tuple/tuple.dart';
@@ -40,7 +39,7 @@ import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
-import '../gui/date_chooser_dial.dart';
+import '../gui/date_time_chooser_dial.dart';
 import '../provider/location_provider.dart';
 import '../utilities/offset_3d.dart';
 import 'configs.dart';
@@ -61,12 +60,11 @@ class MomentarySkyView extends ConsumerStatefulWidget {
 class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     with SingleTickerProviderStateMixin {
   final _momentarySkyViewKey = GlobalKey();
+
   // final _fpsCounter = FpsCounter();
-  late Ticker _ticker;
-  var _timeModel = TimeModel.fromLocalTime();
-  var _elapsed = Duration.zero;
-  var projection = StereographicProjection(
-      const Horizontal.fromDegrees(alt: defaultAlt, az: defaultAz));
+  late TimeModel _timeModel;
+  var _settings = _Settings.defaultValue();
+
   double? _previousScale;
   Offset? _previousPosition;
   var mouseAltAz = const Horizontal.fromRadians(alt: 0, az: 0);
@@ -78,7 +76,8 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
 
   @override
   void initState() {
-    _timeModel = TimeModel.fromLocalTime();
+    _timeModel =
+        TimeModel.fromLocalTime(DateTime.now().add(_settings.dateTimeOffset));
     _earth = PlanetEarth()..update(_timeModel.jd, Offset3D.zero);
     _planetList = [
       PlanetMercury(),
@@ -95,43 +94,23 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     _sun = Sun()..update(_timeModel.jd, _earth.heliocentric!);
     _moon = Moon(widget.starCatalogue.elp82b2);
 
-    // For Ticker. It should be disposed when this widget is disposed.
-    // Ticker is also paused when the widget is paused. It is good for
-    // refreshing display.
-    _ticker = createTicker((elapsed) {
-      if ((elapsed - _elapsed).inMilliseconds > 1e3) {
-        setState(() {
-          _elapsed = elapsed;
-        });
-      }
-    });
-    _ticker.start();
     super.initState();
   }
 
   @override
   void didChangeDependencies() {
-    _timeModel = TimeModel.fromLocalTime();
     final pageStorage = PageStorage.of(context);
-    projection = pageStorage.readState(context) as StereographicProjection? ??
-        StereographicProjection(
-            const Horizontal.fromDegrees(alt: defaultAlt, az: defaultAz));
+    _settings = pageStorage.readState(context) as _Settings? ??
+        _Settings.defaultValue();
     super.didChangeDependencies();
   }
 
   @override
-  void dispose() {
-    _ticker.dispose(); // For Ticker.
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
+    _timeModel =
+        TimeModel.fromLocalTime(DateTime.now().add(_settings.dateTimeOffset));
     final locationData = ref.watch(locationProvider);
     final displaySettings = ref.watch(momentarySkyViewSettingProvider);
-    final current = DateTime.now();
-    final dateTime = _timeModel.localTime.copyWith(hour: current.hour, minute: current.minute, second: current.second);
-    _timeModel = TimeModel.fromUtc(dateTime);
     _earth.update(_timeModel.jd, Offset3D.zero);
     for (final planet in _planetList) {
       planet.update(_timeModel.jd, _earth.heliocentric!);
@@ -168,72 +147,48 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
             lat: locationData.latInDegrees(),
             long: locationData.longInDegrees()),
         gmstMicroseconds: _timeModel.gmst);
-    return /* Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: <Widget>[
-          Row(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              SizedBox(
-                width: 100,
-                child: Text(locationData.latToString()),
-              ),
-              SizedBox(
-                width: 100,
-                child: Text(locationData.longToString()),
-              ),
-              SizedBox(
-                width: 100,
-                child: Text('fps: ${_fpsCounter.countFps()}'),
-              ),
-            ],
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        SizedBox(
+            width: double.infinity,
+            height: double.infinity,
+            child: ClipRect(
+                child: (defaultTargetPlatform == TargetPlatform.android
+                    ? _makeGestureDetector
+                    : _makeListener)(
+              MomentarySkyMap(
+                  // UniqueKey is needed for calling setState()
+                  key: UniqueKey(),
+                  projectionModel: _settings.projection,
+                  sphereModel: sphereModel,
+                  starCatalogue: widget.starCatalogue,
+                  planetList: _planetList,
+                  sun: _sun,
+                  moon: _moon,
+                  nameList: nameList,
+                  directionSignList: directionSignList,
+                  displaySettings: displaySettings.copyWith(),
+                  centerAltAz: centerAltAz),
+            ))),
+        Align(
+          alignment: Alignment.topRight,
+          child: DateTimeChooserDial(
+            dateTimeOffset: _settings.dateTimeOffset,
+            onDateChange: (duration) {
+              setState(() {
+                _settings.dateTimeOffset = duration;
+                PageStorage.of(context).writeState(context, _settings);
+              });
+            },
+            onModeChange: (isDateMode) {
+              _settings.isDateMode = isDateMode;
+            },
+            isDateMode: _settings.isDateMode,
           ),
-
-            child: Expanded(
-           */
-          Stack(
-            fit: StackFit.expand,
-            children: [
-              SizedBox(
-              width: double.infinity,
-              height: double.infinity,
-                  child: ClipRect(
-                      child: (defaultTargetPlatform == TargetPlatform.android
-                          ? _makeGestureDetector
-                          : _makeListener)(
-                MomentarySkyMap(
-                    // UniqueKey is needed for calling setState()
-                    key: UniqueKey(),
-                    projectionModel: projection,
-                    sphereModel: sphereModel,
-                    starCatalogue: widget.starCatalogue,
-                    planetList: _planetList,
-                    sun: _sun,
-                    moon: _moon,
-                    nameList: nameList,
-                    directionSignList: directionSignList,
-                    displaySettings: displaySettings.copyWith(),
-                    centerAltAz: centerAltAz),
-              ))),
-              Align(
-                alignment: Alignment.topRight,
-                child: DateChooserDial(
-                  dateTime: _timeModel.localTime,
-                  onChanged: (date) {
-                    setState(() {
-                      final current = DateTime.now();
-                      final dateTime = date.copyWith(hour: current.hour, minute: current.minute, second: current.second);
-                      _timeModel = TimeModel.fromUtc(dateTime);
-                      // PageStorage.of(context).writeState(context, _settings);
-                    });
-                  },
-                ),
-              ),
-            ],
-          )
-          // ),
-        //])
-    ;
+        ),
+      ],
+    );
   }
 
   Widget _makeGestureDetector(Widget child) {
@@ -251,8 +206,8 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
             _moveViewPoint(details.localFocalPoint);
           } else if (_previousScale != null) {
             final delta = details.scale - _previousScale!;
-            projection.zoom(delta * 2);
-            PageStorage.of(context).writeState(context, projection);
+            _settings.projection.zoom(delta * 2);
+            PageStorage.of(context).writeState(context, _settings);
           }
           _previousScale = details.scale;
         });
@@ -277,11 +232,11 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
         setState(() {
           if (event is PointerScrollEvent) {
             if (event.scrollDelta.dy > 0) {
-              projection.zoomOut();
+              _settings.projection.zoomOut();
             } else if (event.scrollDelta.dy.isNegative) {
-              projection.zoomIn();
+              _settings.projection.zoomIn();
             }
-            PageStorage.of(context).writeState(context, projection);
+            PageStorage.of(context).writeState(context, _settings);
           }
         });
       },
@@ -298,11 +253,11 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       final scale = min(width, height) * half * 0.9;
       final offset = (position - center) / scale;
 
-      final horizontal = projection.xyToHorizontal(offset);
+      final horizontal = _settings.projection.xyToHorizontal(offset);
       mouseAltAz = horizontal;
-      centerAltAz = projection.xyToHorizontal(Offset.zero);
+      centerAltAz = _settings.projection.xyToHorizontal(Offset.zero);
       _previousPosition = null;
-      PageStorage.of(context).writeState(context, projection);
+      PageStorage.of(context).writeState(context, _settings);
     });
   }
 
@@ -320,18 +275,38 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       final center = size?.center(Offset.zero) ?? Offset.zero;
       final scale = min(width, height) * half * 0.9;
       final currentXY = (position - center) / scale;
-      final currentAltAz = projection.xyToHorizontal(currentXY);
+      final currentAltAz = _settings.projection.xyToHorizontal(currentXY);
       mouseAltAz = currentAltAz;
-      centerAltAz = projection.xyToHorizontal(Offset.zero);
+      centerAltAz = _settings.projection.xyToHorizontal(Offset.zero);
 
       if (_previousPosition != null) {
         final previousXY = (_previousPosition! - center) / scale;
-        final previousAltAz = projection.xyToHorizontal(previousXY);
+        final previousAltAz = _settings.projection.xyToHorizontal(previousXY);
         final deltaAltAz = currentAltAz - previousAltAz;
-        projection.centerAltAz -= deltaAltAz;
+        _settings.projection.centerAltAz -= deltaAltAz;
       }
       _previousPosition = position;
-      PageStorage.of(context).writeState(context, projection);
+      PageStorage.of(context).writeState(context, _settings);
     }
+  }
+}
+
+class _Settings {
+  StereographicProjection projection;
+  Duration dateTimeOffset;
+  bool isDateMode;
+
+  _Settings({
+    required this.projection,
+    required this.dateTimeOffset,
+    required this.isDateMode,
+  });
+
+  static _Settings defaultValue() {
+    return _Settings(
+        projection: StereographicProjection(
+            const Horizontal.fromDegrees(alt: defaultAlt, az: defaultAz)),
+        dateTimeOffset: Duration.zero,
+        isDateMode: false);
   }
 }
