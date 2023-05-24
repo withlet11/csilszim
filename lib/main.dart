@@ -170,13 +170,22 @@ class _HomePageState extends ConsumerState<HomePage>
                 data: ThemeData.dark(),
                 child: Scaffold(
                     body: Center(
-                        child: Text(
+                        child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Image.asset('assets/images/logo_480x480.png',
+                        height: 240.0, width: 240.0),
+                    const CircularProgressIndicator()
+                  ],
+                )
+                        /*Text(
                   _messageLoading,
                   style: Theme.of(context)
                       .textTheme
                       .displayMedium
                       ?.copyWith(color: Colors.grey),
-                ))));
+                )*/
+                        )));
           }
         });
   }

@@ -32,6 +32,7 @@ dependencies:
   flutter:
     sdk: flutter
 
+  flutter_native_splash: ^2.3.0
   flutter_riverpod: ^2.3.1
   shared_preferences: ^2.0.18
   opengl: ^0.6.0
@@ -41,6 +42,7 @@ dependencies:
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.5
+
   flutter_localizations:
     sdk: flutter
   intl: ^0.18.0
@@ -122,6 +124,7 @@ flutter:
   # https://flutter.dev/assets-and-images/#resolution-aware
 
     - assets/images/icon.png
+    - assets/images/logo_480x480.png
 
   # For details regarding adding assets from package dependencies, see
   # https://flutter.dev/assets-and-images/#from-packages

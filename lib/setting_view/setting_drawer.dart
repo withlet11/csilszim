@@ -624,6 +624,21 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                 ),
               ],
             ),
+          const Divider(),
+          ListTile(
+            title: TextButton(
+              child: const Align(
+                  alignment: Alignment.centerLeft,
+                  child: Text('Licenses', textAlign: TextAlign.left)),
+              onPressed: () => showLicensePage(
+                  context: context,
+                  applicationIcon: Image.asset('assets/images/icon.png',
+                      height: 64.0, width: 64.0),
+                  applicationName: appName,
+                  applicationVersion: applicationVersion,
+                  applicationLegalese: applicationLegalese),
+            ),
+          ),
         ],
       ),
     );
