@@ -115,6 +115,9 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
 
     _updateSolarSystem(locationData);
 
+    DateTime dateTime = DateTime.now().add(_settings.dateTimeOffset);
+    final time = TimeModel.fromLocalTime(dateTime);
+
     return Stack(fit: StackFit.expand, children: [
       ClipRect(
           child: (defaultTargetPlatform == TargetPlatform.android
@@ -127,6 +130,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
           sphereModel: sphereModel,
           starCatalogue: widget.starCatalogue,
           displaySettings: displaySettings.copyWith(),
+          lmst: time.gmst + (locationData.long / fullTurn * 86400e6).round(),
           centerEquatorial: _centerEquatorial,
           sunEquatorial: _sunEquatorial,
           planetList: _planetList,

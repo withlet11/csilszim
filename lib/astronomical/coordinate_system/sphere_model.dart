@@ -188,13 +188,124 @@ class SphereModel {
         cos(dec);
   }
 
+  /// Calculates declination on the west horizon
+  void decOnWestHorizon(List<double> list) {
+    const alt = 0.0;
+    final lat = _location.lat;
+    if (lat.abs() > quarterTurn) return;
+    final k = tan((alt - lat) / 2);
+    for (var i = 0; i < 180; ++i) {
+      // list.add(_decOnHorizon(i.toDouble(), lat, k));
+      final ha = i * degInRad;
+      final sinGamma = cos(lat) * sin(ha) / cos(alt);
+      switch (sinGamma) {
+        case > 1.0:
+          list.add(-halfTurn);
+        case < -1.0:
+          list.add(halfTurn);
+        default:
+          if (i == 0 || i == 180) {
+            list.add((lat.isNegative ? -1 : 1) *
+                (i == 0 ? -1 : 1) *
+                (quarterTurn - lat.abs()));
+          } else {
+            final gamma =
+                lat.isNegative ? asin(sinGamma) : halfTurn - asin(sinGamma);
+            final angle =
+                (2 * atan2(sin((ha - gamma) / 2), k * sin((ha + gamma) / 2))) % fullTurn;
+            list.add(angle > halfTurn ? angle - halfTurn - quarterTurn : quarterTurn - angle);
+          }
+      }
+    }
+    return;
+  }
+
+  double decOnHorizon(double ra) {
+    const alt = 0.0;
+    final lat = _location.lat;
+    final k = tan((alt - lat) / 2);
+    return _decOnHorizon(ra * radInDeg, lat, k);
+  }
+
+  double _decOnHorizon(double i, double lat, double k) {
+    const alt = 0.0;
+    final ha = i * degInRad;
+    final sinGamma = cos(lat) * sin(ha) / cos(alt);
+    switch (sinGamma) {
+      case > 1.0:
+        return -halfTurn;
+      case < -1.0:
+        return halfTurn;
+      default:
+        if (i == 0 || i == 180.0) {
+          return (lat.isNegative ? -1 : 1) *
+              (i == 0 ? -1 : 1) *
+              (quarterTurn - lat.abs());
+        } else {
+          final gamma =
+              lat.isNegative ? asin(sinGamma) : halfTurn - asin(sinGamma);
+          final angle =
+              (2 * atan2(sin((ha - gamma) / 2), k * sin((ha + gamma) / 2))) % fullTurn;
+          return angle > halfTurn ? angle - halfTurn - quarterTurn : quarterTurn - angle;
+        }
+    }
+  }
+
+  /// Calculates declination on the east horizon
+  void decOnEastHorizon(List<double> list) {
+    const alt = 0.0;
+    final lat = _location.lat;
+    if (lat.abs() > quarterTurn) return;
+    final k = tan((alt - lat) / 2);
+    for (var i = 180; i < 360; ++i) {
+      // list.add(_decOnHorizon(i.toDouble(), lat, k));
+      final ha = i * degInRad;
+      final sinGamma = cos(lat) * sin(ha) / cos(alt);
+      switch (sinGamma) {
+        case > 1.0:
+          list.add(-halfTurn);
+        case < -1.0:
+          list.add(halfTurn);
+        default:
+          if (i == 0 || i == 180) {
+            list.add((lat.isNegative ? -1 : 1) *
+                (i == 0 ? -1 : 1) *
+                (quarterTurn - lat.abs()));
+          } else {
+            final gamma =
+                lat.isNegative ? asin(sinGamma) : halfTurn - asin(sinGamma);
+            final angle =
+                (2 * atan2(sin((ha - gamma) / 2), k * sin((ha + gamma) / 2))) % fullTurn;
+            list.add(angle > halfTurn ? angle - halfTurn - quarterTurn : quarterTurn - angle);
+          }
+      }
+    }
+    return;
+  }
+
+  /// Calculates α on the west horizon
+  ///
+  /// Return value is [ra of the meridian, ra of the meridian + 2π)
+  double? raOnWestHorizon(int gmst, double dec) {
+    final ha = haOnWestHorizon(dec);
+    if (ha == null) return null;
+    return -ha % fullTurn + gmst / 86400e6 * fullTurn;
+  }
+
+
+  /// Calculates α on the east horizon
+  ///
+  /// Return value is [ra of the meridian, ra of the meridian + 2π)
+  double? raOnEastHorizon(int gmst, double dec) {
+    final ha = haOnEastHorizon(dec);
+    if (ha == null) return null;
+    return -ha % fullTurn + gmst / 86400e6 * fullTurn;
+  }
+
   /// Calculates α on the west horizon at sunset.
   ///
   /// Return value is [ra of the Sun, ra of the Sun + 2π)
-  double? raOnWestHorizonAtSunset(
-      //{required Equatorial sun, required double dec}) {
-      Equatorial sun,
-      double dec) {
+  double? raOnWestHorizonAtSunset(Equatorial sun, double dec) {
     final sunHa = haAtSunset(sun.dec);
     final ha = haOnWestHorizon(dec);
     if (sunHa == null || ha == null) return null;

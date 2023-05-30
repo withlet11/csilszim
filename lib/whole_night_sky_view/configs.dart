@@ -79,6 +79,11 @@ final dayLinePaint = Paint()
   ..style = PaintingStyle.stroke
   ..strokeWidth = twilightLineWidth;
 
+final momentaryHorizonLinePaint = Paint()
+  ..color = Colors.green
+  ..style = PaintingStyle.stroke
+  ..strokeWidth = 2.0;
+
 final civilTwilightLinePaint = Paint()
   ..color = civilTwilightColor
   ..style = PaintingStyle.stroke

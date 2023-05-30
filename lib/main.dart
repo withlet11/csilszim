@@ -52,7 +52,6 @@ const _keyLongDeg = 'longDeg';
 const _keyLongMin = 'longMin';
 const _keyLongSec = 'longSec';
 const _keyLang = 'lang';
-const _messageLoading = 'Loading...';
 const _messageError = 'Error';
 
 void main() {
@@ -169,15 +168,16 @@ class _HomePageState extends ConsumerState<HomePage>
             return Theme(
                 data: ThemeData.dark(),
                 child: Scaffold(
+                    backgroundColor: const Color(0xff263e66),
                     body: Center(
                         child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Image.asset('assets/images/logo_480x480.png',
-                        height: 240.0, width: 240.0),
-                    const CircularProgressIndicator()
-                  ],
-                )
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Image.asset('assets/images/logo_480x480.png',
+                            height: 240.0, width: 240.0),
+                        const CircularProgressIndicator()
+                      ],
+                    )
                         /*Text(
                   _messageLoading,
                   style: Theme.of(context)

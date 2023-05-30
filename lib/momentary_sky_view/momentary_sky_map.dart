@@ -512,7 +512,7 @@ class _ProjectionRenderer extends CustomPainter {
         final xy = projectionModel.horizontalToXy(altAz, center, unitLength);
         final majorAxisSize = max(
             12.0,
-            lengthOfAltitudeAngle(
+            _lengthOfAltitudeAngle(
                 center, unitLength, altAz, object.majorAxisSize ?? 12.0));
 
         if (object.type == 'Open cluster') {
@@ -527,7 +527,7 @@ class _ProjectionRenderer extends CustomPainter {
           }
         } else if (object.type.contains('galaxy')) {
           final offset =
-              topCenterOfDeepSkyObject(center, unitLength, object) - xy;
+              _topCenterOfDeepSkyObject(center, unitLength, object) - xy;
           final minorAxisSize = max(6.0, offset.distance);
           final orientationAngle =
               offset.direction - (object.orientationAngle ?? 0.0) * degInRad;
@@ -645,7 +645,7 @@ class _ProjectionRenderer extends CustomPainter {
   /// Converts angle to length at a position in horizontal coordinator.
   ///
   /// [angle] is given in arc minutes.
-  double lengthOfAltitudeAngle(
+  double _lengthOfAltitudeAngle(
       Offset center, double unitLength, Horizontal horizontal, double angle) {
     final alt = horizontal.alt;
     final az = horizontal.az;
@@ -656,7 +656,7 @@ class _ProjectionRenderer extends CustomPainter {
         projectionModel.horizontalToXy(horizontal, center, unitLength).dy;
   }
 
-  Offset topCenterOfDeepSkyObject(
+  Offset _topCenterOfDeepSkyObject(
       Offset center, double unitLength, DeepSkyObject object) {
     final topCenter = Equatorial.fromRadians(
         dec: object.equatorial.dec +
