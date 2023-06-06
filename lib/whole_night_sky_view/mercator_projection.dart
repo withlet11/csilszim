@@ -46,7 +46,7 @@ class MercatorProjection {
     if (scale < minScale) scale = minScale;
   }
 
-  Offset equatorialToXy(
+  Offset convertToOffset(
       Equatorial equatorial, Offset centerOffset, double unitLength) {
     final viewCenter = Offset(-centerEquatorial.ra,
             -log(tan((quarterTurn + centerEquatorial.dec) / 2))) *
@@ -58,7 +58,7 @@ class MercatorProjection {
         centerOffset;
   }
 
-  Equatorial xyToEquatorial(Offset offset) {
+  Equatorial convertToEquatorial(Offset offset) {
     final centerOffset = Offset(-centerEquatorial.ra,
         -log(tan((quarterTurn + centerEquatorial.dec) / 2)));
     final dec =
@@ -89,13 +89,14 @@ class MercatorProjection {
     final sinCenterDecCosAngle = sinCenterDec * cosAngle;
     final cosCenterDecSinAngle = cosCenterDec * sinAngle;
 
-    var list = <Offset>[];
 
     final startPosition = centerDec.isNegative ? halfTurn : 0.0;
     const repetition = 90;
+    const size = repetition + 1;
+    var points = List.filled(size, Offset.zero);
     const min = 1.0e-10; // enough small
     const max = 1.0 - min;
-    for (var i = 0; i <= repetition; ++i) {
+    for (var i = 0; i < size; ++i) {
       final direction =
           (min + i / repetition * (max - min)) * fullTurn + startPosition;
       final Equatorial equatorial;
@@ -106,8 +107,8 @@ class MercatorProjection {
       final dec =
           asin(sinCenterDecCosAngle + cosCenterDecSinAngle * cosDirection);
       equatorial = Equatorial.fromRadians(dec: dec, ra: ra);
-      list.add(equatorialToXy(equatorial, center, unitLength));
+      points[i] = convertToOffset(equatorial, center, unitLength);
     }
-    return list;
+    return points;
   }
 }

@@ -108,4 +108,23 @@ class Ecliptic {
     final ra = atan2(x1, y1);
     return Equatorial.fromRadians(dec: dec, ra: ra);
   }
+
+  static List<Equatorial> prepareEclipticLine() {
+    const step = 5;
+    const count = 360 ~/ step;
+    final eclipticLine = List.filled(count, Equatorial.zero);
+    for (var i = 0; i < count ~/ 4; ++i) {
+      final long = i * step - 180.0;
+      final ecliptic = Ecliptic.fromDegrees(long: long, lat: 0.0);
+      final equatorial1 = ecliptic.toEquatorial();
+      final equatorial2 = Equatorial.fromRadians(dec: equatorial1.dec, ra: -halfTurn - equatorial1.ra);
+      final equatorial3 = Equatorial.fromRadians(dec: -equatorial1.dec, ra: halfTurn + equatorial1.ra);
+      final equatorial4 = Equatorial.fromRadians(dec: -equatorial1.dec, ra: -equatorial1.ra);
+      eclipticLine[i] = equatorial1;
+      eclipticLine[count ~/ 2 - 1 - i] = equatorial2;
+      eclipticLine[i + count ~/ 2] = equatorial3;
+      eclipticLine[count - 1 - i] = equatorial4;
+    }
+    return eclipticLine;
+  }
 }

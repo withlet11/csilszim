@@ -29,6 +29,7 @@ import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/moon.dart';
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/astronomical_object/sun.dart';
+import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
@@ -68,6 +69,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     PlanetNeptune()
   ];
   late Moon _moon;
+  late final List<Equatorial> eclipticLine;
   var _centerEquatorial = Equatorial.zero;
   double? _scale;
   Offset? _pointerPosition;
@@ -75,6 +77,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
   @override
   void initState() {
     _moon = Moon(widget.starCatalogue.elp82b2);
+    eclipticLine = Ecliptic.prepareEclipticLine();
     super.initState();
   }
 
@@ -108,15 +111,15 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
       CelestialId.moon: localizations.moon,
     };
 
-    final sphereModel = SphereModel(
-        location: Geographic.fromDegrees(
-            lat: locationData.latInDegrees(),
-            long: locationData.longInDegrees()));
-
-    _updateSolarSystem(locationData);
-
     DateTime dateTime = DateTime.now().add(_settings.dateTimeOffset);
     final time = TimeModel.fromLocalTime(dateTime);
+
+    final sphereModel = SphereModel(
+        location: locationData,
+        gmstMicroseconds: time.gmst,
+        eclipticLine: eclipticLine);
+
+    _updateSolarSystem(locationData, time);
 
     return Stack(fit: StackFit.expand, children: [
       ClipRect(
@@ -130,7 +133,6 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
           sphereModel: sphereModel,
           starCatalogue: widget.starCatalogue,
           displaySettings: displaySettings.copyWith(),
-          lmst: time.gmst + (locationData.long / fullTurn * 86400e6).round(),
           centerEquatorial: _centerEquatorial,
           sunEquatorial: _sunEquatorial,
           planetList: _planetList,
@@ -194,7 +196,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
       final offset = (position - center) / scale;
 
       final equatorial =
-          _settings.projection.xyToEquatorial(offset).normalized();
+          _settings.projection.convertToEquatorial(offset).normalized();
       _centerEquatorial = equatorial;
       _pointerPosition = null;
       PageStorage.of(context).writeState(context, _settings);
@@ -217,13 +219,13 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
         final scale = height * 0.9 / halfTurn;
         final currentXY = (position - center) / scale;
         final currentEquatorial =
-            _settings.projection.xyToEquatorial(currentXY);
+            _settings.projection.convertToEquatorial(currentXY);
         _centerEquatorial = currentEquatorial.normalized();
 
         if (_pointerPosition != null) {
           final previousXY = (_pointerPosition! - center) / scale;
           final previousEquatorial =
-              _settings.projection.xyToEquatorial(previousXY);
+              _settings.projection.convertToEquatorial(previousXY);
           final deltaEquatorial = currentEquatorial - previousEquatorial;
           _settings.projection.centerEquatorial =
               (_settings.projection.centerEquatorial - deltaEquatorial)
@@ -261,10 +263,8 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     _scale = details.scale;
   }
 
-  void _updateSolarSystem(Geographic locationData) {
-    DateTime dateTime = DateTime.now().add(_settings.dateTimeOffset);
+  void _updateSolarSystem(Geographic locationData, TimeModel time) {
     _moon.observationPosition = Grs80.from(locationData);
-    final time = TimeModel.fromLocalTime(dateTime);
     final orbitCalculation = OrbitCalculationWithMeanLongitude(time);
     final earthPosition = // PlanetEarth().calculateWithVsop87(time.jd);
         orbitCalculation.calculatePosition(PlanetEarth().orbitalElement);

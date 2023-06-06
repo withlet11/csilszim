@@ -27,7 +27,6 @@ import 'package:flutter/material.dart';
 import '../astronomical/astronomical_object/deep_sky_object.dart';
 import '../astronomical/astronomical_object/moon.dart';
 import '../astronomical/astronomical_object/planet.dart';
-import '../astronomical/coordinate_system/ecliptic_coordinate.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
@@ -46,7 +45,6 @@ class WholeNightSkyMap extends StatelessWidget {
   final SphereModel sphereModel;
   final StarCatalogue starCatalogue;
   final WholeNightSkyViewSettings displaySettings;
-  final int lmst;
   final Equatorial centerEquatorial;
   final Equatorial sunEquatorial;
   final List<Planet> planetList;
@@ -59,7 +57,6 @@ class WholeNightSkyMap extends StatelessWidget {
     required this.sphereModel,
     required this.starCatalogue,
     required this.displaySettings,
-    required this.lmst,
     required this.centerEquatorial,
     required this.sunEquatorial,
     required this.planetList,
@@ -75,7 +72,6 @@ class WholeNightSkyMap extends StatelessWidget {
       sphereModel,
       starCatalogue,
       displaySettings,
-      lmst,
       centerEquatorial,
       sunEquatorial,
       planetList,
@@ -90,7 +86,6 @@ class _ProjectionRenderer extends CustomPainter {
   final SphereModel sphereModel;
   final StarCatalogue starCatalogue;
   final WholeNightSkyViewSettings displaySettings;
-  final int lmst;
   final Equatorial centerEquatorial;
   final Equatorial sunEquatorial;
   final List<Planet> planetList;
@@ -102,7 +97,6 @@ class _ProjectionRenderer extends CustomPainter {
     this.sphereModel,
     this.starCatalogue,
     this.displaySettings,
-    this.lmst,
     this.centerEquatorial,
     this.sunEquatorial,
     this.planetList,
@@ -148,7 +142,7 @@ class _ProjectionRenderer extends CustomPainter {
     _drawNauticalTwilight(canvas, size, sunEquatorial);
     _drawCivilTwilight(canvas, size, sunEquatorial);
     _drawDay(canvas, size, sunEquatorial);
-    _drawMomentaryHorizon(canvas, size, sunEquatorial);
+    _drawMomentaryHorizon(canvas, size);
     _drawPermanentHorizon(canvas, size);
 
     final decRaText = TextSpan(
@@ -186,7 +180,7 @@ class _ProjectionRenderer extends CustomPainter {
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
 
     for (var ra = 0; ra < 24; ++ra) {
-      final pointOnLine = projectionModel.equatorialToXy(
+      final pointOnLine = projectionModel.convertToOffset(
           Equatorial.fromDegreesAndHours(dec: 0, ra: ra.toDouble()),
           center,
           unitLength);
@@ -207,7 +201,7 @@ class _ProjectionRenderer extends CustomPainter {
     final unitLength = _getUnitLength(size);
 
     for (var dec = -80; dec < 90; dec += 10) {
-      final pointOnLine = projectionModel.equatorialToXy(
+      final pointOnLine = projectionModel.convertToOffset(
           Equatorial.fromDegreesAndHours(dec: dec.toDouble(), ra: 0),
           center,
           unitLength);
@@ -222,25 +216,19 @@ class _ProjectionRenderer extends CustomPainter {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
-
-    var fullTurnList = <Offset>[];
-    for (var long = -180; long < 180; long += 5) {
-      final ecliptic = Ecliptic.fromDegrees(long: long.toDouble(), lat: 0.0);
-      final equatorial = ecliptic.toEquatorial();
-      fullTurnList
-          .add(projectionModel.equatorialToXy(equatorial, center, unitLength));
-    }
+    final fullTurnList = sphereModel.eclipticLine.map((equatorial) =>
+        projectionModel.convertToOffset(equatorial, center, unitLength));
 
     final firstX = fullTurnList.first.dx % lengthOfFullTurn + lengthOfFullTurn;
-    final fullScreenList = <Offset>[];
+    final pointsOfFullScreen = <Offset>[];
     for (var shift = firstX - fullTurnList.first.dx;
         fullTurnList.first.dx + shift > 0;
         shift -= lengthOfFullTurn) {
       for (final offset in fullTurnList) {
-        fullScreenList.add(offset + Offset(shift, 0.0));
+        pointsOfFullScreen.add(offset + Offset(shift, 0.0));
       }
     }
-    final path = Path()..addPolygon(fullScreenList, false);
+    final path = Path()..addPolygon(pointsOfFullScreen, false);
     canvas.drawPath(path, eclipticPaint);
   }
 
@@ -260,7 +248,7 @@ class _ProjectionRenderer extends CustomPainter {
     final width = size.width;
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
-    final position = projectionModel.equatorialToXy(
+    final position = projectionModel.convertToOffset(
             Equatorial.fromDegreesAndHours(dec: dec.toDouble(), ra: 0.0),
             center,
             unitLength) -
@@ -291,7 +279,7 @@ class _ProjectionRenderer extends CustomPainter {
     final height = size.height;
     final center = size.center(Offset.zero);
 
-    final position = projectionModel.equatorialToXy(
+    final position = projectionModel.convertToOffset(
             Equatorial.fromDegreesAndHours(dec: 0.0, ra: ra.toDouble()),
             center,
             unitLength) -
@@ -306,7 +294,7 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawPermanentHorizon(Canvas canvas, Size size) {
-    var list = <Offset>[];
+    var points = <Offset>[];
     final crossingUpperMeridianAndHorizon = Horizontal.fromRadians(
         alt: 0, az: sphereModel.isNorthernHemisphere ? halfTurn : 0.0);
     final equatorial =
@@ -314,37 +302,45 @@ class _ProjectionRenderer extends CustomPainter {
 
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
-    final xy = projectionModel.equatorialToXy(equatorial, center, unitLength);
-    final origin = Offset(0.0, xy.dy);
-    list = [origin, size.topRight(origin)];
-    final path = _preparePathOfZone(list, size);
+    final point =
+        projectionModel.convertToOffset(equatorial, center, unitLength);
+    final origin = Offset(0.0, point.dy);
+    points = [origin, size.topRight(origin)];
+    final path = _preparePathOfZone(size, points);
     canvas.drawPath(path, horizonPaint);
   }
 
-  void _drawMomentaryHorizon(Canvas canvas, Size size, Equatorial sun) {
-    final lineGridList = <Offset>[];
+  void _drawMomentaryHorizon(Canvas canvas, Size size) {
+    final lineOfHorizon = List.filled(360, Offset.zero);
+    final lineBelowHorizon = List.filled(360, Offset.zero);
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
-    final diff = lmst / 86400e6 * fullTurn;
-    final list = <double>[];
-    sphereModel.decOnWestHorizon(list);
-    sphereModel.decOnEastHorizon(list);
-    for (var i = 359; i >= 0; --i) {
-      final ra = i * degInRad + diff;
-      lineGridList.add(projectionModel.equatorialToXy(
-          Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength));
+    final lmst = sphereModel.lmst;
+    final decOnHorizon = sphereModel.decOnHolizonList;
+    final decBelowHorizon = sphereModel.decBelowHorizonList;
+    for (var i = 0; i < 360; ++i) {
+      final equatorial1 = Equatorial.fromRadians(
+          dec: decOnHorizon[359 - i], ra: (359 - i) * degInRad + lmst);
+      lineOfHorizon[i] =
+          projectionModel.convertToOffset(equatorial1, center, unitLength);
+      final equatorial2 = Equatorial.fromRadians(
+          dec: decBelowHorizon[359 - i], ra: (359 - i) * degInRad + lmst);
+      lineBelowHorizon[i] =
+          projectionModel.convertToOffset(equatorial2, center, unitLength);
     }
 
-    _drawLineOfTwilight(canvas, size, momentaryHorizonLinePaint, lineGridList);
+    _drawPathOnSphere(canvas, size, momentaryHorizonLinePaint, lineOfHorizon);
+    _drawHatchOnSphere(canvas, size, momentaryHorizonHatchPaint, lineOfHorizon,
+        lineBelowHorizon);
   }
 
   void _drawDay(Canvas canvas, Size size, Equatorial sun) {
-    _drawZoneAndLineOfTwilight2(canvas, size, sun, sphereModel.haAtSunrise,
+    _drawZoneAndLineOfTwilight(canvas, size, sun, sphereModel.haAtSunrise,
         sphereModel.haAtSunset, dayZonePaint, dayLinePaint);
   }
 
   void _drawCivilTwilight(Canvas canvas, Size size, Equatorial sun) {
-    _drawZoneAndLineOfTwilight2(
+    _drawZoneAndLineOfTwilight(
         canvas,
         size,
         sun,
@@ -355,7 +351,7 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawNauticalTwilight(Canvas canvas, Size size, Equatorial sun) {
-    _drawZoneAndLineOfTwilight2(
+    _drawZoneAndLineOfTwilight(
         canvas,
         size,
         sun,
@@ -366,7 +362,7 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawAstronomicalTwilight(Canvas canvas, Size size, Equatorial sun) {
-    _drawZoneAndLineOfTwilight2(
+    _drawZoneAndLineOfTwilight(
         canvas,
         size,
         sun,
@@ -376,7 +372,7 @@ class _ProjectionRenderer extends CustomPainter {
         astronomicalTwilightLinePaint);
   }
 
-  void _drawZoneAndLineOfTwilight2(
+  void _drawZoneAndLineOfTwilight(
       Canvas canvas,
       Size size,
       Equatorial sun,
@@ -384,10 +380,9 @@ class _ProjectionRenderer extends CustomPainter {
       double? Function(double) raOnWestHorizon,
       Paint zonePaint,
       Paint linePaint) {
-    final zoneGridList1 = <Offset>[];
-    final lineGridList2 = <Offset>[];
-    final zoneGridList2 = <Offset>[];
     final lineGridList1 = <Offset>[];
+    final lineGridList2 = <Offset>[];
+    final zoneGridList = <Offset>[];
 
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
@@ -396,253 +391,124 @@ class _ProjectionRenderer extends CustomPainter {
     final sunset = raOnWestHorizon(sun.dec);
 
     if (sunrise != null && sunset != null) {
-      final list1 = <double>[];
-      final list2 = <double>[];
-      sphereModel.decOnWestHorizon(list1);
-      sphereModel.decOnEastHorizon(list2);
+      final list = sphereModel.decOnHolizonList;
       final sunriseHa = sunrise + sun.ra;
       final sunsetHa = sunset + sun.ra;
+
       final crossing = (sunriseHa + sunsetHa) / 2 + halfTurn;
+      final crossingDec = sphereModel.decOnHorizon(crossing - sunsetHa);
+      final crossingOffset = projectionModel.convertToOffset(
+          Equatorial.fromRadians(dec: crossingDec, ra: crossing),
+          center,
+          unitLength);
 
-      for (var i = 179; i >= 0; --i) {
-        final ra = i * degInRad + sunriseHa;
+      var i = 360;
+      while (i-- > 180) {
+        final ra = i * degInRad + sunsetHa;
+        final offset = projectionModel.convertToOffset(
+            Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength);
         if (ra > crossing) {
-          /*
-          if (lineGridList2.isEmpty && zoneGridList2.isNotEmpty) {
-           final dec = sphereModel.decOnHorizon(crossing - sunriseHa);
-           lineGridList2.add(projectionModel.equatorialToXy(
-               Equatorial.fromRadians(dec: dec, ra: crossing),
-               center,
-               unitLength));
-           zoneGridList2.add(projectionModel.equatorialToXy(
-               Equatorial.fromRadians(dec: dec, ra: crossing),
-               center,
-               unitLength));
-          }
-           */
-          lineGridList2.add(projectionModel.equatorialToXy(
-              Equatorial.fromRadians(dec: list1[i], ra: ra),
-              center,
-              unitLength));
+          zoneGridList.add(offset);
         } else {
-          /*
-          if (lineGridList2.isNotEmpty && zoneGridList2.isEmpty) {
-            final dec = sphereModel.decOnHorizon(crossing - sunsetHa);
-            lineGridList2.add(projectionModel.equatorialToXy(
-                Equatorial.fromRadians(dec: dec, ra: crossing),
-                center,
-                unitLength));
-            zoneGridList2.add(projectionModel.equatorialToXy(
-                Equatorial.fromRadians(dec: dec, ra: crossing),
-                center,
-                unitLength));
-          }
-
-           */
-          zoneGridList2.add(projectionModel.equatorialToXy(
-              Equatorial.fromRadians(dec: list1[i], ra: ra),
-              center,
-              unitLength));
+          lineGridList1.add(crossingOffset);
+          zoneGridList.add(crossingOffset);
+          lineGridList1.add(offset);
+          break;
         }
       }
 
-      for (var i = 179; i >= 0; --i) {
-        final ra = (i + 180) * degInRad + sunsetHa;
-        if (ra < crossing) {
-          lineGridList1.add(projectionModel.equatorialToXy(
-              Equatorial.fromRadians(dec: list2[i], ra: ra),
-              center,
-              unitLength));
+      while (i-- > 180) {
+        final ra = i * degInRad + sunsetHa;
+        final offset = projectionModel.convertToOffset(
+            Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength);
+        lineGridList1.add(offset);
+      }
+
+      while (i-- > 0) {
+        final ra = i * degInRad + sunriseHa;
+        final offset = projectionModel.convertToOffset(
+            Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength);
+        if (ra > crossing) {
+          lineGridList2.add(offset);
         } else {
-          zoneGridList1.add(projectionModel.equatorialToXy(
-              Equatorial.fromRadians(dec: list2[i], ra: ra),
-              center,
-              unitLength));
+          zoneGridList.add(offset);
+          break;
         }
+      }
+
+      while (i-- > 0) {
+        final ra = i * degInRad + sunriseHa;
+        final offset = projectionModel.convertToOffset(
+            Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength);
+        zoneGridList.add(offset);
       }
     }
 
-    final List<Offset> zoneGridList;
-    final List<Offset> lineGridList;
-
-    if (zoneGridList1.isEmpty) {
+    if (zoneGridList.isEmpty) {
       if (sphereModel.isNorthernHemisphere) {
         if (sun.dec > 0) {
-          zoneGridList = [
+          final gridList = [
             size.topLeft(Offset.zero),
             size.topRight(Offset.zero)
           ];
-          _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
+          _drawPathOnSphere(canvas, size, zonePaint, gridList);
         }
       } else {
         if (sun.dec.isNegative) {
-          zoneGridList = [
+          final gridList = [
             size.bottomLeft(Offset.zero),
             size.bottomRight(Offset.zero)
           ];
-          _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
+          _drawPathOnSphere(canvas, size, zonePaint, gridList);
         }
       }
     } else {
-      zoneGridList = zoneGridList1 + zoneGridList2;
-      _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-    }
-    lineGridList = lineGridList2 + lineGridList1;
-
-
-    /*
-    if (sphereModel.isNorthernHemisphere) {
-      if (zoneGridList1.isEmpty) {
-        if (sun.dec > 0) {
-          zoneGridList = [
-            size.topLeft(Offset.zero),
-            size.topRight(Offset.zero)
-          ];
-          _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-        }
-      } else {
-        zoneGridList = zoneGridList1 + zoneGridList2;
-        _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-      }
-      lineGridList = lineGridList2 + lineGridList1;
-    } else {
-      if (zoneGridList1.isEmpty) {
-        if (sun.dec.isNegative) {
-          zoneGridList = [
-            size.bottomLeft(Offset.zero),
-            size.bottomRight(Offset.zero)
-          ];
-          _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-        }
-      } else {
-        // zoneGridList = (zoneGridList2 + zoneGridList1).reversed.toList();
-        zoneGridList = zoneGridList1 + zoneGridList2;
-        _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-      }
-      // lineGridList = (lineGridList1 + lineGridList2).reversed.toList();
-      lineGridList = lineGridList2 + lineGridList1;
-    }
-     */
-
-    if (lineGridList.isNotEmpty) {
-      _drawLineOfTwilight(canvas, size, linePaint, lineGridList);
-    }
-
-  }
-
-  /*
-  void _drawZoneAndLineOfTwilight(
-      Canvas canvas,
-      Size size,
-      Equatorial sun,
-      double? Function(Equatorial, double) raOnEastHorizon,
-      double? Function(Equatorial, double) raOnWestHorizon,
-      Paint zonePaint,
-      Paint linePaint) {
-    final zoneGridList1 = <Offset>[];
-    final lineGridList2 = <Offset>[];
-    final zoneGridList2 = <Offset>[];
-    final lineGridList1 = <Offset>[];
-
-    final center = size.center(Offset.zero);
-    final unitLength = _getUnitLength(size);
-
-    for (var deg = 90.0; deg >= -90.0; deg -= 0.5) {
-      final dec = deg * degInRad;
-      final ra = raOnEastHorizon(sun, dec);
-      if (ra != null) {
-        final offset = projectionModel.equatorialToXy(
-            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength);
-        if (ra - sun.ra > halfTurn) {
-          zoneGridList1.add(offset);
-        } else {
-          lineGridList1.add(offset);
-        }
-      }
-    }
-
-    for (var deg = -90.0; deg <= 90.0; deg += 0.5) {
-      final dec = deg * degInRad;
-      final ra = raOnWestHorizon(sun, dec);
-      if (ra != null) {
-        final offset = projectionModel.equatorialToXy(
-            Equatorial.fromRadians(dec: dec, ra: ra), center, unitLength);
-        if (ra - sun.ra < halfTurn) {
-          zoneGridList2.add(offset);
-        } else {
-          lineGridList2.add(offset);
-        }
-      }
-    }
-
-    final List<Offset> zoneGridList;
-    final List<Offset> lineGridList;
-
-    if (sphereModel.isNorthernHemisphere) {
-      if (zoneGridList1.isEmpty) {
-        if (sun.dec > 0) {
-          zoneGridList = [
-            size.topLeft(Offset.zero),
-            size.topRight(Offset.zero)
-          ];
-          _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-        }
-      } else {
-        zoneGridList = zoneGridList1 + zoneGridList2;
-        _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-      }
-      lineGridList = lineGridList2 + lineGridList1;
-    } else {
-      if (zoneGridList1.isEmpty) {
-        if (sun.dec.isNegative) {
-          zoneGridList = [
-            size.bottomLeft(Offset.zero),
-            size.bottomRight(Offset.zero)
-          ];
-          _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-        }
-      } else {
-        zoneGridList = (zoneGridList2 + zoneGridList1).reversed.toList();
-        _drawZoneOfTwilight(canvas, size, zonePaint, zoneGridList);
-      }
-      lineGridList = (lineGridList1 + lineGridList2).reversed.toList();
-    }
-
-    if (lineGridList.isNotEmpty) {
-      _drawLineOfTwilight(canvas, size, linePaint, lineGridList);
+      final lineGridList = lineGridList2 + lineGridList1;
+      _drawPathOnSphere(canvas, size, zonePaint, zoneGridList);
+      _drawPathOnSphere(canvas, size, linePaint, lineGridList);
     }
   }
 
-   */
-
-  void _drawZoneOfTwilight(
-      Canvas canvas, Size size, Paint zonePaint, List<Offset> zoneGridList) {
-    final zonePath = _preparePathOfZone(zoneGridList, size);
-    canvas.drawPath(zonePath, zonePaint);
+  void _drawPathOnSphere(
+      Canvas canvas, Size size, Paint paint, List<Offset> points) {
+    final path = _preparePathOfZone(size, points);
+    canvas.drawPath(path, paint);
   }
 
-  void _drawLineOfTwilight(
-      Canvas canvas, Size size, Paint linePaint, List<Offset> lineGridList) {
-    final linePath = _preparePathOfZone(lineGridList, size);
-    canvas.drawPath(linePath, linePaint);
-  }
-
-  Path _preparePathOfZone(List<Offset> list, Size size) {
+  void _drawHatchOnSphere(Canvas canvas, Size size, Paint paint,
+      List<Offset> points1, List<Offset> points2) {
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
-    final firstX = list[0].dx % lengthOfFullTurn - lengthOfFullTurn;
-    var shift = firstX - list[0].dx;
-    final path = Path()..moveTo(list[0].dx + shift, list[0].dy);
+    final firstX = points1.first.dx % lengthOfFullTurn - lengthOfFullTurn;
+    var shift = firstX - points1.first.dx;
 
     final width = size.width;
-    for (; list[0].dx + shift < width; shift += lengthOfFullTurn) {
-      for (final offset in list) {
+    for (; points1.first.dx + shift < width; shift += lengthOfFullTurn) {
+      for (var i = 0; i < points1.length; ++i) {
+        final point1 = points1[i] + Offset(shift, 0);
+        final point2 = points2[(i + 2) % points1.length] + Offset(shift, 0);
+        if (point1.dy.isNaN || point2.dy.isNaN) continue;
+        canvas.drawLine(point1, point2, paint);
+      }
+    }
+  }
+
+  Path _preparePathOfZone(Size size, List<Offset> points) {
+    final unitLength = _getUnitLength(size);
+    final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
+    final firstX = points.first.dx % lengthOfFullTurn - lengthOfFullTurn;
+    var shift = firstX - points.first.dx;
+    final path = Path()..moveTo(points.first.dx + shift, points.first.dy);
+
+    final width = size.width;
+    for (; points.first.dx + shift < width; shift += lengthOfFullTurn) {
+      for (final offset in points) {
         path.lineTo(offset.dx + shift, offset.dy);
       }
     }
 
     final bottom = sphereModel.isNorthernHemisphere ? size.height : 0.0;
-    path.lineTo(width, list.last.dy);
+    path.lineTo(width, points.last.dy);
     path.lineTo(width, bottom);
     path.lineTo(0, bottom);
     return path;
@@ -659,7 +525,7 @@ class _ProjectionRenderer extends CustomPainter {
     for (final star in starCatalogue.starList) {
       if (star.hipNumber > 0 && star.magnitude < magnitudeLimit) {
         final xy =
-            projectionModel.equatorialToXy(star.position, center, unitLength);
+            projectionModel.convertToOffset(star.position, center, unitLength);
         final y = xy.dy;
         final radius = radiusOfObject(star.magnitude, midPoint);
         for (var x = xy.dx % lengthOfFullTurn;
@@ -689,9 +555,9 @@ class _ProjectionRenderer extends CustomPainter {
       final star2 = starCatalogue.starList[line.hipNumber2];
 
       final position1 =
-          projectionModel.equatorialToXy(star1.position, center, unitLength);
+          projectionModel.convertToOffset(star1.position, center, unitLength);
       final position2 =
-          projectionModel.equatorialToXy(star2.position, center, unitLength);
+          projectionModel.convertToOffset(star2.position, center, unitLength);
 
       final double x1, y1, dx, dy;
       if (position1.dx - position2.dx > lengthOfFullTurn / 2) {
@@ -747,7 +613,7 @@ class _ProjectionRenderer extends CustomPainter {
       final textCenter = locationTextPainter.size.center(Offset.zero);
 
       final xy =
-          projectionModel.equatorialToXy(name.position, center, unitLength) -
+          projectionModel.convertToOffset(name.position, center, unitLength) -
               textCenter;
       final y = xy.dy;
 
@@ -776,7 +642,7 @@ class _ProjectionRenderer extends CustomPainter {
       );
       locationTextPainter.layout();
       final xy =
-          projectionModel.equatorialToXy(object.position, center, unitLength);
+          projectionModel.convertToOffset(object.position, center, unitLength);
       final y = xy.dy;
       final majorAxisSize = max(
           12.0,
@@ -826,8 +692,8 @@ class _ProjectionRenderer extends CustomPainter {
 
     for (var planet in planetList) {
       final radius = radiusOfObject(planet.magnitude, midPoint);
-      final xy =
-          projectionModel.equatorialToXy(planet.equatorial, center, unitLength);
+      final xy = projectionModel.convertToOffset(
+          planet.equatorial, center, unitLength);
       final y = xy.dy;
       for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
         final position = Offset(x, y);
@@ -868,10 +734,10 @@ class _ProjectionRenderer extends CustomPainter {
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
 
     final xy =
-        projectionModel.equatorialToXy(moon.equatorial, center, unitLength);
+        projectionModel.convertToOffset(moon.equatorial, center, unitLength);
     final top = Equatorial.fromRadians(
         dec: moon.equatorial.dec + moon.apparentRadius, ra: moon.equatorial.ra);
-    final topXy = projectionModel.equatorialToXy(top, center, unitLength);
+    final topXy = projectionModel.convertToOffset(top, center, unitLength);
     final y = xy.dy;
     final magnitudeBaseRadius = radiusOfObject(moon.magnitude, midPoint);
     final radius = (y - topXy.dy).abs();
@@ -1008,28 +874,31 @@ class _ProjectionRenderer extends CustomPainter {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
 
-    final pointList = projectionModel.pointsOnCircle(
+    final points = projectionModel.pointsOnCircle(
         center, unitLength, displaySettings.trueFov / 2 * degInRad);
 
     final path = Path();
-    if (pointList.first.dx < pointList.last.dx) {
-      if (pointList[0].dx < pointList[1].dx) {
-        pointList.insert(0, Offset(0.0, pointList.first.dy));
-        pointList.add(Offset(size.width, pointList.last.dy));
-        path.addPolygon(pointList, false);
+    if (points.first.dx < points.last.dx) {
+      if (points.first.dx < points[1].dx) {
+        // Circle is open. Starts from left side.
+        path.moveTo(0.0, points.first.dy);
+        path.lineTo(points.first.dx, points.first.dy);
+        path.addPolygon(points, false);
+        path.lineTo(size.width, points.last.dy);
       } else {
         // Circle is closed.
-        path.addPolygon(pointList, true);
+        path.addPolygon(points, true);
       }
     } else {
-      if (pointList[0].dx > pointList[1].dx) {
+      if (points.first.dx > points[1].dx) {
         // Circle is open. Starts from right side.
-        pointList.insert(0, Offset(size.width, pointList.first.dy));
-        pointList.add(Offset(0.0, pointList.last.dy));
-        path.addPolygon(pointList, false);
+        path.moveTo(size.width, points.first.dy);
+        path.lineTo(points.first.dx, points.first.dy);
+        path.addPolygon(points, false);
+        path.lineTo(0.0, points.last.dy);
       } else {
         // Circle is closed.
-        path.addPolygon(pointList, true);
+        path.addPolygon(points, true);
       }
     }
     canvas.drawPath(path, fovPaint);
@@ -1045,8 +914,10 @@ class _ProjectionRenderer extends CustomPainter {
     final angleInRadian = angle / 60.0 * degInRad;
     final bottomCenter =
         Equatorial.fromRadians(dec: dec - angleInRadian, ra: ra);
-    return projectionModel.equatorialToXy(bottomCenter, center, unitLength).dy -
-        projectionModel.equatorialToXy(equatorial, center, unitLength).dy;
+    return projectionModel
+            .convertToOffset(bottomCenter, center, unitLength)
+            .dy -
+        projectionModel.convertToOffset(equatorial, center, unitLength).dy;
   }
 }
 
