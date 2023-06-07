@@ -224,8 +224,8 @@ class _ProjectionRenderer extends CustomPainter {
     for (var shift = firstX - fullTurnList.first.dx;
         fullTurnList.first.dx + shift > 0;
         shift -= lengthOfFullTurn) {
-      for (final offset in fullTurnList) {
-        pointsOfFullScreen.add(offset + Offset(shift, 0.0));
+      for (final point in fullTurnList) {
+        pointsOfFullScreen.add(point + Offset(shift, 0.0));
       }
     }
     final path = Path()..addPolygon(pointsOfFullScreen, false);
@@ -248,12 +248,12 @@ class _ProjectionRenderer extends CustomPainter {
     final width = size.width;
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
-    final position = projectionModel.convertToOffset(
+    final offset = projectionModel.convertToOffset(
             Equatorial.fromDegreesAndHours(dec: dec.toDouble(), ra: 0.0),
             center,
             unitLength) -
         textSize.center(Offset.zero);
-    final y = position.dy;
+    final y = offset.dy;
 
     locationTextPainter.paint(canvas, Offset(10, y));
     locationTextPainter.paint(canvas, Offset(width - 10 - textWidth, y));
@@ -279,13 +279,13 @@ class _ProjectionRenderer extends CustomPainter {
     final height = size.height;
     final center = size.center(Offset.zero);
 
-    final position = projectionModel.convertToOffset(
+    final offset = projectionModel.convertToOffset(
             Equatorial.fromDegreesAndHours(dec: 0.0, ra: ra.toDouble()),
             center,
             unitLength) -
         textSize.center(Offset.zero);
 
-    for (var x = position.dx % lengthOfFullTurn;
+    for (var x = offset.dx % lengthOfFullTurn;
         x < width;
         x += lengthOfFullTurn) {
       locationTextPainter.paint(canvas, Offset(x, 10));
@@ -405,42 +405,42 @@ class _ProjectionRenderer extends CustomPainter {
       var i = 360;
       while (i-- > 180) {
         final ra = i * degInRad + sunsetHa;
-        final offset = projectionModel.convertToOffset(
+        final point = projectionModel.convertToOffset(
             Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength);
         if (ra > crossing) {
-          zoneGridList.add(offset);
+          zoneGridList.add(point);
         } else {
           lineGridList1.add(crossingOffset);
           zoneGridList.add(crossingOffset);
-          lineGridList1.add(offset);
+          lineGridList1.add(point);
           break;
         }
       }
 
       while (i-- > 180) {
         final ra = i * degInRad + sunsetHa;
-        final offset = projectionModel.convertToOffset(
+        final point = projectionModel.convertToOffset(
             Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength);
-        lineGridList1.add(offset);
+        lineGridList1.add(point);
       }
 
       while (i-- > 0) {
         final ra = i * degInRad + sunriseHa;
-        final offset = projectionModel.convertToOffset(
+        final point = projectionModel.convertToOffset(
             Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength);
         if (ra > crossing) {
-          lineGridList2.add(offset);
+          lineGridList2.add(point);
         } else {
-          zoneGridList.add(offset);
+          zoneGridList.add(point);
           break;
         }
       }
 
       while (i-- > 0) {
         final ra = i * degInRad + sunriseHa;
-        final offset = projectionModel.convertToOffset(
+        final point = projectionModel.convertToOffset(
             Equatorial.fromRadians(dec: list[i], ra: ra), center, unitLength);
-        zoneGridList.add(offset);
+        zoneGridList.add(point);
       }
     }
 
@@ -502,8 +502,8 @@ class _ProjectionRenderer extends CustomPainter {
 
     final width = size.width;
     for (; points.first.dx + shift < width; shift += lengthOfFullTurn) {
-      for (final offset in points) {
-        path.lineTo(offset.dx + shift, offset.dy);
+      for (final point in points) {
+        path.lineTo(point.dx + shift, point.dy);
       }
     }
 
@@ -531,13 +531,12 @@ class _ProjectionRenderer extends CustomPainter {
         for (var x = xy.dx % lengthOfFullTurn;
             x < width;
             x += lengthOfFullTurn) {
-          final position = Offset(x, y);
+          final offset = Offset(x, y);
           if (radius > 3.0) {
-            canvas.drawCircle(
-                position, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
-            canvas.drawCircle(position, 3.0 + (radius - 3.0) * 0.5, starPaint);
+            canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+            canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.5, starPaint);
           } else {
-            canvas.drawCircle(position, radius, starPaint);
+            canvas.drawCircle(offset, radius, starPaint);
           }
         }
       }
@@ -554,32 +553,32 @@ class _ProjectionRenderer extends CustomPainter {
       final star1 = starCatalogue.starList[line.hipNumber1];
       final star2 = starCatalogue.starList[line.hipNumber2];
 
-      final position1 =
+      final point1 =
           projectionModel.convertToOffset(star1.position, center, unitLength);
-      final position2 =
+      final point2 =
           projectionModel.convertToOffset(star2.position, center, unitLength);
 
       final double x1, y1, dx, dy;
-      if (position1.dx - position2.dx > lengthOfFullTurn / 2) {
-        x1 = position1.dx - lengthOfFullTurn;
-        y1 = position1.dy;
-        dx = position2.dx - position1.dx + lengthOfFullTurn;
-        dy = position2.dy - position1.dy;
-      } else if (position2.dx - position1.dx > lengthOfFullTurn / 2) {
-        x1 = position2.dx - lengthOfFullTurn;
-        y1 = position2.dy;
-        dx = position1.dx - position2.dx + lengthOfFullTurn;
-        dy = position1.dy - position2.dy;
-      } else if (position1.dx < position2.dx) {
-        x1 = position1.dx; // % lengthOfFullTurn;
-        y1 = position1.dy;
-        dx = position2.dx - position1.dx;
-        dy = position2.dy - position1.dy;
+      if (point1.dx - point2.dx > lengthOfFullTurn / 2) {
+        x1 = point1.dx - lengthOfFullTurn;
+        y1 = point1.dy;
+        dx = point2.dx - point1.dx + lengthOfFullTurn;
+        dy = point2.dy - point1.dy;
+      } else if (point2.dx - point1.dx > lengthOfFullTurn / 2) {
+        x1 = point2.dx - lengthOfFullTurn;
+        y1 = point2.dy;
+        dx = point1.dx - point2.dx + lengthOfFullTurn;
+        dy = point1.dy - point2.dy;
+      } else if (point1.dx < point2.dx) {
+        x1 = point1.dx; // % lengthOfFullTurn;
+        y1 = point1.dy;
+        dx = point2.dx - point1.dx;
+        dy = point2.dy - point1.dy;
       } else {
-        x1 = position2.dx; // % lengthOfFullTurn;
-        y1 = position2.dy;
-        dx = position1.dx - position2.dx;
-        dy = position1.dy - position2.dy;
+        x1 = point2.dx; // % lengthOfFullTurn;
+        y1 = point2.dy;
+        dx = point1.dx - point2.dx;
+        dy = point1.dy - point2.dy;
       }
 
       for (var x = x1; x < width; x += lengthOfFullTurn) {
@@ -696,16 +695,15 @@ class _ProjectionRenderer extends CustomPainter {
           planet.equatorial, center, unitLength);
       final y = xy.dy;
       for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
-        final position = Offset(x, y);
+        final offset = Offset(x, y);
         if (radius > 3.0) {
-          canvas.drawCircle(
-              position, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
-          canvas.drawCircle(position, 3.0 + (radius - 3.0) * 0.5, starPaint);
+          canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+          canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.5, starPaint);
         } else {
-          canvas.drawCircle(position, radius, starPaint);
+          canvas.drawCircle(offset, radius, starPaint);
         }
         final path = Path()
-          ..moveTo(position.dx + 4, position.dy - 4)
+          ..moveTo(offset.dx + 4, offset.dy - 4)
           ..relativeLineTo(12.0, -12.0)
           ..relativeLineTo(20.0, 0.0);
         canvas.drawPath(path, planetPointerPaint);
@@ -721,7 +719,7 @@ class _ProjectionRenderer extends CustomPainter {
         );
 
         nameTextPainter.layout();
-        final textPosition = position + const Offset(40.0, -22.0);
+        final textPosition = offset + const Offset(40.0, -22.0);
         nameTextPainter.paint(canvas, textPosition);
       }
     }

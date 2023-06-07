@@ -111,7 +111,7 @@ class _ProjectionRenderer extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    _drawHorizon(canvas, size);
+    _drawBackground(canvas, size);
 
     if (displaySettings.isHorizontalGridVisible) {
       _drawAzimuthGrid(canvas, size);
@@ -121,8 +121,6 @@ class _ProjectionRenderer extends CustomPainter {
       _drawRightAscensionGrid(canvas, size);
       _drawDeclinationGrid(canvas, size);
     }
-
-    _drawDirectionSign(canvas, size);
 
     if (displaySettings.isConstellationLineVisible) {
       _drawConstellationLines(canvas, size);
@@ -144,6 +142,8 @@ class _ProjectionRenderer extends CustomPainter {
 
     _drawSun(canvas, size, midPoint);
     _drawMoon(canvas, size, midPoint);
+    _drawHorizon(canvas, size);
+    _drawDirectionSign(canvas, size);
 
     if (displaySettings.isFovVisible) {
       _drawFOV(canvas, size);
@@ -183,33 +183,45 @@ class _ProjectionRenderer extends CustomPainter {
     return false;
   }
 
+  void _drawBackground(Canvas canvas, Size size) {
+    canvas.drawRect(Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)),
+        backgroundPaint);
+  }
+
   void _drawHorizon(Canvas canvas, Size size) {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
 
-    final Paint innerPartPaint;
-    final Paint outerPartPaint;
+    final List<Offset> points;
     if (projectionModel.centerAltAz.alt.isNegative) {
-      innerPartPaint = horizonPaint;
-      outerPartPaint = backgroundPaint;
+      points = [
+        for (var i = 0; i < 360; ++i)
+          projectionModel.horizontalToXy(
+              Horizontal.fromDegrees(alt: 0, az: i.toDouble()),
+              center,
+              unitLength),
+      ];
     } else {
-      innerPartPaint = backgroundPaint;
-      outerPartPaint = horizonPaint;
+      const topLeft = Offset.zero;
+      final topRight = Offset(size.width, 0.0);
+      final bottomLeft = Offset(0.0, size.height);
+      final bottomRight = Offset(size.width, size.height);
+      points = [
+        topLeft,
+        topRight,
+        bottomRight,
+        bottomLeft,
+        for (var i = 0; i <= 360; ++i)
+          projectionModel.horizontalToXy(
+              Horizontal.fromDegrees(alt: 0, az: i.toDouble()),
+              center,
+              unitLength),
+        bottomLeft,
+      ];
     }
 
-    canvas.drawRect(Rect.fromPoints(Offset.zero, size.bottomRight(Offset.zero)),
-        outerPartPaint);
-
-    final list = [
-      for (var i = 0; i < 360; ++i)
-        projectionModel.horizontalToXy(
-            Horizontal.fromDegrees(alt: 0, az: i.toDouble()),
-            center,
-            unitLength),
-    ];
-
-    final path = Path()..addPolygon(list, true);
-    canvas.drawPath(path, innerPartPaint);
+    final path = Path()..addPolygon(points, true);
+    canvas.drawPath(path, horizonPaint);
   }
 
   void _drawAzimuthGrid(Canvas canvas, Size size) {
@@ -453,10 +465,17 @@ class _ProjectionRenderer extends CustomPainter {
       final altAz1 = sphereModel.equatorialToHorizontal(star1.position);
       final altAz2 = sphereModel.equatorialToHorizontal(star2.position);
 
-      if (altAz1.alt > 0 && altAz2.alt > 0) {
+      if (altAz1.alt > 0 || altAz2.alt > 0) {
         final p1 = projectionModel.horizontalToXy(altAz1, center, unitLength);
         final p2 = projectionModel.horizontalToXy(altAz2, center, unitLength);
-        if ((p1 - p2).distance < center.dx) {
+        if ((p1.dx > 0.0 &&
+                p1.dx < size.width &&
+                p1.dy > 0.0 &&
+                p1.dy < size.height) ||
+            (p2.dx > 0.0 &&
+                p2.dx < size.width &&
+                p2.dy > 0.0 &&
+                p2.dy < size.height)) {
           canvas.drawLine(p1, p2, constellationLinePaint);
         }
       }

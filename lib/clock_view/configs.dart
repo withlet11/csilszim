@@ -24,7 +24,20 @@ import 'dart:ui';
 
 import 'package:flutter/material.dart';
 
-const zodiacSign = ['♓', '♈', '♉', '♊', '♋', '♌', '♍', '♎', '♏', '♐', '♑', '♒'];
+const zodiacSign = [
+  '♓\ufe0e',
+  '♈\ufe0e',
+  '♉\ufe0e',
+  '♊\ufe0e',
+  '♋\ufe0e',
+  '♌\ufe0e',
+  '♍\ufe0e',
+  '♎\ufe0e',
+  '♏\ufe0e',
+  '♐\ufe0e',
+  '♑\ufe0e',
+  '♒\ufe0e'
+];
 
 class Settings {
   final Size screenSize;

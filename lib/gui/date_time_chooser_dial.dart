@@ -40,32 +40,41 @@ const _monthNumberPosition = -66.0;
 const _monthNumberSize = 10.0;
 const _hourNumberSize = 10.0;
 const _dateTimeFontSize = 14.0;
+const _buttonSize = 14.0;
 const _marginForLabel = 25.0;
 const _markerPosition = -40.0;
 const _dialSize = _dialOuterBorderSize + _marginForLabel * 2;
 const _dialCenter = Offset(_dialSize / 2, _dialSize / 2);
+const _oneDay = Duration(days: 1);
+const _oneMinute = Duration(minutes: 1);
+const _activeColor = Colors.amber;
+const _inactiveColor = Colors.grey;
+const _todayIcon = Icons.today;
+const _nowIcon = Icons.access_time_filled;
+const _incrementIcon = Icons.add_box;
+const _decrementIcon = Icons.indeterminate_check_box;
 
 const _monthNumberTextStyle = TextStyle(
     fontSize: _monthNumberSize,
-    color: Colors.amber,
+    color: _activeColor,
     fontWeight: FontWeight.bold);
 
 const _hourNumberTextStyle = TextStyle(
     fontSize: _monthNumberSize,
-    color: Colors.amber,
+    color: _activeColor,
     fontWeight: FontWeight.bold);
 
 const _indexTextStyle =
-    TextStyle(fontSize: _monthNumberSize, color: Colors.amber);
+    TextStyle(fontSize: _monthNumberSize, color: _activeColor);
 
 const _largeTextStyle = TextStyle(
     fontSize: _dateTimeFontSize,
-    color: Colors.amber,
+    color: _activeColor,
     fontFeatures: [FontFeature.tabularFigures()]);
 
 const _smallTextStyle = TextStyle(
     fontSize: _dateTimeFontSize,
-    color: Colors.grey,
+    color: _inactiveColor,
     fontFeatures: [FontFeature.tabularFigures()]);
 
 const _dayOffsetOfMonthInNormalYear = [
@@ -118,9 +127,9 @@ class DateTimeChooserDial extends StatefulWidget {
 
 class _DateChooserDial extends State<DateTimeChooserDial>
     with SingleTickerProviderStateMixin {
-  static const dialOuterBorderSize = _dialOuterBorderSize;
-  static const dialInnerBorderSize = _dialInnerBorderSize;
-  static const dialCenter = _dialCenter;
+  // static const dialOuterBorderSize = _dialOuterBorderSize;
+  // static const dialInnerBorderSize = _dialInnerBorderSize;
+  // static const dialCenter = _dialCenter;
 
   late final ValueChanged<Duration> _onDateChange;
   late final ValueChanged<bool> _onModeChange;
@@ -128,6 +137,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
   var _dateTimeOffset = Duration.zero;
   var _angle = 0.0;
   late final double _angleOffset;
+  var _rotatesDial = false;
 
   late Ticker _ticker;
   var _elapsed = Duration.zero;
@@ -170,7 +180,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
     if (_isDateMode) {
       final dateTime = current.add(_dateTimeOffset);
       final year = dateTime.year;
-      final isLeapYear = year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
+      final isLeapYear = _isLeapYear(year);
       final lengthOfYear = (isLeapYear ? 366 : 365) * 86400e3;
       final yearBegin = DateTime(year).millisecondsSinceEpoch;
       _angle = (dateTime.millisecondsSinceEpoch - yearBegin) /
@@ -207,7 +217,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
           child: Container(
             width: _mainGridWidth,
             height: _mainGridHeight,
-            color: Colors.amber,
+            color: _activeColor,
           ),
         ),
       for (final startDay in isLeapYear
@@ -221,7 +231,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
           child: Container(
             width: _subGridWidth,
             height: _subGridHeight,
-            color: Colors.amber,
+            color: _activeColor,
           ),
         ),
       for (final startDay in isLeapYear
@@ -235,7 +245,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
           child: Container(
             width: _subGridWidth,
             height: _subGridHeight,
-            color: Colors.amber,
+            color: _activeColor,
           ),
         ),
       for (var i = 1; i <= 12; ++i)
@@ -254,6 +264,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
         ),
       _makeIndex(_angle),
       _makeDateTimeLabel(dateTime),
+      _makeButtons(),
     ]);
   }
 
@@ -271,7 +282,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
           child: Container(
             width: _mainGridWidth,
             height: _mainGridHeight,
-            color: Colors.amber,
+            color: _activeColor,
           ),
         ),
       for (var hour = 0; hour < 24 * 4; ++hour)
@@ -283,7 +294,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
           child: Container(
             width: _subGridWidth,
             height: _subGridHeight,
-            color: Colors.amber,
+            color: _activeColor,
           ),
         ),
       for (var hour = 0; hour < 24; hour += 3)
@@ -301,19 +312,20 @@ class _DateChooserDial extends State<DateTimeChooserDial>
         ),
       _makeIndex(_angle + _angleOffset),
       _makeDateTimeLabel(dateTime),
+      _makeButtons(),
     ]);
   }
 
   Widget _makeDialOuterBorder() {
     return Container(
-      width: dialOuterBorderSize,
-      height: dialOuterBorderSize,
+      width: _dialOuterBorderSize,
+      height: _dialOuterBorderSize,
       margin: const EdgeInsets.all(_marginForLabel),
       decoration: BoxDecoration(
           color: null,
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.amber,
+            color: _activeColor,
             width: _dialOuterBorderWidth,
           )),
     );
@@ -321,13 +333,13 @@ class _DateChooserDial extends State<DateTimeChooserDial>
 
   Widget _makeDialInnerBorder() {
     return Container(
-      width: dialInnerBorderSize,
-      height: dialInnerBorderSize,
+      width: _dialInnerBorderSize,
+      height: _dialInnerBorderSize,
       decoration: BoxDecoration(
           color: null,
           shape: BoxShape.circle,
           border: Border.all(
-            color: Colors.amber,
+            color: _activeColor,
             width: _dialInnerBorderWidth,
           )),
     );
@@ -343,7 +355,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
         width: 20,
         height: 20,
         alignment: Alignment.center,
-        child: const Text('▲', style: _indexTextStyle),
+        child: const Text('\u25b2', style: _indexTextStyle), // ▲
       ),
     );
   }
@@ -355,7 +367,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
     final selectedDate = dateTime.add(_dateTimeOffset);
     final dateString = selectedDate.toIso8601String();
     return SizedBox(
-      height: dialOuterBorderSize,
+      height: _dialOuterBorderSize,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
@@ -366,43 +378,84 @@ class _DateChooserDial extends State<DateTimeChooserDial>
     );
   }
 
+  Widget _makeButtons() {
+    final resetButton = _isDateMode
+        ? Icon(_todayIcon,
+            color: _dateTimeOffset.inDays == 0 ? _inactiveColor : _activeColor,
+            size: _buttonSize)
+        : Icon(_nowIcon,
+            color: _dateTimeOffset.inSeconds % 86400 == 0
+                ? _inactiveColor
+                : _activeColor,
+            size: _buttonSize);
+    return SizedBox(
+        height: _dialSize,
+        width: _dialOuterBorderSize,
+        child: Align(
+          alignment: Alignment.bottomCenter,
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              GestureDetector(
+                  onTap: _decrementDateTimeOffset,
+                  child: const Icon(_decrementIcon,
+                      color: _activeColor, size: _buttonSize)),
+              GestureDetector(
+                onTap: _resetDateTimeOffset,
+                child: resetButton,
+              ),
+              GestureDetector(
+                onTap: _incrementDateTimeOffset,
+                child: const Icon(_incrementIcon,
+                    color: _activeColor, size: _buttonSize),
+              ),
+            ],
+          ),
+        ));
+  }
+
   void _dispatchPointerDown(PointerDownEvent event) {
     final position = event.localPosition;
-    final offset = position - dialCenter;
+    final offset = position - _dialCenter;
     final distance = offset.distance;
-    if (distance > dialInnerBorderSize * 0.25 &&
-        distance < dialOuterBorderSize * 1.0) {
+    if (distance > _dialInnerBorderSize * 0.25 &&
+        distance < _dialOuterBorderSize * 0.6) {
+      _rotatesDial = true;
       _updateWithPosition(position);
+    } else {
+      _rotatesDial = false;
     }
   }
 
   void _dispatchPointerMove(PointerMoveEvent event) {
     final position = event.localPosition;
-    final offset = position - dialCenter;
+    final offset = position - _dialCenter;
     final distance = offset.distance;
-    if (distance > dialInnerBorderSize * 0.25 &&
-        distance < dialOuterBorderSize * 1.0) {
+    if (distance > _dialInnerBorderSize * 0.25 &&
+        distance < _dialOuterBorderSize * 0.6) {
+      _rotatesDial = true;
       _updateWithPosition(position);
     }
   }
 
   void _toggleMode(PointerUpEvent event) {
     final position = event.localPosition;
-    final offset = position - dialCenter;
+    final offset = position - _dialCenter;
     final distance = offset.distance;
-    if (distance < dialInnerBorderSize * 0.25) {
+    if (distance < _dialInnerBorderSize * 0.25 && !_rotatesDial) {
       setState(() {
         _isDateMode = !_isDateMode;
         _onModeChange(_isDateMode);
       });
     }
+    _rotatesDial = false;
   }
 
   void _updateWithPosition(Offset position) {
-    final offset = position - dialCenter;
+    final offset = position - _dialCenter;
     final distance = offset.distance;
-    if (distance > dialInnerBorderSize * 0.25 &&
-        distance < dialOuterBorderSize * 1.0) {
+    if (distance > _dialInnerBorderSize * 0.25 &&
+        distance < _dialOuterBorderSize * 0.6) {
       setState(() {
         final angle =
             (atan2(offset.dx, -offset.dy) - (_isDateMode ? 0 : _angleOffset)) %
@@ -423,14 +476,15 @@ class _DateChooserDial extends State<DateTimeChooserDial>
     final dateTime = DateTime.now();
     final previous = dateTime.add(_dateTimeOffset);
     final newYear = previous.year + overYear;
-    final isLeapYear =
-        newYear % 4 == 0 && (newYear % 100 != 0 || newYear % 400 == 0);
+    final isLeapYear = _isLeapYear(newYear);
     final lengthOfYear = isLeapYear ? 366 : 365;
     final yearBegin = DateTime(newYear).millisecondsSinceEpoch ~/ 86400e3;
-    final newDateTime = DateTime.fromMillisecondsSinceEpoch(
-        ((lengthOfYear * _angle / fullTurn + yearBegin).round() * 86400000 +
-            previous.millisecondsSinceEpoch % 86400000));
-    _dateTimeOffset = newDateTime.difference(dateTime);
+    final currentDaySinceEpoch = dateTime.millisecondsSinceEpoch ~/ 86400000;
+    final newDaySinceEpoch =
+        (lengthOfYear * _angle / fullTurn + yearBegin).round();
+    _dateTimeOffset = Duration(
+        days: newDaySinceEpoch - currentDaySinceEpoch,
+        milliseconds: _dateTimeOffset.inMilliseconds % 86400000);
     _onDateChange(_dateTimeOffset);
   }
 
@@ -443,4 +497,31 @@ class _DateChooserDial extends State<DateTimeChooserDial>
     _dateTimeOffset = newDateTime.difference(dateTime);
     _onDateChange(_dateTimeOffset);
   }
+
+  void _incrementDateTimeOffset() {
+    setState(() {
+      _dateTimeOffset += _isDateMode ? _oneDay : _oneMinute;
+      _onDateChange(_dateTimeOffset);
+    });
+  }
+
+  void _decrementDateTimeOffset() {
+    setState(() {
+      _dateTimeOffset -= _isDateMode ? _oneDay : _oneMinute;
+      _onDateChange(_dateTimeOffset);
+    });
+  }
+
+  void _resetDateTimeOffset() {
+    setState(() {
+      final dateAndTime = _dateTimeOffset.inMilliseconds;
+      final time = dateAndTime % 86400000;
+      _dateTimeOffset =
+          Duration(milliseconds: _isDateMode ? time : dateAndTime - time);
+      _onDateChange(_dateTimeOffset);
+    });
+  }
 }
+
+bool _isLeapYear(int year) =>
+    year % 4 == 0 && (year % 100 != 0 || year % 400 == 0);
