@@ -41,12 +41,12 @@ class SphereModel {
   final double _cosLat, _sinLat;
 
   ///
-  final List<double> decOnHolizonList;
+  final List<double> decOnHorizonList;
   final List<double> decBelowHorizonList;
   final List<Equatorial> eclipticLine;
 
   const SphereModel._internal(this.location, this.gmst, this.lmst, this._cosLat,
-      this._sinLat, this.decOnHolizonList, this.decBelowHorizonList, this.eclipticLine);
+      this._sinLat, this.decOnHorizonList, this.decBelowHorizonList, this.eclipticLine);
 
   factory SphereModel(
       {required Geographic location,

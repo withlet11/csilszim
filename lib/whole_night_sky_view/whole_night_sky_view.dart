@@ -120,6 +120,12 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
         eclipticLine: eclipticLine);
 
     _updateSolarSystem(locationData, time);
+    /*
+    final size = MediaQuery.of(context).size;
+    final padding = MediaQuery.of(context).viewPadding;
+    final height = size.height - padding.top - kToolbarHeight;
+    final width = size.width;
+     */
 
     return Stack(fit: StackFit.expand, children: [
       ClipRect(

@@ -22,7 +22,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:tuple/tuple.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/deep_sky_object.dart';
@@ -50,7 +49,7 @@ class MomentarySkyMap extends StatelessWidget {
   final Sun sun;
   final Moon moon;
   final Map<CelestialId, String> nameList;
-  final List<Tuple3<String, int, bool>> directionSignList;
+  final List<(String, int, bool)> directionSignList;
   final MomentarySkyViewSettings displaySettings;
   final Horizontal centerAltAz;
 
@@ -93,7 +92,7 @@ class _ProjectionRenderer extends CustomPainter {
   final Sun sun;
   final Moon moon;
   final Map<CelestialId, String> nameList;
-  final List<Tuple3<String, int, bool>> directionSignList;
+  final List<(String, int, bool)> directionSignList;
   final MomentarySkyViewSettings displaySettings;
   final Horizontal centerAltAz;
 
@@ -317,10 +316,10 @@ class _ProjectionRenderer extends CustomPainter {
 
     for (final e in directionSignList) {
       final signTextSpan = TextSpan(
-          style: e.item3
+          style: e.$3
               ? largeDirectionSignTextStyle
               : smallDirectionSignTextStyle,
-          text: e.item1);
+          text: e.$1);
 
       final signTextPainter = TextPainter(
           text: signTextSpan,
@@ -330,7 +329,7 @@ class _ProjectionRenderer extends CustomPainter {
       signTextPainter.layout();
       final textSize = signTextPainter.size;
       final position = projectionModel.horizontalToXy(
-              Horizontal.fromDegrees(alt: 0, az: e.item2.toDouble()),
+              Horizontal.fromDegrees(alt: 0, az: e.$2.toDouble()),
               center,
               unitLength) -
           textSize.center(Offset.zero);

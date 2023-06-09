@@ -20,6 +20,7 @@
  */
 
 import 'dart:math';
+import 'dart:typed_data';
 
 import 'package:csilszim/astronomical/astronomical_object/celestial_id.dart';
 import 'package:flutter/material.dart';
@@ -316,7 +317,7 @@ class _ProjectionRenderer extends CustomPainter {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     final lmst = sphereModel.lmst;
-    final decOnHorizon = sphereModel.decOnHolizonList;
+    final decOnHorizon = sphereModel.decOnHorizonList;
     final decBelowHorizon = sphereModel.decBelowHorizonList;
     for (var i = 0; i < 360; ++i) {
       final equatorial1 = Equatorial.fromRadians(
@@ -391,7 +392,7 @@ class _ProjectionRenderer extends CustomPainter {
     final sunset = raOnWestHorizon(sun.dec);
 
     if (sunrise != null && sunset != null) {
-      final list = sphereModel.decOnHolizonList;
+      final list = sphereModel.decOnHorizonList;
       final sunriseHa = sunrise + sun.ra;
       final sunsetHa = sunset + sun.ra;
 
@@ -533,7 +534,8 @@ class _ProjectionRenderer extends CustomPainter {
             x += lengthOfFullTurn) {
           final offset = Offset(x, y);
           if (radius > 3.0) {
-            canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
+            canvas.drawCircle(
+                offset, 3.0 + (radius - 3.0) * 0.8, starBlurPaint);
             canvas.drawCircle(offset, 3.0 + (radius - 3.0) * 0.5, starPaint);
           } else {
             canvas.drawCircle(offset, radius, starPaint);

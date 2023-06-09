@@ -23,7 +23,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:tuple/tuple.dart';
 
 import '../astronomical/astronomical_object/deep_sky_object.dart';
 import '../astronomical/astronomical_object/star.dart';
@@ -103,28 +102,28 @@ class _ObjectListView extends ConsumerState<ObjectListView>
         prepareTableRows2(sphereModel, locationData, brightestStarList);
 
     final messierTableHeader = [
-      Tuple2<double, String>(numberColumnWidth, localizations.hash),
-      const Tuple2<double, String>(typeColumnWidth, ' '),
-      Tuple2<double, String>(angleColumnWidth, localizations.alt),
-      Tuple2<double, String>(angleColumnWidth, localizations.az),
-      Tuple2<double, String>(angleColumnWidth, localizations.dec),
-      Tuple2<double, String>(angleColumnWidth, localizations.ha),
+      (numberColumnWidth, localizations.hash),
+      (typeColumnWidth, ' '),
+      (angleColumnWidth, localizations.alt),
+      (angleColumnWidth, localizations.az),
+      (angleColumnWidth, localizations.dec),
+      (angleColumnWidth, localizations.ha),
     ];
 
     final brightestStarTableHeader = [
-      Tuple2<double, String>(nameColumnWidth, localizations.properName),
-      Tuple2<double, String>(angleColumnWidth, localizations.alt),
-      Tuple2<double, String>(angleColumnWidth, localizations.az),
-      Tuple2<double, String>(angleColumnWidth, localizations.dec),
-      Tuple2<double, String>(angleColumnWidth, localizations.ha),
+      (nameColumnWidth, localizations.properName),
+      (angleColumnWidth, localizations.alt),
+      (angleColumnWidth, localizations.az),
+      (angleColumnWidth, localizations.dec),
+      (angleColumnWidth, localizations.ha),
     ];
 
     final messierTableWidth = messierTableHeader.fold(
-            0.0, (double sum, Tuple2<double, String> e) => sum + e.item1) +
+            0.0, (double sum, (double, String) e) => sum + e.$1) +
         40.0;
 
     final brightestStarTableWidth = brightestStarTableHeader.fold(
-            0.0, (double sum, Tuple2<double, String> e) => sum + e.item1) +
+            0.0, (double sum, (double, String) e) => sum + e.$1) +
         40.0;
 
     final commonHeaderPart = CommonHeaderPart(
@@ -152,15 +151,15 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                   columns: [
                     DataColumn(
                         label: Container(
-                            width: messierTableHeader.first.item1,
+                            width: messierTableHeader.first.$1,
                             alignment: Alignment.centerRight,
-                            child: Text(messierTableHeader.first.item2))),
+                            child: Text(messierTableHeader.first.$2))),
                     for (final item in messierTableHeader.sublist(1))
                       DataColumn(
                           label: Container(
-                              width: item.item1,
+                              width: item.$1,
                               alignment: Alignment.center,
-                              child: Text(item.item2))),
+                              child: Text(item.$2))),
                   ],
                   rows: const [],
                 ),
@@ -185,7 +184,7 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                                 alignment: i < 2
                                     ? Alignment.centerLeft
                                     : Alignment.centerRight,
-                                width: messierTableHeader[i].item1,
+                                width: messierTableHeader[i].$1,
                                 child: messierTableData.first[i]),
                           ),
                       ],
@@ -227,9 +226,9 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                     for (final item in brightestStarTableHeader)
                       DataColumn(
                           label: Container(
-                              width: item.item1,
+                              width: item.$1,
                               alignment: Alignment.center,
-                              child: Text(item.item2))),
+                              child: Text(item.$2))),
                   ],
                   rows: const [],
                 ),
@@ -256,7 +255,7 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                                 alignment: i < 1
                                     ? Alignment.center
                                     : Alignment.centerRight,
-                                width: brightestStarTableHeader[i].item1,
+                                width: brightestStarTableHeader[i].$1,
                                 child: brightestStarTableData.first[i]),
                           ),
                       ],
@@ -266,12 +265,12 @@ class _ObjectListView extends ConsumerState<ObjectListView>
                             cells: [
                               DataCell(Container(
                                   alignment: Alignment.center,
-                                  width: brightestStarTableHeader.first.item1,
+                                  width: brightestStarTableHeader.first.$1,
                                   child: object.first)),
                               for (final e in object.sublist(1))
                                 DataCell(Container(
                                     alignment: Alignment.centerRight,
-                                    width: brightestStarTableHeader[1].item1,
+                                    width: brightestStarTableHeader[1].$1,
                                     child: e)),
                             ],
                           ),

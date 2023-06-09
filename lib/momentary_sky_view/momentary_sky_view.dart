@@ -27,7 +27,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
-import 'package:tuple/tuple.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/moon.dart';
@@ -132,14 +131,14 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     };
 
     final directionSignList = [
-      Tuple3<String, int, bool>(localizations.northSign, 0, true),
-      Tuple3<String, int, bool>(localizations.northEastSign, 45, false),
-      Tuple3<String, int, bool>(localizations.eastSign, 90, true),
-      Tuple3<String, int, bool>(localizations.southEastSign, 135, false),
-      Tuple3<String, int, bool>(localizations.southSign, 180, true),
-      Tuple3<String, int, bool>(localizations.southWestSign, 225, false),
-      Tuple3<String, int, bool>(localizations.westSign, 270, true),
-      Tuple3<String, int, bool>(localizations.northWestSign, 315, false),
+      (localizations.northSign, 0, true),
+      (localizations.northEastSign, 45, false),
+      (localizations.eastSign, 90, true),
+      (localizations.southEastSign, 135, false),
+      (localizations.southSign, 180, true),
+      (localizations.southWestSign, 225, false),
+      (localizations.westSign, 270, true),
+      (localizations.northWestSign, 315, false),
     ];
 
     final sphereModel = SphereModel(
