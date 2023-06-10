@@ -1,86 +1,97 @@
 import 'dart:math';
 
 import 'package:csilszim/orbit_view/graphical_projection/graphical_projection.dart';
-import 'package:csilszim/utilities/offset_3d.dart';
 import 'package:test/test.dart';
+import 'package:vector_math/vector_math_64.dart';
 
 void main() {
   const double x1 = 1.5;
   const double y1 = 2.8;
   const double z1 = 9.5;
-  const object1 = Offset3D(x1, y1, z1);
+  final object1 = Vector3(x1, y1, z1);
 
   const double x2 = -3.5;
   const double y2 = -50;
   const double z2 = -100.2;
-  const object2 = Offset3D(x2, y2, z2);
+  final object2 = Vector3(x2, y2, z2);
 
   double direction1 = pi / 6;
   double direction2 = pi / 4;
   const double distance = 2;
-  final object3 = Offset3D.fromDirection(direction1, direction2, distance);
+  // final object3 = Vector3.fromDirection(direction1, direction2, distance);
+  final object3 = Vector3(cos(direction1) * cos(direction2), sin(direction1) * cos(direction2), sin(direction2)) * distance;
 
-  test('test: Offset3D, constructor', () {
-    expect(object1.dx, x1);
-    expect(object1.dy, y1);
-    expect(object1.dz, z1);
-    expect(object2.dx, x2);
-    expect(object2.dy, y2);
-    expect(object2.dz, z2);
-    expect((object3.dx).toStringAsPrecision(14),
+  test('test: Vector3, constructor', () {
+    expect(object1.x, x1);
+    expect(object1.y, y1);
+    expect(object1.z, z1);
+    expect(object2.x, x2);
+    expect(object2.y, y2);
+    expect(object2.z, z2);
+    expect((object3.x).toStringAsPrecision(14),
         (sqrt(3 / 2)).toStringAsPrecision(14));
-    expect((object3.dy).toStringAsPrecision(14),
+    expect((object3.y).toStringAsPrecision(14),
         (sqrt(0.5)).toStringAsPrecision(14));
     expect(
-        (object3.dz).toStringAsPrecision(14), (sqrt(2)).toStringAsPrecision(14));
+        (object3.z).toStringAsPrecision(14), (sqrt(2)).toStringAsPrecision(14));
   });
 
-  test('test: Offset3D, addition, subtraction, multiplication, division', () {
-    expect((object1 + object2).dx, x1 + x2);
-    expect((object1 + object2).dy, y1 + y2);
-    expect((object1 + object2).dz, z1 + z2);
-    expect((object1 - object2).dx, x1 - x2);
-    expect((object1 - object2).dy, y1 - y2);
-    expect((object1 - object2).dz, z1 - z2);
-    expect((object1 * 2.5).dx, x1 * 2.5);
-    expect((object1 * 2.5).dy, y1 * 2.5);
-    expect((object1 * 2.5).dz, z1 * 2.5);
-    expect((object1 / 3.3).dx, x1 / 3.3);
-    expect((object1 / 3.3).dy, y1 / 3.3);
-    expect((object1 / 3.3).dz, z1 / 3.3);
+  test('test: Vector3, addition, subtraction, multiplication, division', () {
+    expect((object1 + object2).x, x1 + x2);
+    expect((object1 + object2).y, y1 + y2);
+    expect((object1 + object2).z, z1 + z2);
+    expect((object1 - object2).x, x1 - x2);
+    expect((object1 - object2).y, y1 - y2);
+    expect((object1 - object2).z, z1 - z2);
+    expect((object1 * 2.5).x, x1 * 2.5);
+    expect((object1 * 2.5).y, y1 * 2.5);
+    expect((object1 * 2.5).z, z1 * 2.5);
+    expect((object1 / 3.3).x, x1 / 3.3);
+    expect((object1 / 3.3).y, y1 / 3.3);
+    expect((object1 / 3.3).z, z1 / 3.3);
   });
 
-  test('test: Offset3D, rotation1', () {
-    expect((object1.rotateX(0.3)).dx, x1);
-    expect((object1.rotateX(0.3)).dy, y1 * cos(0.3) - z1 * sin(0.3));
-    expect((object1.rotateX(0.3)).dz, y1 * sin(0.3) + z1 * cos(0.3));
-    expect((object1.rotateY(0.4)).dx, z1 * sin(0.4) + x1 * cos(0.4));
-    expect((object1.rotateY(0.4)).dy, y1);
-    expect((object1.rotateY(0.4)).dz, z1 * cos(0.4) - x1 * sin(0.4));
-    expect((object1.rotateZ(0.5)).dx, x1 * cos(0.5) - y1 * sin(0.5));
-    expect((object1.rotateZ(0.5)).dy, x1 * sin(0.5) + y1 * cos(0.5));
-    expect((object1.rotateZ(0.5)).dz, z1);
-    expect((object2.rotateX(-0.3)).dx, x2);
-    expect((object2.rotateX(-0.3)).dy, y2 * cos(-0.3) - z2 * sin(-0.3));
-    expect((object2.rotateX(-0.3)).dz, y2 * sin(-0.3) + z2 * cos(-0.3));
-    expect((object2.rotateY(-0.4)).dx, z2 * sin(-0.4) + x2 * cos(-0.4));
-    expect((object2.rotateY(-0.4)).dy, y2);
-    expect((object2.rotateY(-0.4)).dz, z2 * cos(-0.4) - x2 * sin(-0.4));
-    expect((object2.rotateZ(-0.5)).dx, x2 * cos(-0.5) - y2 * sin(-0.5));
-    expect((object2.rotateZ(-0.5)).dy, x2 * sin(-0.5) + y2 * cos(-0.5));
-    expect((object2.rotateZ(-0.5)).dz, z2);
+  test('test: Vector3, rotation1', () {
+    final rotateXp03 = Matrix4.rotationX(0.3);
+    final rotateYp04 = Matrix4.rotationY(0.4);
+    final rotateZp05 = Matrix4.rotationZ(0.5);
+    final rotateXn03 = Matrix4.rotationX(-0.3);
+    final rotateYn04 = Matrix4.rotationY(-0.4);
+    final rotateZn05 = Matrix4.rotationZ(-0.5);
+    expect(rotateXp03.transformed3(object1).x, x1);
+    expect(rotateXp03.transformed3(object1).y, y1 * cos(0.3) - z1 * sin(0.3));
+    expect(rotateXp03.transformed3(object1).z, y1 * sin(0.3) + z1 * cos(0.3));
+    expect(rotateYp04.transformed3(object1).x, z1 * sin(0.4) + x1 * cos(0.4));
+    expect(rotateYp04.transformed3(object1).y, y1);
+    expect(rotateYp04.transformed3(object1).z, z1 * cos(0.4) - x1 * sin(0.4));
+    expect(rotateZp05.transformed3(object1).x, x1 * cos(0.5) - y1 * sin(0.5));
+    expect(rotateZp05.transformed3(object1).y, x1 * sin(0.5) + y1 * cos(0.5));
+    expect(rotateZp05.transformed3(object1).z, z1);
+    expect(rotateXn03.transformed3(object2).x, x2);
+    expect(rotateXn03.transformed3(object2).y, y2 * cos(-0.3) - z2 * sin(-0.3));
+    expect(rotateXn03.transformed3(object2).z, y2 * sin(-0.3) + z2 * cos(-0.3));
+    expect(rotateYn04.transformed3(object2).x, z2 * sin(-0.4) + x2 * cos(-0.4));
+    expect(rotateYn04.transformed3(object2).y, y2);
+    expect(rotateYn04.transformed3(object2).z, z2 * cos(-0.4) - x2 * sin(-0.4));
+    expect(rotateZn05.transformed3(object2).x, x2 * cos(-0.5) - y2 * sin(-0.5));
+    expect(rotateZn05.transformed3(object2).y, x2 * sin(-0.5) + y2 * cos(-0.5));
+    expect(rotateZn05.transformed3(object2).z, z2);
   });
 
-  final object4 = object1.rotateX(0.3).rotateY(0.4).rotateZ(0.5) -
-      object1.rotateXYZ(0.3, 0.4, 0.5);
+  final rotateXp03 = Matrix4.rotationX(0.3);
+  final rotateYp04 = Matrix4.rotationY(0.4);
+  final rotateZp05 = Matrix4.rotationZ(0.5);
+  final rotateXYZ = Matrix4.rotationZ(0.5)..rotateY(0.4)..rotateX(0.3);
+  final object4 = rotateZp05.transformed3(rotateYp04.transformed3(rotateXp03.transformed3(object1))) -
+      rotateXYZ.transformed3(object1);
 
-  test('test: Offset3D, rotation2', () {
-    expect((object4.dx * 1e10).roundToDouble(), 0);
-    expect((object4.dy * 1e10).roundToDouble(), 0);
-    expect((object4.dz * 1e10).roundToDouble(), 0);
+  test('test: Vector3, rotation2', () {
+    expect((object4.x * 1e10).roundToDouble(), 0);
+    expect((object4.y * 1e10).roundToDouble(), 0);
+    expect((object4.z * 1e10).roundToDouble(), 0);
   });
 
-  final projection1 = GraphicalProjection(const Offset3D(1, 1, 1));
+  final projection1 = GraphicalProjection(Vector3(1, 1, 1));
   const angleX = -2.356194490192345;
   const angleY = 0.6154797087;
   test('test: ThreeDimensionsProjection', () {

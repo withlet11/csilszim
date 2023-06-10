@@ -19,7 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import '../../utilities/offset_3d.dart';
+import 'package:vector_math/vector_math_64.dart';
+
 import '../coordinate_system/equatorial_coordinate.dart';
 import '../orbit_calculation/orbital_element.dart';
 import 'astronomical_object.dart';
@@ -35,9 +36,9 @@ abstract class Comet implements AstronomicalObject {
   abstract final CelestialId id;
   var jd = 0.0;
   @override
-  var heliocentric = Offset3D.zero;
+  var heliocentric = Vector3.zero();
   @override
-  var geocentric = Offset3D.zero;
+  var geocentric = Vector3.zero();
 
   @override
   Equatorial get equatorial => Equatorial.zero;

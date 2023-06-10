@@ -19,6 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'package:vector_math/vector_math_64.dart';
+
 const obliquity = 0.4090926294954782; // 23.4392811 * pi / 180
 const sinObliquity = 0.3977769956231563; // sin(obliquity * pi / 180)
 const cosObliquity = 0.9174821315715176; // cos(obliquity * pi / 180)
+
+final matrixFromEclipticToEquatorial = Matrix4.rotationX(obliquity);

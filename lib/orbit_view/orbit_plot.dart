@@ -24,13 +24,13 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:vector_math/vector_math_64.dart' as vector;
 
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/orbit_calculation/orbit_calculation.dart';
 import '../astronomical/solar_system.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
-import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'graphical_projection/graphical_projection.dart';
 import 'graphical_projection/perspective.dart';
@@ -140,7 +140,7 @@ class _ProjectionRenderer extends CustomPainter {
     _calculatePlanetPosition(timeModel, interval, repetition, list);
     _calculateDwarfPlanetPosition(timeModel, interval, repetition, list);
     _calculateCometPosition(timeModel, interval, repetition, list);
-    list.sort((a, b) => b.position.z.compareTo(a.position.z));
+    list.sort((a, b) => b.position.xyz.z.compareTo(a.position.xyz.z));
     _drawObjects(canvas, center, scale, list);
 
     _drawPlanetLabel(canvas, center, scale);
@@ -165,7 +165,7 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _calculateSunPosition(List<_PositionAndColor> list) {
-    final pos = projection.transform(Offset3D.zero);
+    final pos = projection.transform(vector.Vector3.zero());
     const color = sunColor;
     list.add(_PositionAndColor(pos, color, sunSize));
   }
@@ -453,9 +453,9 @@ class _ProjectionRenderer extends CustomPainter {
 
     for (var i = 0; i < 21; ++i) {
       final start =
-          projection.transform(Offset3D(i * 0.5, 0, 0)).toXy(center, scale);
+          projection.transform(vector.Vector3(i * 0.5, 0, 0)).toXy(center, scale);
       final end = projection
-          .transform(Offset3D(i * 0.5 + 0.25, 0, 0))
+          .transform(vector.Vector3(i * 0.5 + 0.25, 0, 0))
           .toXy(center, scale);
 
       if (start != null && end != null) {
@@ -464,18 +464,18 @@ class _ProjectionRenderer extends CustomPainter {
     }
 
     final start1 =
-        projection.transform(const Offset3D(10.25, 0, 0)).toXy(center, scale);
+        projection.transform(vector.Vector3(10.25, 0, 0)).toXy(center, scale);
     final end1 = projection
-        .transform(const Offset3D(10.0, -0.25, 0))
+        .transform(vector.Vector3(10.0, -0.25, 0))
         .toXy(center, scale);
     if (start1 != null && end1 != null) {
       canvas.drawLine(start1, end1, paint);
     }
 
     final start2 =
-        projection.transform(const Offset3D(10.25, 0, 0)).toXy(center, scale);
+        projection.transform(vector.Vector3(10.25, 0, 0)).toXy(center, scale);
     final end2 =
-        projection.transform(const Offset3D(10.0, 0.25, 0)).toXy(center, scale);
+        projection.transform(vector.Vector3(10.0, 0.25, 0)).toXy(center, scale);
     if (start2 != null && end2 != null) {
       canvas.drawLine(start2, end2, paint);
     }

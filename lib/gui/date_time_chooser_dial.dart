@@ -211,9 +211,9 @@ class _DateChooserDial extends State<DateTimeChooserDial>
           : _dayOffsetOfMonthInNormalYear)
         Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..rotateZ(startDay / (isLeapYear ? 366 : 365) * fullTurn)
-            ..translate(0.0, _gridPosition),
+          transform:
+              Matrix4.rotationZ(startDay / (isLeapYear ? 366 : 365) * fullTurn)
+                ..translate(0.0, _gridPosition),
           child: Container(
             width: _mainGridWidth,
             height: _mainGridHeight,
@@ -225,8 +225,8 @@ class _DateChooserDial extends State<DateTimeChooserDial>
           : _dayOffsetOfMonthInNormalYear)
         Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..rotateZ((startDay + 10) / (isLeapYear ? 366 : 365) * fullTurn)
+          transform: Matrix4.rotationZ(
+              (startDay + 10) / (isLeapYear ? 366 : 365) * fullTurn)
             ..translate(0.0, _gridPosition),
           child: Container(
             width: _subGridWidth,
@@ -239,8 +239,8 @@ class _DateChooserDial extends State<DateTimeChooserDial>
           : _dayOffsetOfMonthInNormalYear)
         Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..rotateZ((startDay + 20) / (isLeapYear ? 366 : 365) * fullTurn)
+          transform: Matrix4.rotationZ(
+              (startDay + 20) / (isLeapYear ? 366 : 365) * fullTurn)
             ..translate(0.0, _gridPosition),
           child: Container(
             width: _subGridWidth,
@@ -251,9 +251,8 @@ class _DateChooserDial extends State<DateTimeChooserDial>
       for (var i = 1; i <= 12; ++i)
         Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..rotateZ(
-                (_dayOffsetOfMonthInLeapYear[i - 1] + 15) / 366 * fullTurn)
+          transform: Matrix4.rotationZ(
+              (_dayOffsetOfMonthInLeapYear[i - 1] + 15) / 366 * fullTurn)
             ..translate(0.0, _monthNumberPosition),
           child: Container(
             width: _monthNumberSize * 2,
@@ -276,8 +275,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
       for (var hour = 0; hour < 24; ++hour)
         Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..rotateZ(hour * hourInRad)
+          transform: Matrix4.rotationZ(hour * hourInRad)
             ..translate(0.0, _gridPosition),
           child: Container(
             width: _mainGridWidth,
@@ -288,8 +286,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
       for (var hour = 0; hour < 24 * 4; ++hour)
         Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..rotateZ(hour / 4.0 * hourInRad)
+          transform: Matrix4.rotationZ(hour / 4.0 * hourInRad)
             ..translate(0.0, _gridPosition),
           child: Container(
             width: _subGridWidth,
@@ -300,8 +297,8 @@ class _DateChooserDial extends State<DateTimeChooserDial>
       for (var hour = 0; hour < 24; hour += 3)
         Transform(
           alignment: Alignment.center,
-          transform: Matrix4.identity()
-            ..rotateZ((hour - timezoneOffset) * hourInRad + _angleOffset)
+          transform: Matrix4.rotationZ(
+              (hour - timezoneOffset) * hourInRad + _angleOffset)
             ..translate(0.0, _monthNumberPosition),
           child: Container(
             width: _hourNumberSize * 2,
@@ -348,9 +345,7 @@ class _DateChooserDial extends State<DateTimeChooserDial>
   Widget _makeIndex(double angle) {
     return Transform(
       alignment: Alignment.center,
-      transform: Matrix4.identity()
-        ..rotateZ(angle)
-        ..translate(0.0, _markerPosition),
+      transform: Matrix4.rotationZ(angle)..translate(0.0, _markerPosition),
       child: Container(
         width: 20,
         height: 20,

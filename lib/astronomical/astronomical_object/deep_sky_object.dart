@@ -19,7 +19,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import '../../utilities/offset_3d.dart';
+import 'package:vector_math/vector_math_64.dart';
+
 import '../coordinate_system/equatorial_coordinate.dart';
 import 'astronomical_object.dart';
 
@@ -50,8 +51,8 @@ class DeepSkyObject implements AstronomicalObject {
   Equatorial get equatorial => position;
 
   @override
-  Offset3D? get heliocentric => null;
+  Vector3? get heliocentric => null;
 
   @override
-  Offset3D? get geocentric => null;
+  Vector3? get geocentric => null;
 }

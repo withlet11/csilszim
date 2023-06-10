@@ -395,8 +395,7 @@ class _OpenClusterSign extends StatelessWidget {
           for (var i = 0; i < numberOfDots; ++i)
             Transform(
               alignment: Alignment.center,
-              transform: Matrix4.identity()
-                ..rotateZ(i / numberOfDots * fullTurn)
+              transform: Matrix4.rotationZ(i / numberOfDots * fullTurn)
                 ..translate(0.0, radius),
               child: Container(
                 width: dotWidth,

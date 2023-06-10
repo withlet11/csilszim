@@ -27,6 +27,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:vector_math/vector_math_64.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/moon.dart';
@@ -40,7 +41,6 @@ import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../gui/date_time_chooser_dial.dart';
 import '../provider/location_provider.dart';
-import '../utilities/offset_3d.dart';
 import 'configs.dart';
 import 'momentary_sky_map.dart';
 import 'momentary_sky_view_setting_provider.dart';
@@ -77,7 +77,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   void initState() {
     _timeModel =
         TimeModel.fromLocalTime(DateTime.now().add(_settings.dateTimeOffset));
-    _earth = PlanetEarth()..update(_timeModel.jd, Offset3D.zero);
+    _earth = PlanetEarth()..update(_timeModel.jd, Vector3.zero());
     _planetList = [
       PlanetMercury(),
       PlanetVenus(),
@@ -110,7 +110,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
         TimeModel.fromLocalTime(DateTime.now().add(_settings.dateTimeOffset));
     final locationData = ref.watch(locationProvider);
     final displaySettings = ref.watch(momentarySkyViewSettingProvider);
-    _earth.update(_timeModel.jd, Offset3D.zero);
+    _earth.update(_timeModel.jd, Vector3.zero());
     for (final planet in _planetList) {
       planet.update(_timeModel.jd, _earth.heliocentric!);
     }

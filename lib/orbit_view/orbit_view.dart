@@ -25,8 +25,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:vector_math/vector_math_64.dart';
 import '../astronomical/time_model.dart';
-import '../utilities/offset_3d.dart';
+import '../constants.dart';
 import 'graphical_projection/graphical_projection.dart';
 import 'info_table.dart';
 import 'orbit_plot.dart';
@@ -53,7 +54,7 @@ class _OrbitViewState extends State<OrbitView> {
     super.initState();
 
     _settings = _Settings(
-        projection: GraphicalProjection(const Offset3D(20, 1800, 500)),
+        projection: GraphicalProjection(Vector3(20, 1800, 500)),
         timeModel: TimeModel.fromLocalTime(),
         zoom: initialZoom,
         interval: initialInterval,
@@ -86,7 +87,7 @@ class _OrbitViewState extends State<OrbitView> {
     final pageStorage = PageStorage.of(context);
     _settings = pageStorage.readState(context) as _Settings? ??
         _Settings(
-            projection: GraphicalProjection(const Offset3D(20, 1800, 500)),
+            projection: GraphicalProjection(Vector3(20, 1800, 500)),
             timeModel: TimeModel.fromLocalTime(),
             zoom: initialZoom,
             interval: initialInterval,
@@ -274,12 +275,13 @@ class _OrbitViewState extends State<OrbitView> {
     } else {
       if (_previousPosition != null) {
         final lastPosition = _settings.projection.cameraPosition;
-        final newPosition = lastPosition
-            .rotateZ((position.dx - _previousPosition!.dx) *
-                ((height / 2 - position.dy) * lastPosition.dz).sign *
-                0.01)
-            .rotateToAxisZ((position.dy - _previousPosition!.dy) * 0.01);
-        if (newPosition.dx != 0 && newPosition.dy != 0) {
+        final matrix = Matrix4.rotationZ((position.dx - _previousPosition!.dx) *
+            ((height / 2 - position.dy) * lastPosition.z).sign *
+            0.01);
+        final temporary = matrix.transformed3(lastPosition);
+        final matrix2 = _rotateToAxisZ(temporary, (position.dy - _previousPosition!.dy) * 0.01);
+        final newPosition = matrix2.transformed3(temporary);
+        if (newPosition.x != 0 && newPosition.y != 0) {
           setState(() {
             _settings.projection = GraphicalProjection(newPosition);
           });
@@ -288,6 +290,59 @@ class _OrbitViewState extends State<OrbitView> {
       _previousPosition = position;
       PageStorage.of(context).writeState(context, _settings);
     }
+  }
+
+  /*
+  Vector3 rotateToAxisZ(Vector3 vector, double angle) {
+    final distanceFromAxisZ = sqrt(vector.x * vector.x + vector.y * vector.y);
+    if (distanceFromAxisZ == 0) return vector;
+
+    final tanCurrentAngle = vector.z / distanceFromAxisZ;
+    final currentAngle = atan(tanCurrentAngle);
+    final newAngle = currentAngle + angle;
+    if (newAngle >= halfTurn || newAngle <= -halfTurn) return vector;
+
+    final newPosition = Vector3(
+        vector.x * (cos(angle) - sin(angle) * tanCurrentAngle),
+        vector.y * (cos(angle) - sin(angle) * tanCurrentAngle),
+        vector.z * cos(angle) + distanceFromAxisZ * sin(angle));
+    return (vector.x * newPosition.x > 0 || vector.y * newPosition.y > 0)
+        ? newPosition
+        : vector;
+  }
+   */
+
+  Matrix4 _rotateToAxisZ(Vector3 vector, double angle) {
+    final distanceFromAxisZ = sqrt(vector.x * vector.x + vector.y * vector.y);
+    if (distanceFromAxisZ == 0) return Matrix4.identity();
+
+    final tanCurrentAngle = vector.z / distanceFromAxisZ;
+    final currentAngle = atan(tanCurrentAngle);
+    final newAngle = currentAngle + angle;
+    if (newAngle >= halfTurn || newAngle <= -halfTurn) {
+      return Matrix4.identity();
+    }
+
+    final matrix = Matrix4(
+        cos(angle) - sin(angle) * tanCurrentAngle,
+        0,
+        0,
+        0,
+        0,
+        cos(angle) - sin(angle) * tanCurrentAngle,
+        0,
+        0,
+        0,
+        0,
+        cos(angle),
+        0,
+        0,
+        0,
+        distanceFromAxisZ * sin(angle),
+        1);
+    return (matrix.row0[0] > 0 || matrix.row1[1] > 0)
+        ? matrix
+        : Matrix4.identity();
   }
 
   Future _pickDate(BuildContext context) async {

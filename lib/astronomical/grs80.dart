@@ -22,24 +22,19 @@
 import 'dart:math';
 
 import 'package:csilszim/astronomical/coordinate_system/geographic_coordinate.dart';
+import 'package:vector_math/vector_math_64.dart';
 
 import '../constants.dart';
-import '../utilities/offset_3d.dart';
 
 const _a = 6378137;
 const _f = 1 / 298.257222101;
 const _e2 = _f * (2 - _f);
 
 class Grs80 {
-  final double n, x, y, z, r;
+  final double n;
+  final Vector3 xyz;
 
-  Grs80({
-    required this.n,
-    required this.x,
-    required this.y,
-    required this.z,
-    required this.r,
-  });
+  Grs80({required this.n, required this.xyz});
 
   factory Grs80.from(Geographic geographic) {
     final sinLat = sin(geographic.lat);
@@ -47,24 +42,17 @@ class Grs80 {
     final sinLong = sin(geographic.long);
     final cosLong = cos(geographic.long);
     final n = _a / sqrt(1 - _e2 * sinLat * sinLat) / 1000.0;
-    final x = (n + geographic.h / 1000.0) * cosLat * cosLong;
-    final y = (n + geographic.h / 1000.0) * cosLat * sinLong;
-    final z = (n * (1 - _e2) + geographic.h / 1000) * sinLat;
-    final r = sqrt(x * x + y * y + z * z);
-    return Grs80(n: n, x: x, y: y, z: z, r: r);
+    final xyz = Vector3(
+        (n + geographic.h / 1000.0) * cosLat * cosLong,
+        (n + geographic.h / 1000.0) * cosLat * sinLong,
+        (n * (1 - _e2) + geographic.h / 1000) * sinLat);
+    return Grs80(n: n, xyz: xyz);
   }
 
-  Offset3D toTopocentric(Offset3D geocentric, int gmst) {
+  Vector3 toTopocentric(Vector3 geocentric, int gmst) {
     final angle = gmst / 86400e6 * fullTurn;
-    final cosAngle = cos(angle);
-    final sinAngle = sin(angle);
-    final equatorialX = cosAngle * x - sinAngle * y;
-    final equatorialY = sinAngle * x + cosAngle * y;
-    final equatorialZ = z;
-    return Offset3D(
-      geocentric.dx - equatorialX,
-      geocentric.dy - equatorialY,
-      geocentric.dz - equatorialZ,
-    );
+    final matrix = Matrix4.rotationZ(angle);
+    final vector = matrix.transformed3(xyz);
+    return geocentric - vector;
   }
 }

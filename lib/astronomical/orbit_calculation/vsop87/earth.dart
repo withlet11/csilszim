@@ -40,13 +40,14 @@
 
 import 'dart:math';
 
-import '../../../utilities/offset_3d.dart';
+import 'package:vector_math/vector_math_64.dart';
+
 import 'vsop87.dart';
 
 class Vsop87Earth {
-  static Offset3D calculatePosition(double jd) {
+  static Vector3 calculatePosition(double jd) {
     final t = jm2000(jd);
-    return Offset3D(
+    return Vector3(
       _x0(t) + _x1(t) + _x2(t) + _x3(t) + _x4(t) + _x5(t),
       _y0(t) + _y1(t) + _y2(t) + _y3(t) + _y4(t) + _y5(t),
       _z0(t) + _z1(t) + _z2(t) + _z3(t) + _z4(t) + _z5(t),

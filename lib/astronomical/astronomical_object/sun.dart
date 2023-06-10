@@ -20,8 +20,8 @@
  */
 
 import 'package:csilszim/astronomical/astronomical_object/astronomical_object.dart';
+import 'package:vector_math/vector_math_64.dart';
 
-import '../../utilities/offset_3d.dart';
 import '../coordinate_system/ecliptic_coordinate.dart';
 import '../coordinate_system/equatorial_coordinate.dart';
 import 'celestial_id.dart';
@@ -33,13 +33,13 @@ class Sun implements AstronomicalObject {
   static const magnitude = -26.74;
 
   @override
-  var heliocentric = Offset3D.zero;
+  var heliocentric = Vector3.zero();
   @override
-  var geocentric = Offset3D.zero;
+  var geocentric = Vector3.zero();
   @override
   var equatorial = const Equatorial.fromRadians(dec: 0.0, ra: 0.0);
 
-  void update(double jd, Offset3D earthPosition) {
+  void update(double jd, Vector3 earthPosition) {
     this.jd = jd;
     geocentric = -earthPosition;
     final ecliptic = Ecliptic.fromXyz(geocentric!);

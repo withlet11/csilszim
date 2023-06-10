@@ -21,111 +21,57 @@
 
 import 'dart:math';
 
-import '../../utilities/offset_3d.dart';
+import 'package:vector_math/vector_math_64.dart';
+
 import 'perspective.dart';
 
 class GraphicalProjection {
-  final Offset3D cameraPosition;
+  final Vector3 cameraPosition;
   final double distance;
   final double angleX, angleY, angleZ;
-  final double a11, a12, a13;
-  final double a21, a22, a23;
-  final double a31, a32, a33;
+  final Matrix4 matrix;
 
-  GraphicalProjection._internal(
-      this.cameraPosition,
-      this.distance,
-      this.angleX,
-      this.angleY,
-      this.angleZ,
-      this.a11,
-      this.a12,
-      this.a13,
-      this.a21,
-      this.a22,
-      this.a23,
-      this.a31,
-      this.a32,
-      this.a33);
+  GraphicalProjection._internal(this.cameraPosition, this.distance, this.angleX,
+      this.angleY, this.angleZ, this.matrix);
 
-  factory GraphicalProjection(Offset3D cameraPosition, [double angleZ = 0]) {
+  factory GraphicalProjection(Vector3 cameraPosition, [double angleZ = 0]) {
     final directionOfAxisZ = _directionOfAxisZOnPerspective(cameraPosition);
 
-    final x = -cameraPosition.dx;
-    final y = -cameraPosition.dy;
-    final z = -cameraPosition.dz;
+    final x = -cameraPosition.x;
+    final y = -cameraPosition.y;
+    final z = -cameraPosition.z;
 
     final angleX = atan2(y, z);
     final angleY = atan2(-x, y * sin(angleX) + z * cos(angleX));
 
-    final sinAngleX = sin(angleX);
-    final cosAngleX = cos(angleX);
-    final sinAngleY = sin(angleY);
-    final cosAngleY = cos(angleY);
-    final sinAngleZ = sin(angleZ - directionOfAxisZ);
-    final cosAngleZ = cos(angleZ - directionOfAxisZ);
+    final matrix = Matrix4.rotationZ(angleZ - directionOfAxisZ)
+      ..rotateY(angleY)
+      ..rotateX(angleX);
 
-    final a11 = cosAngleY * cosAngleZ;
-    final a12 = sinAngleX * sinAngleY * cosAngleZ - cosAngleX * sinAngleZ;
-    final a13 = cosAngleX * sinAngleY * cosAngleZ + sinAngleX * sinAngleZ;
-    final a21 = cosAngleY * sinAngleZ;
-    final a22 = sinAngleX * sinAngleY * sinAngleZ + cosAngleX * cosAngleZ;
-    final a23 = cosAngleX * sinAngleY * sinAngleZ - sinAngleX * cosAngleZ;
-    final a31 = -sinAngleY;
-    final a32 = sinAngleX * cosAngleY;
-    final a33 = cosAngleX * cosAngleY;
-
-    return GraphicalProjection._internal(
-        cameraPosition,
-        sqrt(x * x + y * y + z * z),
-        angleX,
-        angleY,
-        angleZ,
-        a11,
-        a12,
-        a13,
-        a21,
-        a22,
-        a23,
-        a31,
-        a32,
-        a33);
+    return GraphicalProjection._internal(cameraPosition,
+        sqrt(x * x + y * y + z * z), angleX, angleY, angleZ, matrix);
   }
 
-  Perspective transform(Offset3D offset) {
-    Offset3D moved = offset - cameraPosition;
-    return Perspective(
-        moved.dx * a11 + moved.dy * a12 + moved.dz * a13,
-        moved.dx * a21 + moved.dy * a22 + moved.dz * a23,
-        moved.dx * a31 + moved.dy * a32 + moved.dz * a33);
+  Perspective transform(Vector3 offset) {
+    final moved = offset - cameraPosition;
+    return Perspective(matrix.transformed3(moved));
   }
 }
 
 /// Calculates the direction of axis Z after transformation to perspective
 /// from camera position.
-double _directionOfAxisZOnPerspective(Offset3D cameraPosition) {
-  final x = -cameraPosition.dx;
-  final y = -cameraPosition.dy;
-  final z = -cameraPosition.dz;
+double _directionOfAxisZOnPerspective(Vector3 cameraPosition) {
+  final x = -cameraPosition.x;
+  final y = -cameraPosition.y;
+  final z = -cameraPosition.z;
 
   final angleX = atan2(y, z);
   final angleY = atan2(-x, y * sin(angleX) + z * cos(angleX));
   // const angleZ = 0; // no rotation around axis-Z
 
-  final sinAngleX = sin(angleX);
-  final cosAngleX = cos(angleX);
-  final sinAngleY = sin(angleY);
-  final cosAngleY = cos(angleY);
-  // final sinAngleZ = sin(angleZ); // always 0
-  // final cosAngleZ = cos(angleZ); // always 1
+  final ez = Vector3(0, 0, 1); // unit vector along the z-axis
+  final matrix = Matrix4.rotationY(angleY)..rotateX(angleX);
+  matrix.transform3(ez);
 
-  final a13 = cosAngleX * sinAngleY; // * cosAngleZ + sinAngleX * sinAngleZ;
-  final a23 = /* cosAngleX * sinAngleY * sinAngleZ*/ -sinAngleX; // * cosAngleZ;
-  final a33 = cosAngleX * cosAngleY;
-
-  final transformedAxisZ = Perspective(a13, a23, a33);
-
-  return transformedAxisZ.isOnAxisZ()
-      ? 0.0
-      : atan2(-transformedAxisZ.x, transformedAxisZ.y);
+  return (ez.x == 0 && ez.y == 0) ? 0.0 : atan2(-ez.x, ez.y);
 }

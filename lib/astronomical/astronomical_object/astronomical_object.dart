@@ -20,11 +20,12 @@
  */
 
 
-import '../../utilities/offset_3d.dart';
+import 'package:vector_math/vector_math_64.dart';
+
 import '../coordinate_system/equatorial_coordinate.dart';
 
 abstract class AstronomicalObject {
   Equatorial get equatorial;
-  Offset3D? get heliocentric;
-  Offset3D? get geocentric;
+  Vector3? get heliocentric;
+  Vector3? get geocentric;
 }

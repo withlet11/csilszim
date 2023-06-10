@@ -20,8 +20,8 @@
  */
 
 import 'package:csilszim/astronomical/orbit_calculation/orbit_calculation.dart';
+import 'package:vector_math/vector_math_64.dart';
 
-import '../../utilities/offset_3d.dart';
 import '../coordinate_system/ecliptic_coordinate.dart';
 import '../coordinate_system/equatorial_coordinate.dart';
 import '../orbit_calculation/orbital_element.dart';
@@ -34,13 +34,13 @@ abstract class MinorPlanet implements AstronomicalObject {
   abstract final CelestialId id;
   var jd = 0.0;
   @override
-  var heliocentric = Offset3D.zero;
+  var heliocentric = Vector3.zero();
   @override
-  var geocentric = Offset3D.zero;
+  var geocentric = Vector3.zero();
   var phaseAngle = 0.0;
   abstract final OrbitalElementWithMeanMotion orbitalElement;
 
-  void update(double jd, Offset3D earthPosition) {
+  void update(double jd, Vector3 earthPosition) {
     this.jd = jd;
     final calculation =
         OrbitCalculationWithMeanMotion.fromJd(jd - distanceInLd());
@@ -54,7 +54,7 @@ abstract class MinorPlanet implements AstronomicalObject {
     return ecliptic.toEquatorial();
   }
 
-  double distanceInLd() => geocentric!.distance() * auInLightDay;
+  double distanceInLd() => geocentric!.length * auInLightDay;
 }
 
 class DwarfPlanetCeres extends MinorPlanet {

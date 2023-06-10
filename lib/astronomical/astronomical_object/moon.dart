@@ -26,8 +26,8 @@ import 'package:csilszim/astronomical/constants/common.dart';
 import 'package:csilszim/astronomical/constants/earth.dart';
 import 'package:csilszim/astronomical/orbit_calculation/elp82b2.dart';
 import 'package:csilszim/constants.dart';
+import 'package:vector_math/vector_math_64.dart';
 
-import '../../utilities/offset_3d.dart';
 import '../coordinate_system/equatorial_coordinate.dart';
 import '../grs80.dart';
 import '../time_model.dart';
@@ -47,14 +47,14 @@ class Moon implements AstronomicalObject {
   Moon(this.elp82b2, [this.observationPosition, this.timeModel]);
 
   @override
-  var heliocentric = Offset3D.zero;
+  var heliocentric = Vector3.zero();
   @override
-  var geocentric = Offset3D.zero;
+  var geocentric = Vector3.zero();
 
   @override
   var equatorial = const Equatorial.fromRadians(dec: 0.0, ra: 0.0);
 
-  void update(TimeModel timeModel, Offset3D earthPosition, Sun sun) {
+  void update(TimeModel timeModel, Vector3 earthPosition, Sun sun) {
     this.timeModel = timeModel;
     geocentric = elp82b2.calculate(timeModel.jd);
     heliocentric = geocentric! + earthPosition * auInKm;
@@ -64,27 +64,24 @@ class Moon implements AstronomicalObject {
 
   void _updateEquatorial() {
     if (timeModel != null) {
-      final x = geocentric!.dx;
-      final y = geocentric!.dy * cosObliquity - geocentric!.dz * sinObliquity;
-      final z = geocentric!.dy * sinObliquity + geocentric!.dz * cosObliquity;
-      final geocentricEquatorial = Offset3D(x, y, z);
+      final geocentricEquatorial =
+          matrixFromEclipticToEquatorial.transformed3(geocentric!);
       final topocentric = observationPosition?.toTopocentric(
               geocentricEquatorial, timeModel!.gmst) ??
           geocentricEquatorial;
-      final dec = atan(topocentric.dz /
-          sqrt(topocentric.dx * topocentric.dx +
-              topocentric.dy * topocentric.dy));
-      final ra = atan2(topocentric.dy, topocentric.dx);
+      final dec = atan(topocentric.z /
+          sqrt(topocentric.x * topocentric.x + topocentric.y * topocentric.y));
+      final ra = atan2(topocentric.y, topocentric.x);
       equatorial = Equatorial.fromRadians(dec: dec, ra: ra);
     } else {
       equatorial = const Equatorial.fromRadians(dec: 0.0, ra: 0.0);
     }
   }
 
-  void _updatePhaseAngleAndTilt(Offset3D earthPosition, Sun sun) {
-    final distanceFromEarth = geocentric!.distance();
-    final distanceFromSun = heliocentric!.distance();
-    final betweenSunAndEarth = earthPosition.distance() * auInKm;
+  void _updatePhaseAngleAndTilt(Vector3 earthPosition, Sun sun) {
+    final distanceFromEarth = geocentric!.length;
+    final distanceFromSun = heliocentric!.length;
+    final betweenSunAndEarth = earthPosition.length * auInKm;
     final cosPhaseAngle = (distanceFromEarth * distanceFromEarth +
             distanceFromSun * distanceFromSun -
             betweenSunAndEarth * betweenSunAndEarth) /

@@ -42,8 +42,7 @@
 import 'dart:math';
 
 import 'package:flutter/services.dart';
-
-import '../../utilities/offset_3d.dart';
+import 'package:vector_math/vector_math_64.dart';
 
 const _pis2 = pi / 2.0;
 const _rad = 648000.0 / pi;
@@ -109,7 +108,7 @@ class Elp82b2 {
     return temp;
   }
 
-  Offset3D calculate(double tjj) {
+  Vector3 calculate(double tjj) {
     const sc = 36525.0;
     const dj2000 = 2451545.0;
     const a0 = 384747.9806448954;
@@ -191,7 +190,7 @@ class Elp82b2 {
     final x = pw2 * x1 + pwqw * x2 + pwra * x3;
     final y = pwqw * x1 + qw2 * x2 - qwra * x3;
     final z = -pwra * x1 + qwra * x2 + (pw2 + qw2 - 1.0) * x3;
-    return Offset3D(x, y, z);
+    return Vector3(x, y, z);
   }
 
   Future<void> _setPrecision(double prec) async {

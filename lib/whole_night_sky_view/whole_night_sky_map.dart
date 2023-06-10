@@ -20,7 +20,6 @@
  */
 
 import 'dart:math';
-import 'dart:typed_data';
 
 import 'package:csilszim/astronomical/astronomical_object/celestial_id.dart';
 import 'package:flutter/material.dart';

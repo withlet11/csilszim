@@ -21,8 +21,9 @@
 
 import 'dart:math';
 
+import 'package:vector_math/vector_math_64.dart';
+
 import '../../constants.dart';
-import '../../utilities/offset_3d.dart';
 import '../constants/earth.dart';
 import 'equatorial_coordinate.dart';
 
@@ -50,19 +51,15 @@ class Ecliptic {
 
   const Ecliptic.fromRadians({required this.lat, required this.long});
 
-  factory Ecliptic.fromXyz(Offset3D offset) {
-    final x = offset.dx;
-    final y = offset.dy;
-    final z = offset.dz;
-    final distanceFromZAxis = sqrt(x * x + y * y);
-
-    if (distanceFromZAxis == 0.0) {
-      return Ecliptic.fromRadians(
-          lat: z.isNegative ? -quarterTurn : quarterTurn, long: 0.0);
-    }
-
-    return Ecliptic.fromRadians(
-        lat: atan(z / sqrt(x * x + y * y)), long: atan2(y, x));
+  factory Ecliptic.fromXyz(Vector3 vector) {
+    final x = vector.x;
+    final y = vector.y;
+    final z = vector.z;
+    final r = sqrt(x * x + y * y);
+    final lat =
+        r == 0 ? (z.isNegative ? -quarterTurn : quarterTurn) : atan(z / r);
+    final long = atan2(y, x);
+    return Ecliptic.fromRadians(lat: lat, long: long);
   }
 
   double latInDegrees() => lat * radInDeg;
@@ -97,15 +94,18 @@ class Ecliptic {
   }
 
   Equatorial toEquatorial() {
-    final x0 = sin(long) * cos(lat);
-    final y0 = cos(long) * cos(lat);
-    final z0 = sin(lat);
-    final x1 = x0 * cosObliquity - z0 * sinObliquity;
-    final y1 = y0;
-    final z1 = x0 * sinObliquity + z0 * cosObliquity;
-    final r = sqrt(x1 * x1 + y1 * y1);
-    final dec = r == 0 ? (z1.isNegative ? -halfTurn : halfTurn) : atan(z1 / r);
-    final ra = atan2(x1, y1);
+    final cosLong = cos(long);
+    final sinLong = sin(long);
+    final cosLat = cos(lat);
+    final sinLat = sin(lat);
+    final vector = Vector3(cosLong * cosLat, sinLong * cosLat, sinLat);
+    matrixFromEclipticToEquatorial.transform3(vector);
+    final x = vector.x;
+    final y = vector.y;
+    final z = vector.z;
+    final r = sqrt(x * x + y * y);
+    final dec = r == 0 ? (z.isNegative ? -halfTurn : halfTurn) : atan(z / r);
+    final ra = atan2(y, x);
     return Equatorial.fromRadians(dec: dec, ra: ra);
   }
 
@@ -117,9 +117,12 @@ class Ecliptic {
       final long = i * step - 180.0;
       final ecliptic = Ecliptic.fromDegrees(long: long, lat: 0.0);
       final equatorial1 = ecliptic.toEquatorial();
-      final equatorial2 = Equatorial.fromRadians(dec: equatorial1.dec, ra: -halfTurn - equatorial1.ra);
-      final equatorial3 = Equatorial.fromRadians(dec: -equatorial1.dec, ra: halfTurn + equatorial1.ra);
-      final equatorial4 = Equatorial.fromRadians(dec: -equatorial1.dec, ra: -equatorial1.ra);
+      final equatorial2 = Equatorial.fromRadians(
+          dec: equatorial1.dec, ra: -halfTurn - equatorial1.ra);
+      final equatorial3 = Equatorial.fromRadians(
+          dec: -equatorial1.dec, ra: halfTurn + equatorial1.ra);
+      final equatorial4 =
+          Equatorial.fromRadians(dec: -equatorial1.dec, ra: -equatorial1.ra);
       eclipticLine[i] = equatorial1;
       eclipticLine[count ~/ 2 - 1 - i] = equatorial2;
       eclipticLine[i + count ~/ 2] = equatorial3;

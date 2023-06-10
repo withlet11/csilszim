@@ -21,8 +21,9 @@
 
 import 'dart:math';
 
+import 'package:vector_math/vector_math_64.dart';
+
 import '../../constants.dart';
-import '../../utilities/offset_3d.dart';
 import '../coordinate_system/ecliptic_coordinate.dart';
 import '../coordinate_system/equatorial_coordinate.dart';
 import '../orbit_calculation/orbit_calculation.dart';
@@ -75,17 +76,17 @@ abstract class Planet implements AstronomicalObject {
   abstract final CelestialId id;
   var jd = 0.0;
   @override
-  var heliocentric = Offset3D.zero;
+  var heliocentric = Vector3.zero();
   @override
-  var geocentric = Offset3D.zero;
+  var geocentric = Vector3.zero();
   var phaseAngle = 0.0;
   abstract final double radius;
   abstract final double albedo;
   abstract final double absoluteMagnitude;
-  abstract final Offset3D Function(double jd) calculateWithVsop87;
+  abstract final Vector3 Function(double jd) calculateWithVsop87;
   abstract final OrbitalElementWithMeanLongitude orbitalElement;
 
-  void update(double jd, Offset3D earthPosition) {
+  void update(double jd, Vector3 earthPosition) {
     this.jd = jd;
     final orbitCalculation =
         OrbitCalculationWithMeanLongitude.fromJd(jd - distanceInLd());
@@ -94,24 +95,24 @@ abstract class Planet implements AstronomicalObject {
     updatePhaseAngle(earthPosition);
   }
 
-  void forceUpdateWithVsop87(double jd, Offset3D earthPosition) {
+  void forceUpdateWithVsop87(double jd, Vector3 earthPosition) {
     this.jd = jd;
     heliocentric = calculateWithVsop87(jd - distanceInLd());
     geocentric = heliocentric! - earthPosition;
     updatePhaseAngle(earthPosition);
   }
 
-  void updateWithVsop87(double jd, Offset3D earthPosition) {
-    final distanceFromEarth = geocentric!.distance();
+  void updateWithVsop87(double jd, Vector3 earthPosition) {
+    final distanceFromEarth = geocentric!.length;
     if ((this.jd - jd).abs() > distanceFromEarth / 86400 * 60) {
       forceUpdateWithVsop87(jd, earthPosition);
     }
   }
 
-  void updatePhaseAngle(Offset3D earthPosition) {
-    final distanceFromEarth = geocentric!.distance();
-    final distanceFromSun = heliocentric!.distance();
-    final betweenSunAndEarth = earthPosition.distance();
+  void updatePhaseAngle(Vector3 earthPosition) {
+    final distanceFromEarth = geocentric!.length;
+    final distanceFromSun = heliocentric!.length;
+    final betweenSunAndEarth = earthPosition.length;
     final cosPhaseAngle = (distanceFromEarth * distanceFromEarth +
             distanceFromSun * distanceFromSun -
             betweenSunAndEarth * betweenSunAndEarth) /
@@ -135,14 +136,14 @@ abstract class Planet implements AstronomicalObject {
   }
 
   double get magnitude {
-    final fromSun = heliocentric!.distance();
-    final fromEarth = geocentric!.distance();
+    final fromSun = heliocentric!.length;
+    final fromEarth = geocentric!.length;
     return absoluteMagnitude +
         5 * log(fromEarth * fromSun) * log10e +
         phaseIntegral();
   }
 
-  double distanceInLd() => geocentric!.distance() * auInLightDay;
+  double distanceInLd() => geocentric!.length * auInLightDay;
 }
 
 class PlanetMercury extends Planet {
@@ -354,12 +355,12 @@ class PlanetSaturn extends Planet {
   }
 
   double saturnRingAngle() {
-    final distance = geocentric!.distance();
-    const northPoleOfSaturn =
-        Offset3D(0.08547883186, 0.4624415234, 0.9407828048);
-    final cosAngle = (geocentric!.dx * northPoleOfSaturn.dx +
-            geocentric!.dy * northPoleOfSaturn.dy +
-            geocentric!.dz * northPoleOfSaturn.dz) /
+    final distance = geocentric!.length;
+    final northPoleOfSaturn =
+        Vector3(0.08547883186, 0.4624415234, 0.9407828048);
+    final cosAngle = (geocentric!.x * northPoleOfSaturn.x +
+            geocentric!.y * northPoleOfSaturn.y +
+            geocentric!.z * northPoleOfSaturn.z) /
         distance;
     return 90 - acos(cosAngle) * radInDeg;
   }

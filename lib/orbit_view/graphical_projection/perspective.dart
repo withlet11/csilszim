@@ -21,13 +21,13 @@
 
 import 'dart:ui';
 
-class Perspective {
-  final double x, y, z;
+import 'package:vector_math/vector_math_64.dart';
 
-  const Perspective(this.x, this.y, this.z);
+class Perspective {
+  final Vector3 xyz;
+
+  const Perspective(this.xyz);
 
   Offset? toXy(Offset center, double scale) =>
-      z > 1 ? Offset(-x, -y) * (scale / z) + center : null;
-
-  bool isOnAxisZ() => x == 0 && y == 0;
+      xyz.z > 1 ? Offset(-xyz.x, -xyz.y) * (scale / xyz.z) + center : null;
 }

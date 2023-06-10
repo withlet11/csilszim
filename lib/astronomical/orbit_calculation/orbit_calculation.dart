@@ -21,8 +21,9 @@
 
 import 'dart:math';
 
+import 'package:vector_math/vector_math_64.dart';
+
 import '../../constants.dart';
-import '../../utilities/offset_3d.dart';
 import '../constants/common.dart';
 import '../time_model.dart';
 import 'orbital_element.dart';
@@ -42,7 +43,7 @@ class OrbitCalculationWithMeanLongitude {
     return OrbitCalculationWithMeanLongitude._internal(t);
   }
 
-  Offset3D calculatePosition(OrbitalElementWithMeanLongitude planet) {
+  Vector3 calculatePosition(OrbitalElementWithMeanLongitude planet) {
     final e = planet.e(t);
     final l = planet.l(t) * degInRad;
     final longPeri = planet.longPeri(t) * degInRad;
@@ -51,7 +52,7 @@ class OrbitCalculationWithMeanLongitude {
     return calculatePositionFromEa(planet, ea);
   }
 
-  Offset3D calculatePositionFromEa(
+  Vector3 calculatePositionFromEa(
       OrbitalElementWithMeanLongitude planet, double ea) {
     final e = planet.e(t);
     final i = planet.i(t) * degInRad;
@@ -64,7 +65,9 @@ class OrbitCalculationWithMeanLongitude {
     final x = a * (cos(ea) - e);
     final y = b * sin(ea);
 
-    return Offset3D(x, y, 0).rotateZ(p).rotateX(i).rotateZ(longNode);
+    // return Vector3(x, y, 0).rotateZ(p).rotateX(i).rotateZ(longNode);
+    final matrix = Matrix4.rotationZ(p)..rotateX(i)..rotateZ(longNode);
+    return matrix.transformed3(Vector3(x, y, 0));
   }
 }
 
@@ -81,14 +84,14 @@ class OrbitCalculationWithMeanMotion {
   factory OrbitCalculationWithMeanMotion.fromJd(double jd) =>
       OrbitCalculationWithMeanMotion._internal(jd);
 
-  Offset3D calculatePosition(OrbitalElementWithMeanMotion planet) {
+  Vector3 calculatePosition(OrbitalElementWithMeanMotion planet) {
     final e = planet.e(t);
     final ma = ((t - planet.tp(t)) * planet.n(t) * 86400 % 360) * degInRad;
     final ea = calculateEccentricAnomaly(ma: ma, e: e);
     return calculatePositionFromEa(planet, ea);
   }
 
-  Offset3D calculatePositionFromEa(
+  Vector3 calculatePositionFromEa(
       OrbitalElementWithMeanMotion planet, double ea) {
     final e = planet.e(t);
     final i = planet.i(t) * degInRad;
@@ -100,7 +103,9 @@ class OrbitCalculationWithMeanMotion {
     final x = a * (cos(ea) - e);
     final y = b * sin(ea);
 
-    return Offset3D(x, y, 0).rotateZ(p).rotateX(i).rotateZ(longNode);
+    // return Vector3(x, y, 0).rotateZ(p).rotateX(i).rotateZ(longNode);
+    final matrix = Matrix4.rotationZ(p)..rotateX(i)..rotateZ(longNode);
+    return matrix.transformed3(Vector3(x, y, 0));
   }
 }
 
@@ -114,7 +119,7 @@ class OrbitCalculationWithPerihelionPassage {
     return OrbitCalculationWithPerihelionPassage._internal(t);
   }
 
-  Offset3D calculatePosition(OrbitalElementWithPerihelionPassage object) {
+  Vector3 calculatePosition(OrbitalElementWithPerihelionPassage object) {
     final e = object.e(t);
     // if (e < 1) {
     const mu = 1.32712440018e20; // μ, gravitationParameter
@@ -161,7 +166,7 @@ class OrbitCalculationWithPerihelionPassage {
      */
   }
 
-  Offset3D calculatePositionFromEa(
+  Vector3 calculatePositionFromEa(
       OrbitalElementWithPerihelionPassage object, double ea) {
     final e = object.e(t);
     final i = object.i(t) * degInRad;
@@ -173,7 +178,9 @@ class OrbitCalculationWithPerihelionPassage {
     final x = a * (cos(ea) - e);
     final y = b * sin(ea);
 
-    return Offset3D(x, y, 0).rotateZ(p).rotateX(i).rotateZ(longNode);
+    // return Vector3(x, y, 0).rotateZ(p).rotateX(i).rotateZ(longNode);
+    final matrix = Matrix4.rotationZ(p)..rotateX(i)..rotateZ(longNode);
+    return matrix.transformed3(Vector3(x, y, 0));
   }
 }
 
