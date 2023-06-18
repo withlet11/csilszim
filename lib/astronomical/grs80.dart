@@ -34,9 +34,9 @@ class Grs80 {
   final double n;
   final Vector3 xyz;
 
-  Grs80({required this.n, required this.xyz});
+  const Grs80({required this.n, required this.xyz});
 
-  factory Grs80.from(Geographic geographic) {
+  factory Grs80.fromGeographic(Geographic geographic) {
     final sinLat = sin(geographic.lat);
     final cosLat = cos(geographic.lat);
     final sinLong = sin(geographic.long);

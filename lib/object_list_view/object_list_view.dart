@@ -32,7 +32,7 @@ import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
-import '../provider/location_provider.dart';
+import '../provider/base_settings_provider.dart';
 import '../utilities/degree_angle.dart';
 import '../utilities/sexagesimal_angle.dart';
 import 'common_header_part.dart';
@@ -83,14 +83,11 @@ class _ObjectListView extends ConsumerState<ObjectListView>
 
   @override
   Widget build(BuildContext context) {
-    final locationData = ref.watch(locationProvider);
+    final locationData = ref.watch(baseSettingsProvider).toGeographic();
     _timeModel = TimeModel.fromLocalTime();
 
-    final sphereModel = SphereModel(
-        location: Geographic.fromDegrees(
-            lat: locationData.latInDegrees(),
-            long: locationData.longInDegrees()),
-        gmstMicroseconds: _timeModel.gmst);
+    final sphereModel =
+        SphereModel(location: locationData, gmstMicroseconds: _timeModel.gmst);
 
     final localizations = AppLocalizations.of(context)!;
     final messierList = widget.starCatalogue.messierList as List<DeepSkyObject>;

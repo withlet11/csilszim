@@ -27,7 +27,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../astronomical/time_model.dart';
-import '../provider/location_provider.dart';
+import '../provider/base_settings_provider.dart';
 import 'analog_clock.dart';
 import 'configs.dart';
 
@@ -66,12 +66,13 @@ class _ClockViewState extends ConsumerState<ClockView>
 
   @override
   Widget build(BuildContext context) {
-    final model = ref.watch(locationProvider);
+    final baseSettings = ref.watch(baseSettingsProvider);
     final utc = timeModel.utc;
     final localTime = timeModel.localTime;
-    final localMeanTime = timeModel.localMeanTime(model.longInDegrees());
-    final lmst = DateTime.fromMicrosecondsSinceEpoch(
-            timeModel.gmst + (model.longInDegrees() / 360 * 86400e6).toInt())
+    final localMeanTime =
+        timeModel.localMeanTime(baseSettings.long.toDegrees());
+    final lmst = DateTime.fromMicrosecondsSinceEpoch(timeModel.gmst +
+            (baseSettings.long.toDegrees() / 360 * 86400e6).toInt())
         .toUtc();
 
     final screenSize = MediaQuery.of(context).size;
@@ -91,8 +92,10 @@ class _ClockViewState extends ConsumerState<ClockView>
             children: <Widget>[
               _localMeanTimeClock(
                   localMeanTime,
-                  '${AppLocalizations.of(context)!.latitude}: ${model.latToString()}\n'
-                  '${AppLocalizations.of(context)!.longitude}: ${model.longToString()}',
+                  '${AppLocalizations.of(context)!.latitude}: '
+                  '${baseSettings.lat.toDmsWithNS()}\n'
+                  '${AppLocalizations.of(context)!.longitude}: '
+                  '${baseSettings.long.toDmsWithEW()}',
                   clockSize),
               _localMeanSiderealTimeClock(lmst, clockSize),
             ]),

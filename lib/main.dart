@@ -32,7 +32,7 @@ import 'momentary_sky_view/momentary_sky_view.dart';
 import 'object_list_view/object_list_view.dart';
 import 'orbit_view/orbit_view.dart';
 import 'provider/language_select_provider.dart';
-import 'provider/location_provider.dart';
+import 'provider/base_settings_provider.dart';
 import 'provider/view_select_provider.dart' as csilszim;
 import 'setting_view/location_setting_view.dart';
 import 'setting_view/setting_drawer.dart';
@@ -51,6 +51,7 @@ const _keyLongNeg = 'longNeg';
 const _keyLongDeg = 'longDeg';
 const _keyLongMin = 'longMin';
 const _keyLongSec = 'longSec';
+const _keyMapOrientation = 'mapOrientation';
 const _keyLang = 'lang';
 const _messageError = 'Error';
 
@@ -110,7 +111,7 @@ class _HomePageState extends ConsumerState<HomePage>
 
   @override
   Widget build(BuildContext context) {
-    final locationData = ref.watch(locationProvider);
+    final baseSettings = ref.watch(baseSettingsProvider);
     final viewSelect = ref.watch(csilszim.viewSelectProvider);
 
     return FutureBuilder<StarCatalogue>(
@@ -128,12 +129,8 @@ class _HomePageState extends ConsumerState<HomePage>
                         icon: const Icon(Icons.settings_rounded),
                         tooltip: localizations.locationSetting,
                         onPressed: () async {
-                          final lat =
-                              DmsAngle.fromDegrees(locationData.latInDegrees());
-                          final long = DmsAngle.fromDegrees(
-                              locationData.longInDegrees());
                           final newOne =
-                              await pushAndPopLocationData([lat, long]);
+                              await pushAndPopLocationData(baseSettings);
                           saveLocationData(newOne);
                         })
                   ],
@@ -177,15 +174,7 @@ class _HomePageState extends ConsumerState<HomePage>
                             height: 240.0, width: 240.0),
                         const CircularProgressIndicator()
                       ],
-                    )
-                        /*Text(
-                  _messageLoading,
-                  style: Theme.of(context)
-                      .textTheme
-                      .displayMedium
-                      ?.copyWith(color: Colors.grey),
-                )*/
-                        )));
+                    ))));
           }
         });
   }
@@ -200,42 +189,48 @@ class _HomePageState extends ConsumerState<HomePage>
     final longDeg = prefs.getInt(_keyLongDeg) ?? defaultLongDeg;
     final longMin = prefs.getInt(_keyLongMin) ?? defaultLongMin;
     final longSec = prefs.getInt(_keyLongSec) ?? defaultLongSec;
-    final lang = prefs.getString(_keyLang) ?? 'en';
+    final mapOrientation = MapOrientation
+        .values[prefs.getInt(_keyMapOrientation) ?? MapOrientation.auto.index];
+    final baseSettings = BaseSettings(
+        lat: DmsAngle(isSouth, latDeg, latMin, latSec),
+        long: DmsAngle(isWest, longDeg, longMin, longSec),
+        mapOrientation: mapOrientation);
+    final lang = Locale(prefs.getString(_keyLang) ?? 'en');
 
     setState(() {
-      ref.read(languageSelectProvider.notifier).state = Locale(lang);
-      ref.read(locationProvider.notifier).setLocation(
-          lat: DmsAngle(isSouth, latDeg, latMin, latSec),
-          long: DmsAngle(isWest, longDeg, longMin, longSec));
+      ref.read(languageSelectProvider.notifier).state = lang;
+      ref.read(baseSettingsProvider.notifier).set(baseSettings);
     });
   }
 
-  void saveLocationData(List<DmsAngle> location) async {
+  void saveLocationData(BaseSettings baseSettings) async {
     final prefs = await SharedPreferences.getInstance();
-    prefs.setBool(_keyIsSouth, location[0].isNegative);
-    prefs.setInt(_keyLatDeg, location[0].deg);
-    prefs.setInt(_keyLatMin, location[0].min);
-    prefs.setInt(_keyLatSec, location[0].sec);
-    prefs.setBool(_keyLongNeg, location[1].isNegative);
-    prefs.setInt(_keyLongDeg, location[1].deg);
-    prefs.setInt(_keyLongMin, location[1].min);
-    prefs.setInt(_keyLongSec, location[1].sec);
+    final latitude = baseSettings.lat;
+    final longitude = baseSettings.long;
+    final mapOrientation = baseSettings.mapOrientation;
+    prefs.setBool(_keyIsSouth, latitude.isNegative);
+    prefs.setInt(_keyLatDeg, latitude.deg);
+    prefs.setInt(_keyLatMin, latitude.min);
+    prefs.setInt(_keyLatSec, latitude.sec);
+    prefs.setBool(_keyLongNeg, longitude.isNegative);
+    prefs.setInt(_keyLongDeg, longitude.deg);
+    prefs.setInt(_keyLongMin, longitude.min);
+    prefs.setInt(_keyLongSec, longitude.sec);
+    prefs.setInt(_keyMapOrientation, mapOrientation.index);
     setState(() {});
   }
 
-  Future<List<DmsAngle>> pushAndPopLocationData(List<DmsAngle> location) async {
-    RouteSettings settings = RouteSettings(arguments: location);
+  Future<BaseSettings> pushAndPopLocationData(BaseSettings baseSettings) async {
+    RouteSettings settings = RouteSettings(arguments: baseSettings);
     await Navigator.push(
         context,
         MaterialPageRoute(
           settings: settings,
           builder: (context) => const LocationSettingView(),
         )).then((result) {
-      location = result as List<DmsAngle>;
-      ref
-          .read(locationProvider.notifier)
-          .setLocation(lat: location[0], long: location[1]);
+      baseSettings = result as BaseSettings;
+      ref.read(baseSettingsProvider.notifier).set(baseSettings);
     });
-    return location;
+    return baseSettings;
   }
 }

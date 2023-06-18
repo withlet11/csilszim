@@ -59,6 +59,9 @@ class DmsAngle {
   double toDegrees() =>
       (isNegative ? -1 : 1) * (deg.abs() + (min + sec / 60) / 60);
 
+  double toRadians() => toDegrees() * degInRad;
+
+  /// Generate a text between '0° 0′ 0' and '359° 59′ 59″'.
   /// Generate a text between '0° 0′ 0' and '359° 59′ 59″'.
   ///
   /// Requires [deg] >= 0 and [deg] < 360.

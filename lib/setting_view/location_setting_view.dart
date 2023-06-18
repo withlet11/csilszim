@@ -24,6 +24,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../configs.dart';
 import '../constants.dart';
+import '../provider/base_settings_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
 
 const _checkThreeDigit = r'^[0-9]?[0-9]?[0-9]$';
@@ -39,6 +40,7 @@ class LocationSettingView extends StatefulWidget {
 
 class _LocationSettingViewState extends State<LocationSettingView> {
   DmsAngle? _latitude, _longitude;
+  var _mapOrientation = MapOrientation.auto;
 
   final _latDegFieldController = TextEditingController();
   final _latMinFieldController = TextEditingController();
@@ -57,6 +59,8 @@ class _LocationSettingViewState extends State<LocationSettingView> {
   late FocusNode _longDegFieldFocusNode;
   late FocusNode _longMinFieldFocusNode;
   late FocusNode _longSecFieldFocusNode;
+
+  final isSelectedOrientation = List.filled(3, false);
 
   @override
   void initState() {
@@ -238,34 +242,43 @@ class _LocationSettingViewState extends State<LocationSettingView> {
     // Initial values are set in the latitude field and the longitude field at
     // the first time.
     if (_latitude == null || _longitude == null) {
-      List<DmsAngle> args =
-          ModalRoute.of(context)?.settings.arguments as List<DmsAngle>;
-      if (args.length == 2) {
-        _latitude = args[0];
-        _longitude = args[1];
-        if (_latitude != null && _longitude != null) {
-          _latDegFieldController.text = _latitude!.deg.toString();
-          _latMinFieldController.text = _latitude!.min.toString();
-          _latSecFieldController.text = _latitude!.sec.toString();
-          _longDegFieldController.text = _longitude!.deg.toString();
-          _longMinFieldController.text = _longitude!.min.toString();
-          _longSecFieldController.text = _longitude!.sec.toString();
-        }
-      }
+      final args = ModalRoute.of(context)?.settings.arguments as BaseSettings;
+      _latitude = args.lat;
+      _longitude = args.long;
+      _mapOrientation = args.mapOrientation;
+      _latDegFieldController.text = _latitude!.deg.toString();
+      _latMinFieldController.text = _latitude!.min.toString();
+      _latSecFieldController.text = _latitude!.sec.toString();
+      _longDegFieldController.text = _longitude!.deg.toString();
+      _longMinFieldController.text = _longitude!.min.toString();
+      _longSecFieldController.text = _longitude!.sec.toString();
+    }
+
+    final mapOrientationTypes = [
+      Text(AppLocalizations.of(context)?.southUp ?? 'South up'),
+      Text(AppLocalizations.of(context)?.auto ?? 'Auto'),
+      Text(AppLocalizations.of(context)?.northUp ?? 'North up')
+    ];
+
+    for (final orientation in MapOrientation.values) {
+      isSelectedOrientation[orientation.index] =
+          orientation == _mapOrientation;
     }
 
     return Theme(
       data: ThemeData.dark(),
       child: WillPopScope(
           onWillPop: () async {
-            Navigator.pop(context, <DmsAngle>[
-              _latitude ??
-                  const DmsAngle(defaultLatNeg, defaultLatDeg, defaultLatMin,
-                      defaultLatSec),
-              _longitude ??
-                  const DmsAngle(defaultLongNeg, defaultLongDeg, defaultLongMin,
-                      defaultLongSec)
-            ]);
+            Navigator.pop(
+                context,
+                BaseSettings(
+                    lat: _latitude ??
+                        const DmsAngle(defaultLatNeg, defaultLatDeg,
+                            defaultLatMin, defaultLatSec),
+                    long: _longitude ??
+                        const DmsAngle(defaultLongNeg, defaultLongDeg,
+                            defaultLongMin, defaultLongSec),
+                    mapOrientation: _mapOrientation));
             return Future.value(false);
           },
           child: Scaffold(
@@ -392,6 +405,44 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                         )),
                   ],
                 ),
+                const SizedBox(height: 20),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    SizedBox(
+                      width: 160,
+                      child: Padding(
+                        padding: const EdgeInsets.only(right: 10.0),
+                        child: Text(
+                            AppLocalizations.of(context)!.mapOrientation,
+                            textAlign: TextAlign.right),
+                      ),
+                    ),
+                    ToggleButtons(
+                      direction: Axis.horizontal,
+                      onPressed: (int index) {
+                        setState(() {
+                          _mapOrientation = MapOrientation.values[index];
+                        });
+                      },
+                      borderRadius: const BorderRadius.all(Radius.circular(8)),
+                      selectedBorderColor: Colors.tealAccent,
+                      // , .green[700],
+                      selectedColor: Colors.white,
+                      fillColor: Colors.teal,
+                      // .green[200],
+                      color: Colors.teal,
+                      // .green[400],
+                      constraints: const BoxConstraints(
+                        minHeight: 40.0,
+                        minWidth: 80.0,
+                      ),
+                      isSelected: isSelectedOrientation,
+                      children: mapOrientationTypes,
+                    ),
+                  ],
+                )
               ],
             ),
           )),

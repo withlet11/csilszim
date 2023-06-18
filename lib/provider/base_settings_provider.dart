@@ -1,5 +1,5 @@
 /*
- * location_provider.dart
+ * base_settings_provider.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -25,22 +25,48 @@ import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../configs.dart';
 import '../utilities/sexagesimal_angle.dart';
 
-class LocationProvider extends StateNotifier<Geographic> {
-  LocationProvider(
-      {DmsAngle lat = const DmsAngle(
-          defaultLatNeg, defaultLatDeg, defaultLatMin, defaultLatSec),
-      DmsAngle long = const DmsAngle(
-          defaultLongNeg, defaultLongDeg, defaultLongMin, defaultLongSec)})
-      : super(Geographic.fromDegrees(
-            lat: lat.toDegrees(), long: long.toDegrees()));
+enum MapOrientation {
+  southUp,
+  auto,
+  northUp,
+}
+
+class BaseSettings {
+  final DmsAngle lat;
+  final DmsAngle long;
+  final double height;
+  final MapOrientation mapOrientation;
+
+  const BaseSettings({
+    required this.lat,
+    required this.long,
+    this.height = 0.0,
+    this.mapOrientation = MapOrientation.auto,
+  });
+
+  Geographic toGeographic() => Geographic.fromDegrees(
+      lat: lat.toDegrees(), long: long.toDegrees(), h: height);
+}
+
+class BaseSettingsProvider extends StateNotifier<BaseSettings> {
+  BaseSettingsProvider(
+      [BaseSettings baseSettings = const BaseSettings(
+          lat: DmsAngle(
+              defaultLatNeg, defaultLatDeg, defaultLatMin, defaultLatSec),
+          long: DmsAngle(
+              defaultLongNeg, defaultLongDeg, defaultLongMin, defaultLongSec))])
+      : super(baseSettings);
 
   void setLocation({lat = DmsAngle, long = DmsAngle}) {
-    state =
-        Geographic.fromDegrees(lat: lat.toDegrees(), long: long.toDegrees());
+    state = BaseSettings(lat: lat.toDegrees(), long: long.toDegrees());
+  }
+
+  void set(BaseSettings baseSettings) {
+    state = baseSettings;
   }
 }
 
-final locationProvider =
-    StateNotifierProvider<LocationProvider, Geographic>((ref) {
-  return LocationProvider();
+final baseSettingsProvider =
+    StateNotifierProvider<BaseSettingsProvider, BaseSettings>((ref) {
+  return BaseSettingsProvider();
 });

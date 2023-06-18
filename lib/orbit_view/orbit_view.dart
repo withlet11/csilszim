@@ -292,26 +292,6 @@ class _OrbitViewState extends State<OrbitView> {
     }
   }
 
-  /*
-  Vector3 rotateToAxisZ(Vector3 vector, double angle) {
-    final distanceFromAxisZ = sqrt(vector.x * vector.x + vector.y * vector.y);
-    if (distanceFromAxisZ == 0) return vector;
-
-    final tanCurrentAngle = vector.z / distanceFromAxisZ;
-    final currentAngle = atan(tanCurrentAngle);
-    final newAngle = currentAngle + angle;
-    if (newAngle >= halfTurn || newAngle <= -halfTurn) return vector;
-
-    final newPosition = Vector3(
-        vector.x * (cos(angle) - sin(angle) * tanCurrentAngle),
-        vector.y * (cos(angle) - sin(angle) * tanCurrentAngle),
-        vector.z * cos(angle) + distanceFromAxisZ * sin(angle));
-    return (vector.x * newPosition.x > 0 || vector.y * newPosition.y > 0)
-        ? newPosition
-        : vector;
-  }
-   */
-
   Matrix4 _rotateToAxisZ(Vector3 vector, double angle) {
     final distanceFromAxisZ = sqrt(vector.x * vector.x + vector.y * vector.y);
     if (distanceFromAxisZ == 0) return Matrix4.identity();

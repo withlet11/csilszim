@@ -29,9 +29,8 @@ import '../constants.dart';
 import '../orbit_view/orbit_view_setting_provider.dart';
 import '../provider/language_select_provider.dart';
 import '../momentary_sky_view/momentary_sky_view_setting_provider.dart';
-import '../provider/location_provider.dart';
+import '../provider/base_settings_provider.dart';
 import '../provider/view_select_provider.dart' as csilszim;
-import '../utilities/sexagesimal_angle.dart';
 import '../whole_night_sky_view/configs.dart';
 import '../whole_night_sky_view/whole_night_sky_view_setting_provider.dart';
 import '../utilities/language_selection.dart';
@@ -49,7 +48,7 @@ class SettingDrawer extends ConsumerStatefulWidget {
 class _SettingDrawerState extends ConsumerState<SettingDrawer> {
   @override
   Widget build(BuildContext context) {
-    final locationData = ref.watch(locationProvider);
+    final baseSettings = ref.watch(baseSettingsProvider);
     final displaySetting = ref.watch(momentarySkyViewSettingProvider);
     final momentarySkyViewSetting = ref.watch(momentarySkyViewSettingProvider);
     final wholeNightSkyViewSetting =
@@ -102,9 +101,9 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                   Column(
                     children: [
                       Text(
-                          '${appLocalization.latitude} ${DmsAngle.fromDegrees(locationData.lat * radInDeg).toDmsWithNS()}'),
+                          '${appLocalization.latitude} ${baseSettings.lat.toDmsWithNS()}'),
                       Text(
-                          '${appLocalization.longitude} ${DmsAngle.fromDegrees(locationData.long * radInDeg).toDmsWithEW()}'),
+                          '${appLocalization.longitude} ${baseSettings.long.toDmsWithEW()}'),
                     ],
                   )
                 ],

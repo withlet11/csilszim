@@ -216,9 +216,21 @@ class _ProjectionRenderer extends CustomPainter {
     final center = size.center(Offset.zero);
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
-    final fullTurnList = sphereModel.eclipticLine.map((equatorial) =>
-        projectionModel.convertToOffset(equatorial, center, unitLength));
-
+    final count = sphereModel.eclipticLine.length;
+    final fullTurnList = List.filled(count, Offset.zero);
+    if (projectionModel.isSouthUp) {
+      var i = count;
+      for (final equatorial in sphereModel.eclipticLine) {
+        fullTurnList[--i] =
+            projectionModel.convertToOffset(equatorial, center, unitLength);
+      }
+    } else {
+      var i = 0;
+      for (final equatorial in sphereModel.eclipticLine) {
+        fullTurnList[i++] =
+            projectionModel.convertToOffset(equatorial, center, unitLength);
+      }
+    }
     final firstX = fullTurnList.first.dx % lengthOfFullTurn + lengthOfFullTurn;
     final pointsOfFullScreen = <Offset>[];
     for (var shift = firstX - fullTurnList.first.dx;
@@ -294,18 +306,23 @@ class _ProjectionRenderer extends CustomPainter {
   }
 
   void _drawPermanentHorizon(Canvas canvas, Size size) {
-    var points = <Offset>[];
+    final center = size.center(Offset.zero);
+    final unitLength = _getUnitLength(size);
+
     final crossingUpperMeridianAndHorizon = Horizontal.fromRadians(
         alt: 0, az: sphereModel.isNorthernHemisphere ? halfTurn : 0.0);
     final equatorial =
         sphereModel.horizontalToEquatorial(crossingUpperMeridianAndHorizon);
-
-    final center = size.center(Offset.zero);
-    final unitLength = _getUnitLength(size);
     final point =
         projectionModel.convertToOffset(equatorial, center, unitLength);
-    final origin = Offset(0.0, point.dy);
-    points = [origin, size.topRight(origin)];
+    var points = <Offset>[];
+    if (projectionModel.isSouthUp) {
+      final origin = Offset(size.width, point.dy);
+      points = [origin, size.topLeft(origin)];
+    } else {
+      final origin = Offset(0.0, point.dy);
+      points = [origin, size.topRight(origin)];
+    }
     final path = _preparePathOfZone(size, points);
     canvas.drawPath(path, horizonPaint);
   }
@@ -496,21 +513,40 @@ class _ProjectionRenderer extends CustomPainter {
   Path _preparePathOfZone(Size size, List<Offset> points) {
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
-    final firstX = points.first.dx % lengthOfFullTurn - lengthOfFullTurn;
-    var shift = firstX - points.first.dx;
-    final path = Path()..moveTo(points.first.dx + shift, points.first.dy);
 
     final width = size.width;
-    for (; points.first.dx + shift < width; shift += lengthOfFullTurn) {
-      for (final point in points) {
-        path.lineTo(point.dx + shift, point.dy);
+    final path = Path();
+
+    if (projectionModel.isSouthUp) {
+      final firstX = points.first.dx % lengthOfFullTurn + lengthOfFullTurn;
+      var shift = firstX - points.first.dx;
+      path.moveTo(points.first.dx + shift, points.first.dy);
+      for (; points.first.dx + shift > 0; shift -= lengthOfFullTurn) {
+        for (final point in points) {
+          path.lineTo(point.dx + shift, point.dy);
+        }
       }
+
+      final top = sphereModel.isNorthernHemisphere ? 0.0 : size.height;
+      path.lineTo(0, points.last.dy);
+      path.lineTo(0, top);
+      path.lineTo(width, top);
+    } else {
+      final firstX = points.first.dx % lengthOfFullTurn - lengthOfFullTurn;
+      var shift = firstX - points.first.dx;
+      path.moveTo(points.first.dx + shift, points.first.dy);
+      for (; points.first.dx + shift < width; shift += lengthOfFullTurn) {
+        for (final point in points) {
+          path.lineTo(point.dx + shift, point.dy);
+        }
+      }
+
+      final bottom = sphereModel.isNorthernHemisphere ? size.height : 0.0;
+      path.lineTo(width, points.last.dy);
+      path.lineTo(width, bottom);
+      path.lineTo(0, bottom);
     }
 
-    final bottom = sphereModel.isNorthernHemisphere ? size.height : 0.0;
-    path.lineTo(width, points.last.dy);
-    path.lineTo(width, bottom);
-    path.lineTo(0, bottom);
     return path;
   }
 
@@ -571,18 +607,18 @@ class _ProjectionRenderer extends CustomPainter {
         dx = point1.dx - point2.dx + lengthOfFullTurn;
         dy = point1.dy - point2.dy;
       } else if (point1.dx < point2.dx) {
-        x1 = point1.dx; // % lengthOfFullTurn;
+        x1 = point1.dx;
         y1 = point1.dy;
         dx = point2.dx - point1.dx;
         dy = point2.dy - point1.dy;
       } else {
-        x1 = point2.dx; // % lengthOfFullTurn;
+        x1 = point2.dx;
         y1 = point2.dy;
         dx = point1.dx - point2.dx;
         dy = point1.dy - point2.dy;
       }
 
-      for (var x = x1; x < width; x += lengthOfFullTurn) {
+      for (var x = x1 % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
         final path = Path()
           ..moveTo(x, y1)
           ..lineTo(x + dx, y1 + dy);
@@ -650,34 +686,35 @@ class _ProjectionRenderer extends CustomPainter {
               object.majorAxisSize ?? 12.0));
 
       for (var x = xy.dx % lengthOfFullTurn; x < width; x += lengthOfFullTurn) {
-        if (object.type == 'Open cluster') {
-          _drawOpenCluster(canvas, Offset(x, y), majorAxisSize);
-        } else if (object.type == 'Globular cluster') {
-          _drawGlobularCluster(canvas, Offset(x, y), majorAxisSize);
-        } else if (object.type.toLowerCase().contains('nebula')) {
-          if (object.type == 'Planetary nebula') {
-            _drawPlanetaryNebula(canvas, Offset(x, y), majorAxisSize);
-          } else {
-            _drawNebula(canvas, Offset(x, y), majorAxisSize);
-          }
-        } else if (object.type.contains('galaxy')) {
-          final minorAxisSize = max(
-              6.0,
-              _lengthOfAltitudeAngle(center, unitLength, object.position,
-                  object.minorAxisSize ?? 0.0));
-          final orientationAngle =
-              quarterTurn - (object.orientationAngle ?? 0.0) * degInRad;
-          _drawGalaxy(canvas, Offset(x, y), majorAxisSize, minorAxisSize,
-              orientationAngle);
-        } else {
-          switch (object.messierNumber) {
-            case 1:
+        switch (object.type) {
+          case 'Open cluster':
+            _drawOpenCluster(canvas, Offset(x, y), majorAxisSize);
+          case 'Globular cluster':
+            _drawGlobularCluster(canvas, Offset(x, y), majorAxisSize);
+          case _ when object.type.toLowerCase().contains('nebula'):
+            if (object.type == 'Planetary nebula') {
+              _drawPlanetaryNebula(canvas, Offset(x, y), majorAxisSize);
+            } else {
               _drawNebula(canvas, Offset(x, y), majorAxisSize);
-            case 24 || 73:
-              _drawOpenCluster(canvas, Offset(x, y), majorAxisSize);
-            case 40:
-              _drawDoubleStar(canvas, Offset(x, y));
-          }
+            }
+          case _ when object.type.contains('galaxy'):
+            final minorAxisSize = max(
+                6.0,
+                _lengthOfAltitudeAngle(center, unitLength, object.position,
+                    object.minorAxisSize ?? 0.0));
+            final orientationAngle =
+                quarterTurn - (object.orientationAngle ?? 0.0) * degInRad;
+            _drawGalaxy(canvas, Offset(x, y), majorAxisSize, minorAxisSize,
+                orientationAngle);
+          default:
+            switch (object.messierNumber) {
+              case 1:
+                _drawNebula(canvas, Offset(x, y), majorAxisSize);
+              case 24 || 73:
+                _drawOpenCluster(canvas, Offset(x, y), majorAxisSize);
+              case 40:
+                _drawDoubleStar(canvas, Offset(x, y));
+            }
         }
         locationTextPainter.paint(canvas, Offset(x + 10.0, y - 6.0));
       }

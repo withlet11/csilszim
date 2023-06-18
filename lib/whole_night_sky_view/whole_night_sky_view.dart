@@ -39,7 +39,7 @@ import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../gui/date_time_chooser_dial.dart';
-import '../provider/location_provider.dart';
+import '../provider/base_settings_provider.dart';
 import 'configs.dart';
 import 'mercator_projection.dart';
 import 'whole_night_sky_map.dart';
@@ -91,7 +91,13 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
 
   @override
   Widget build(BuildContext context) {
-    final locationData = ref.watch(locationProvider);
+    final baseSettings = ref.watch(baseSettingsProvider);
+    final locationData = baseSettings.toGeographic();
+    _settings.projection.isSouthUp = switch (baseSettings.mapOrientation) {
+      MapOrientation.southUp => true,
+      MapOrientation.northUp => false,
+      MapOrientation.auto => locationData.lat.isNegative
+    };
     final displaySettings = ref.watch(wholeNightSkyViewSettingProvider);
     final localizations = AppLocalizations.of(context)!;
     final planetNameList = {
@@ -120,12 +126,6 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
         eclipticLine: eclipticLine);
 
     _updateSolarSystem(locationData, time);
-    /*
-    final size = MediaQuery.of(context).size;
-    final padding = MediaQuery.of(context).viewPadding;
-    final height = size.height - padding.top - kToolbarHeight;
-    final width = size.width;
-     */
 
     return Stack(fit: StackFit.expand, children: [
       ClipRect(
@@ -270,7 +270,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
   }
 
   void _updateSolarSystem(Geographic locationData, TimeModel time) {
-    _moon.observationPosition = Grs80.from(locationData);
+    _moon.observationPosition = Grs80.fromGeographic(locationData);
     final orbitCalculation = OrbitCalculationWithMeanLongitude(time);
     final earthPosition = // PlanetEarth().calculateWithVsop87(time.jd);
         orbitCalculation.calculatePosition(PlanetEarth().orbitalElement);
@@ -296,8 +296,10 @@ class _Settings {
 
   static _Settings defaultValue() {
     return _Settings(
-        projection: MercatorProjection(const Equatorial.fromDegreesAndHours(
-            dec: defaultDec, ra: defaultRa)),
+        projection: MercatorProjection(
+            const Equatorial.fromDegreesAndHours(
+                dec: defaultDec, ra: defaultRa),
+            false),
         dateTimeOffset: Duration.zero,
         isDateMode: true);
   }

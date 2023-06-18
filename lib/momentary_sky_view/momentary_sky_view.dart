@@ -33,14 +33,13 @@ import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/moon.dart';
 import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/astronomical_object/sun.dart';
-import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../gui/date_time_chooser_dial.dart';
-import '../provider/location_provider.dart';
+import '../provider/base_settings_provider.dart';
 import 'configs.dart';
 import 'momentary_sky_map.dart';
 import 'momentary_sky_view_setting_provider.dart';
@@ -108,14 +107,14 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   Widget build(BuildContext context) {
     _timeModel =
         TimeModel.fromLocalTime(DateTime.now().add(_settings.dateTimeOffset));
-    final locationData = ref.watch(locationProvider);
+    final locationData = ref.watch(baseSettingsProvider).toGeographic();
     final displaySettings = ref.watch(momentarySkyViewSettingProvider);
     _earth.update(_timeModel.jd, Vector3.zero());
     for (final planet in _planetList) {
       planet.update(_timeModel.jd, _earth.heliocentric!);
     }
     _sun.update(_timeModel.jd, _earth.heliocentric!);
-    _moon.observationPosition = Grs80.from(locationData);
+    _moon.observationPosition = Grs80.fromGeographic(locationData);
     _moon.update(_timeModel, _earth.heliocentric!, _sun);
     final localizations = AppLocalizations.of(context)!;
     final nameList = {
@@ -141,11 +140,8 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       (localizations.northWestSign, 315, false),
     ];
 
-    final sphereModel = SphereModel(
-        location: Geographic.fromDegrees(
-            lat: locationData.latInDegrees(),
-            long: locationData.longInDegrees()),
-        gmstMicroseconds: _timeModel.gmst);
+    final sphereModel =
+        SphereModel(location: locationData, gmstMicroseconds: _timeModel.gmst);
     return Stack(
       fit: StackFit.expand,
       children: [

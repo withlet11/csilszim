@@ -29,8 +29,9 @@ import 'configs.dart';
 class MercatorProjection {
   Equatorial centerEquatorial;
   double scale = initialScale;
+  bool isSouthUp = false;
 
-  MercatorProjection(this.centerEquatorial);
+  MercatorProjection(this.centerEquatorial, this.isSouthUp);
 
   void zoom(double t) {
     scale = max(min(scale * pow(2, t), maxScale), 1);
@@ -48,22 +49,24 @@ class MercatorProjection {
 
   Offset convertToOffset(
       Equatorial equatorial, Offset centerOffset, double unitLength) {
+    final scale2 = (isSouthUp ? -scale : scale) * unitLength;
     final viewCenter = Offset(-centerEquatorial.ra,
             -log(tan((quarterTurn + centerEquatorial.dec) / 2))) *
-        (scale * unitLength);
+        scale2;
     return Offset(
                 -equatorial.ra, -log(tan((quarterTurn + equatorial.dec) / 2))) *
-            (scale * unitLength) -
+            scale2 -
         viewCenter +
         centerOffset;
   }
 
   Equatorial convertToEquatorial(Offset offset) {
+    final scale2 = isSouthUp ? -scale : scale;
     final centerOffset = Offset(-centerEquatorial.ra,
         -log(tan((quarterTurn + centerEquatorial.dec) / 2)));
     final dec =
-        atan(exp(-offset.dy / scale - centerOffset.dy)) * 2 - quarterTurn;
-    final ra = -offset.dx / scale - centerOffset.dx;
+        atan(exp(-offset.dy / scale2 - centerOffset.dy)) * 2 - quarterTurn;
+    final ra = -offset.dx / scale2 - centerOffset.dx;
     return Equatorial.fromRadians(dec: dec, ra: ra);
   }
 
@@ -88,7 +91,6 @@ class MercatorProjection {
     final sinCenterDecSinAngle = sinCenterDec * sinAngle;
     final sinCenterDecCosAngle = sinCenterDec * cosAngle;
     final cosCenterDecSinAngle = cosCenterDec * sinAngle;
-
 
     final startPosition = centerDec.isNegative ? halfTurn : 0.0;
     const repetition = 90;
