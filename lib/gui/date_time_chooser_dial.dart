@@ -23,9 +23,12 @@ import 'dart:math';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../constants.dart';
+import '../provider/base_settings_provider.dart';
+import '../utilities/time_zone_offset.dart';
 
 const _dialOuterBorderSize = 110.0;
 const _dialInnerBorderSize = 100.0;
@@ -40,6 +43,7 @@ const _monthNumberPosition = -66.0;
 const _monthNumberSize = 10.0;
 const _hourNumberSize = 10.0;
 const _dateTimeFontSize = 14.0;
+const _timeZoneOffsetFontSize = 10.0;
 const _buttonSize = 14.0;
 const _marginForLabel = 25.0;
 const _markerPosition = -40.0;
@@ -67,13 +71,18 @@ const _hourNumberTextStyle = TextStyle(
 const _indexTextStyle =
     TextStyle(fontSize: _monthNumberSize, color: _activeColor);
 
-const _largeTextStyle = TextStyle(
+const _activeTextStyle = TextStyle(
     fontSize: _dateTimeFontSize,
     color: _activeColor,
     fontFeatures: [FontFeature.tabularFigures()]);
 
-const _smallTextStyle = TextStyle(
+const _inactiveTextStyle = TextStyle(
     fontSize: _dateTimeFontSize,
+    color: _inactiveColor,
+    fontFeatures: [FontFeature.tabularFigures()]);
+
+const _timeZoneOffsetTextStyle = TextStyle(
+    fontSize: _timeZoneOffsetFontSize,
     color: _inactiveColor,
     fontFeatures: [FontFeature.tabularFigures()]);
 
@@ -107,7 +116,7 @@ const _dayOffsetOfMonthInLeapYear = [
   335 // December
 ];
 
-class DateTimeChooserDial extends StatefulWidget {
+class DateTimeChooserDial extends ConsumerStatefulWidget {
   final Duration dateTimeOffset;
   final bool isDateMode;
   final ValueChanged<Duration> onDateChange;
@@ -122,73 +131,60 @@ class DateTimeChooserDial extends StatefulWidget {
   });
 
   @override
-  State createState() => _DateChooserDial();
+  ConsumerState createState() => _DateTimeChooserDial();
 }
 
-class _DateChooserDial extends State<DateTimeChooserDial>
-    with SingleTickerProviderStateMixin {
-  // static const dialOuterBorderSize = _dialOuterBorderSize;
-  // static const dialInnerBorderSize = _dialInnerBorderSize;
-  // static const dialCenter = _dialCenter;
-
+class _DateTimeChooserDial extends ConsumerState<DateTimeChooserDial> {
   late final ValueChanged<Duration> _onDateChange;
   late final ValueChanged<bool> _onModeChange;
   var _isDateMode = true;
   var _dateTimeOffset = Duration.zero;
   var _angle = 0.0;
-  late final double _angleOffset;
+  var _angleOffset = 0.0;
   var _rotatesDial = false;
-
-  late Ticker _ticker;
-  var _elapsed = Duration.zero;
+  tz.Location? _tzLocation;
 
   @override
   void initState() {
-    final dateTime = DateTime.now();
+    super.initState();
+    // TODO: DST support doesn't work well
     _dateTimeOffset = widget.dateTimeOffset;
     _onDateChange = widget.onDateChange;
     _onModeChange = widget.onModeChange;
     _isDateMode = widget.isDateMode;
-    _angleOffset =
-        DateTime(dateTime.year).timeZoneOffset.inMinutes / 60 * hourInRad;
-
-    // For Ticker. It should be disposed when this widget is disposed.
-    // Ticker is also paused when the widget is paused. It is good for
-    // refreshing display.
-    _ticker = createTicker((elapsed) {
-      if ((elapsed - _elapsed).inMilliseconds > 1e3) {
-        setState(() {
-          _elapsed = elapsed;
-        });
-      }
-    });
-    _ticker.start();
-
-    super.initState();
-  }
-
-  @override
-  void dispose() {
-    _ticker.dispose(); // For Ticker.
-    super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final current = DateTime.now();
+    final baseSettings = ref.watch(baseSettingsProvider);
+    _tzLocation =
+        baseSettings.usesLocationTimeZone ? baseSettings.tzLocation : null;
+    final DateTime current =
+        _tzLocation != null ? tz.TZDateTime.now(_tzLocation!) : DateTime.now();
+
     final Widget dialWidget;
     if (_isDateMode) {
       final dateTime = current.add(_dateTimeOffset);
       final year = dateTime.year;
       final isLeapYear = _isLeapYear(year);
       final lengthOfYear = (isLeapYear ? 366 : 365) * 86400e3;
-      final yearBegin = DateTime(year).millisecondsSinceEpoch;
-      _angle = (dateTime.millisecondsSinceEpoch - yearBegin) /
+      final yearBeginSinceEpoch = _tzLocation != null
+          ? tz.TZDateTime(_tzLocation!, year).millisecondsSinceEpoch
+          : DateTime(year).millisecondsSinceEpoch;
+      _angle = (dateTime.millisecondsSinceEpoch - yearBeginSinceEpoch) /
           lengthOfYear *
           fullTurn;
       dialWidget = _makeDateDial(current, isLeapYear);
     } else {
       final dateTime = current.add(_dateTimeOffset);
+      _angleOffset = (_tzLocation != null
+                  ? tz.TZDateTime(_tzLocation!, dateTime.year)
+                  : DateTime(dateTime.year))
+              .timeZoneOffset
+              .inMinutes /
+          60 *
+          hourInRad;
+
       final time = dateTime.millisecondsSinceEpoch % 86400e3;
       _angle = time / 86400e3 * fullTurn;
       dialWidget = _makeTimeDial(current);
@@ -357,8 +353,8 @@ class _DateChooserDial extends State<DateTimeChooserDial>
 
   Widget _makeDateTimeLabel(DateTime dateTime) {
     final (dateTextStyle, timeTextStyle) = _isDateMode
-        ? (_largeTextStyle, _smallTextStyle)
-        : (_smallTextStyle, _largeTextStyle);
+        ? (_activeTextStyle, _inactiveTextStyle)
+        : (_inactiveTextStyle, _activeTextStyle);
     final selectedDate = dateTime.add(_dateTimeOffset);
     final dateString = selectedDate.toIso8601String();
     return SizedBox(
@@ -366,8 +362,11 @@ class _DateChooserDial extends State<DateTimeChooserDial>
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
+          const SizedBox(height: _timeZoneOffsetFontSize),
           Text(dateString.substring(0, 10), style: dateTextStyle),
           Text(dateString.substring(11, 19), style: timeTextStyle),
+          Text(TimeZoneOffset(selectedDate.timeZoneOffset).toString(),
+              style: _timeZoneOffsetTextStyle),
         ],
       ),
     );
@@ -468,15 +467,25 @@ class _DateChooserDial extends State<DateTimeChooserDial>
   }
 
   void _changeDate(int overYear) {
-    final dateTime = DateTime.now();
-    final previous = dateTime.add(_dateTimeOffset);
-    final newYear = previous.year + overYear;
-    final isLeapYear = _isLeapYear(newYear);
-    final lengthOfYear = isLeapYear ? 366 : 365;
-    final yearBegin = DateTime(newYear).millisecondsSinceEpoch ~/ 86400e3;
-    final currentDaySinceEpoch = dateTime.millisecondsSinceEpoch ~/ 86400000;
+    final DateTime current;
+    final int yearBeginSinceEpoch, newYear;
+    if (_tzLocation != null) {
+      current = tz.TZDateTime.now(_tzLocation!);
+      final previous = current.add(_dateTimeOffset);
+      newYear = previous.year + overYear;
+      yearBeginSinceEpoch =
+          tz.TZDateTime(_tzLocation!, newYear).millisecondsSinceEpoch ~/
+              86400e3;
+    } else {
+      current = DateTime.now();
+      final previous = current.add(_dateTimeOffset);
+      newYear = previous.year + overYear;
+      yearBeginSinceEpoch = DateTime(newYear).millisecondsSinceEpoch ~/ 86400e3;
+    }
+    final lengthOfYear = _isLeapYear(newYear) ? 366 : 365;
+    final currentDaySinceEpoch = current.millisecondsSinceEpoch ~/ 86400000;
     final newDaySinceEpoch =
-        (lengthOfYear * _angle / fullTurn + yearBegin).round();
+        (lengthOfYear * _angle / fullTurn + yearBeginSinceEpoch).round();
     _dateTimeOffset = Duration(
         days: newDaySinceEpoch - currentDaySinceEpoch,
         milliseconds: _dateTimeOffset.inMilliseconds % 86400000);
@@ -484,12 +493,21 @@ class _DateChooserDial extends State<DateTimeChooserDial>
   }
 
   void _changeTime(int overDay) {
-    final dateTime = DateTime.now();
-    final previous = dateTime.add(_dateTimeOffset);
-    final newDate = previous.millisecondsSinceEpoch ~/ 86400e3 + overDay;
-    final newDateTime = DateTime.fromMillisecondsSinceEpoch(
-        86400000 * newDate + 86400e3 * _angle ~/ fullTurn);
-    _dateTimeOffset = newDateTime.difference(dateTime);
+    final DateTime current, newDateTime;
+    if (_tzLocation != null) {
+      current = tz.TZDateTime.now(_tzLocation!);
+      final previous = current.add(_dateTimeOffset);
+      final newDate = previous.millisecondsSinceEpoch ~/ 86400e3 + overDay;
+      newDateTime = tz.TZDateTime.fromMillisecondsSinceEpoch(
+          _tzLocation!, 86400000 * newDate + 86400e3 * _angle ~/ fullTurn);
+    } else {
+      current = DateTime.now();
+      final previous = current.add(_dateTimeOffset);
+      final newDate = previous.millisecondsSinceEpoch ~/ 86400e3 + overDay;
+      newDateTime = DateTime.fromMillisecondsSinceEpoch(
+          86400000 * newDate + 86400e3 * _angle ~/ fullTurn);
+    }
+    _dateTimeOffset = newDateTime.difference(current);
     _onDateChange(_dateTimeOffset);
   }
 

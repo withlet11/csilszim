@@ -1,5 +1,5 @@
 /*
- * star_catalogue.dart
+ * essential_data.dart
  *
  * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
@@ -22,15 +22,15 @@
 import 'package:csilszim/astronomical/orbit_calculation/elp82b2.dart';
 import 'package:flutter/services.dart';
 
-import '../constants.dart';
-import 'astronomical_object/deep_sky_object.dart';
-import 'constellation/constellation_line.dart';
-import 'constellation/constellation_name.dart';
-import 'coordinate_system/equatorial_coordinate.dart';
-import 'astronomical_object/star.dart';
+import 'constants.dart';
+import 'astronomical/astronomical_object/deep_sky_object.dart';
+import 'astronomical/constellation/constellation_line.dart';
+import 'astronomical/constellation/constellation_name.dart';
+import 'astronomical/coordinate_system/equatorial_coordinate.dart';
+import 'astronomical/astronomical_object/star.dart';
 
 /// A star catalogue contents hip number, position, and magnitude.
-class StarCatalogue {
+class EssentialData {
   List starList = <Star>[];
   List lineList = <ConstellationLine>[];
   List nameList = <ConstellationName>[];
@@ -38,18 +38,18 @@ class StarCatalogue {
   List brightestStarList = <Star>[];
   late Elp82b2 elp82b2;
 
-  static Future<StarCatalogue> make() async {
-    final starCatalogue = StarCatalogue();
-    await starCatalogue._loadStarData('hip_lite_a.txt');
-    await starCatalogue._loadStarData('hip_lite_b.txt');
-    await starCatalogue
+  static Future<EssentialData> make() async {
+    final essentialData = EssentialData();
+    await essentialData._loadStarData('hip_lite_a.txt');
+    await essentialData._loadStarData('hip_lite_b.txt');
+    await essentialData
         ._loadConstellationLineData('hip_constellation_line.csv');
-    await starCatalogue._loadConstellationNameData('constellation_name.csv');
-    await starCatalogue._loadDeepSkyObjectData('messier.csv');
-    await starCatalogue._loadBrightestStarData('brightest_stars.csv');
-    starCatalogue.elp82b2 = await Elp82b2.make(prec: 4.85e-11);
+    await essentialData._loadConstellationNameData('constellation_name.csv');
+    await essentialData._loadDeepSkyObjectData('messier.csv');
+    await essentialData._loadBrightestStarData('brightest_stars.csv');
+    essentialData.elp82b2 = await Elp82b2.make(prec: 4.85e-11);
 
-    return Future.value(starCatalogue);
+    return Future.value(essentialData);
   }
 
   Future<void> _loadStarData(String filename) async {

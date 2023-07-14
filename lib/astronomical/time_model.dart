@@ -19,77 +19,83 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
+import 'package:timezone/timezone.dart' as tz;
+
+import '../constants.dart';
+
 class TimeModel {
-  final DateTime localTime;
   final DateTime utc;
-  final double mjd;
   final double jd;
 
   /// Greenwich Mean Sidereal Time (GMST) in microseconds.
   final int gmst;
 
   const TimeModel._internal(
-      {required this.localTime,
-      required this.utc,
-      required this.mjd,
-      required this.jd,
-      required this.gmst});
+      {required this.utc, required this.jd, required this.gmst});
 
-  factory TimeModel.fromLocalTime([DateTime? time]) {
-    final localTime = time ?? DateTime.now();
+  factory TimeModel.fromLocalTime([DateTime? dateTime]) {
+    final localTime = dateTime ?? DateTime.now();
     final utc = localTime.toUtc();
-    return TimeModel._internal(
-        localTime: localTime,
-        utc: utc,
-        mjd: _toMJD(utc),
-        jd: _toJD(utc),
-        gmst: _toGmst(utc));
+    final jd = _convertToJD(utc);
+    final gmst = _convertToGmst(jd);
+    return TimeModel._internal(utc: utc, jd: jd, gmst: gmst);
   }
 
-  factory TimeModel.fromUtc([DateTime? time]) {
-    final utc = time ?? DateTime.now().toUtc();
-    return TimeModel._internal(
-        localTime: utc.toLocal(),
-        utc: utc,
-        mjd: _toMJD(utc),
-        jd: _toJD(utc),
-        gmst: _toGmst(utc));
+  factory TimeModel.fromUtc([DateTime? dateTime]) {
+    final utc = dateTime ?? DateTime.now().toUtc();
+    final jd = _convertToJD(utc);
+    final gmst = _convertToGmst(jd);
+    return TimeModel._internal(utc: utc, jd: jd, gmst: gmst);
   }
 
-  factory TimeModel.fromMjd(double mjd) {
-    final localTime = DateTime.fromMicrosecondsSinceEpoch(
-        ((mjd - 40587.0) * 86400e6).toInt());
-    final utc = localTime.toUtc();
-    return TimeModel._internal(
-        localTime: localTime,
-        utc: utc,
-        mjd: mjd,
-        jd: _toJD(utc),
-        gmst: _toGmst(utc));
+  factory TimeModel.fromJd(double jd) {
+    final utc = DateTime.fromMicrosecondsSinceEpoch(
+        ((jd - 2440587.5) * 86400e6).toInt(),
+        isUtc: true);
+    final gmst = _convertToGmst(jd);
+    return TimeModel._internal(utc: utc, jd: jd, gmst: gmst);
   }
 
-  TimeModel operator +(double days) => TimeModel.fromMjd(mjd + days);
+  DateTime localTime(tz.Location? location) =>
+      location == null ? utc.toLocal() : tz.TZDateTime.from(utc, location);
+
+  String timeZoneName(tz.Location? location) => location == null
+      ? utc.toLocal().timeZoneName
+      : tz.TZDateTime.from(utc, location).timeZoneName;
+
+  Duration timeZoneOffset(tz.Location? location) => location == null
+      ? utc.toLocal().timeZoneOffset
+      : tz.TZDateTime.from(utc, location).timeZoneOffset;
+
+  TimeModel operator +(double days) => TimeModel.fromJd(jd + days);
 
   /// Returns the Local Mean Time at [longitude].
   DateTime localMeanTime(double longitude) => utc.add(Duration(
           microseconds: (longitude) {
-        return (longitude / 360.0 * 86400.0e6).toInt() ?? 0;
+        return (longitude / fullTurn * 86400.0e6).toInt() ?? 0;
       }(longitude)));
+
+  /// Returns the Local Mean Sidereal Time at [longitude] as DateTime.
+  DateTime lmstAsDateTime(double long) =>
+      DateTime.fromMicrosecondsSinceEpoch(lmst(long)).toUtc();
+
+  /// Returns the Local Mean Sidereal Time at [longitude].
+  int lmst(double long) => gmst + (long / fullTurn * 86400e6).toInt();
 
   /// Returns the Julian Day Number
   int get jdn => utc.millisecondsSinceEpoch ~/ 86400000 + 2440588;
+
+  /// Returns the Modified Julian Day at [time]
+  double get mjd => utc.microsecondsSinceEpoch / 86400e6 + 40587.0;
 }
 
-/// Returns the Modified Julian Day at [time]
-double _toMJD(DateTime time) => time.microsecondsSinceEpoch / 86400e6 + 40587.0;
-
 /// Returns the Julian Day at [time]
-double _toJD(DateTime time) =>
+double _convertToJD(DateTime time) =>
     time.microsecondsSinceEpoch / 86400e6 + 2440587.5;
 
 /// Returns the Greenwich Mean Standard Time (GMT) in microseconds at [time].
-int _toGmst(DateTime time) {
-  final jc = (_toJD(time) - 2451545.0) / 36525.0;
+int _convertToGmst(double jd) {
+  final jc = (jd - 2451545.0) / 36525.0;
   return (67310.54841e6 +
               (876600.0 * 3600.0e6 + 8640184.812866e6) * jc +
               0.093104e6 * jc * jc -

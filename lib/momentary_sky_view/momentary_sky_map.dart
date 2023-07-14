@@ -31,9 +31,9 @@ import '../astronomical/astronomical_object/sun.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
-import '../astronomical/star_catalogue.dart';
 import '../configs.dart';
 import '../constants.dart';
+import '../essential_data.dart';
 import '../utilities/sexagesimal_angle.dart';
 import '../utilities/star_size_on_screen.dart';
 import 'configs.dart';
@@ -44,7 +44,7 @@ import 'stereographic_projection.dart';
 class MomentarySkyMap extends StatelessWidget {
   final StereographicProjection projectionModel;
   final SphereModel sphereModel;
-  final StarCatalogue starCatalogue;
+  final EssentialData starCatalogue;
   final List<Planet> planetList;
   final Sun sun;
   final Moon moon;
@@ -87,7 +87,7 @@ class MomentarySkyMap extends StatelessWidget {
 class _ProjectionRenderer extends CustomPainter {
   final StereographicProjection projectionModel;
   final SphereModel sphereModel;
-  final StarCatalogue starCatalogue;
+  final EssentialData starCatalogue;
   final List<Planet> planetList;
   final Sun sun;
   final Moon moon;

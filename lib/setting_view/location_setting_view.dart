@@ -21,11 +21,14 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:timezone/timezone.dart' as tz;
 
+import '../astronomical/time_zone.dart';
 import '../configs.dart';
 import '../constants.dart';
 import '../provider/base_settings_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
+import '../utilities/time_zone_offset.dart';
 
 const _checkThreeDigit = r'^[0-9]?[0-9]?[0-9]$';
 const _checkTwoDigit = r'^[0-9]?[0-9]$';
@@ -41,6 +44,11 @@ class LocationSettingView extends StatefulWidget {
 class _LocationSettingViewState extends State<LocationSettingView> {
   DmsAngle? _latitude, _longitude;
   var _mapOrientation = MapOrientation.auto;
+  var _selectedArea = TimeZone.areaList.first;
+  late List<TimeZone> _timeZoneList;
+  late TimeZone _selectedTimeZone;
+  var _usesLocationCoordinates = false;
+  var _usesLocationTimeZone = false;
 
   final _latDegFieldController = TextEditingController();
   final _latMinFieldController = TextEditingController();
@@ -213,6 +221,12 @@ class _LocationSettingViewState extends State<LocationSettingView> {
           }
         }
       });
+
+    _timeZoneList = TimeZone.list
+        .where((element) => element.name.contains(_selectedArea))
+        .toList()
+      ..sort((TimeZone a, TimeZone b) => a.name.compareTo(b.name));
+    _selectedTimeZone = _timeZoneList.first;
   }
 
   @override
@@ -252,6 +266,18 @@ class _LocationSettingViewState extends State<LocationSettingView> {
       _longDegFieldController.text = _longitude!.deg.toString();
       _longMinFieldController.text = _longitude!.min.toString();
       _longSecFieldController.text = _longitude!.sec.toString();
+      final tzLocation = args.tzLocation;
+      if (tzLocation != null) {
+        _selectedTimeZone =
+            TimeZone.list.firstWhere((TimeZone e) => e.name == tzLocation.name);
+        _selectedArea = _selectedTimeZone.name.split('/').first;
+        _timeZoneList = TimeZone.list
+            .where((element) => element.name.contains(_selectedArea))
+            .toList()
+          ..sort((TimeZone a, TimeZone b) => a.name.compareTo(b.name));
+      }
+      _usesLocationCoordinates = args.usesLocationCoordinates;
+      _usesLocationTimeZone = args.usesLocationTimeZone;
     }
 
     final mapOrientationTypes = [
@@ -261,9 +287,15 @@ class _LocationSettingViewState extends State<LocationSettingView> {
     ];
 
     for (final orientation in MapOrientation.values) {
-      isSelectedOrientation[orientation.index] =
-          orientation == _mapOrientation;
+      isSelectedOrientation[orientation.index] = orientation == _mapOrientation;
     }
+
+    final tzLocation = tz.getLocation(_selectedTimeZone.name);
+    final dateTime = _usesLocationTimeZone
+        ? tz.TZDateTime.from(DateTime.now(), tzLocation)
+        : DateTime.now();
+    final timeZoneName = dateTime.timeZoneName;
+    final timeZoneOffset = dateTime.timeZoneOffset;
 
     return Theme(
       data: ThemeData.dark(),
@@ -278,172 +310,304 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                     long: _longitude ??
                         const DmsAngle(defaultLongNeg, defaultLongDeg,
                             defaultLongMin, defaultLongSec),
-                    mapOrientation: _mapOrientation));
+                    tzLocation: tzLocation,
+                    mapOrientation: _mapOrientation,
+                    usesLocationCoordinates: _usesLocationCoordinates,
+                    usesLocationTimeZone: _usesLocationTimeZone));
             return Future.value(false);
           },
           child: Scaffold(
             appBar: AppBar(
               title: Text(AppLocalizations.of(context)!.locationSetting),
             ),
-            body: Column(
-              children: <Widget>[
-                Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: <Widget>[
-                      SizedBox(
-                        width: 80,
-                        child: Padding(
+            body: Center(
+              child: SizedBox(
+                width: 400,
+                child: ListView(
+                  children: <Widget>[
+                    ListTile(
+                      title: Row(children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10.0),
+                          child: Text(AppLocalizations.of(context)!.tzArea),
+                        ),
+                        DropdownButton(
+                            value: _selectedArea,
+                            items: TimeZone.areaList
+                                .map<DropdownMenuItem<String>>((String area) =>
+                                    DropdownMenuItem<String>(
+                                        value: area, child: Text(area)))
+                                .toList(),
+                            onChanged: (_usesLocationCoordinates ||
+                                    _usesLocationTimeZone)
+                                ? (String? value) {
+                                    setState(() {
+                                      _selectedArea = value!;
+                                      _timeZoneList = TimeZone.list
+                                          .where((element) => element.name
+                                              .contains(_selectedArea))
+                                          .toList()
+                                        ..sort((TimeZone a, TimeZone b) =>
+                                            a.name.compareTo(b.name));
+                                      _selectedTimeZone = _timeZoneList.first;
+                                      if (_usesLocationCoordinates) {
+                                        _latitude = _selectedTimeZone.lat;
+                                        _longitude = _selectedTimeZone.long;
+                                        _latDegFieldController.text =
+                                            _latitude!.deg.toString();
+                                        _latMinFieldController.text =
+                                            _latitude!.min.toString();
+                                        _latSecFieldController.text =
+                                            _latitude!.sec.toString();
+                                        _longDegFieldController.text =
+                                            _longitude!.deg.toString();
+                                        _longMinFieldController.text =
+                                            _longitude!.min.toString();
+                                        _longSecFieldController.text =
+                                            _longitude!.sec.toString();
+                                      }
+                                    });
+                                  }
+                                : null),
+                      ]),
+                    ),
+                    ListTile(
+                      title: Row(children: [
+                        Padding(
+                          padding: const EdgeInsets.only(right: 10.0),
+                          child: Text(AppLocalizations.of(context)!.tzLocation,
+                              textAlign: TextAlign.right),
+                        ),
+                        DropdownButton(
+                            value: _selectedTimeZone.name,
+                            items: _timeZoneList
+                                .map<DropdownMenuItem<String>>(
+                                    (TimeZone value) =>
+                                        DropdownMenuItem<String>(
+                                            value: value.name,
+                                            child: Text(value.name.substring(
+                                                _selectedArea.length + 1))))
+                                .toList(),
+                            onChanged: (_usesLocationCoordinates ||
+                                    _usesLocationTimeZone)
+                                ? (String? value) {
+                                    setState(() {
+                                      _selectedTimeZone =
+                                          _timeZoneList.firstWhere((element) =>
+                                              element.name == value!);
+                                      if (_usesLocationCoordinates) {
+                                        _latitude = _selectedTimeZone.lat;
+                                        _longitude = _selectedTimeZone.long;
+                                        _latDegFieldController.text =
+                                            _latitude!.deg.toString();
+                                        _latMinFieldController.text =
+                                            _latitude!.min.toString();
+                                        _latSecFieldController.text =
+                                            _latitude!.sec.toString();
+                                        _longDegFieldController.text =
+                                            _longitude!.deg.toString();
+                                        _longMinFieldController.text =
+                                            _longitude!.min.toString();
+                                        _longSecFieldController.text =
+                                            _longitude!.sec.toString();
+                                      }
+                                    });
+                                  }
+                                : null),
+                      ]),
+                    ),
+                    const Divider(),
+                    SwitchListTile(
+                      title: Text(
+                          AppLocalizations.of(context)!.useLocationCoordinates),
+                      value: _usesLocationCoordinates,
+                      onChanged: (bool? value) {
+                        setState(() {
+                          _usesLocationCoordinates = value!;
+                        });
+                      },
+                    ),
+                    ListTile(
+                      title: Row(children: <Widget>[
+                        Padding(
                           padding: const EdgeInsets.only(right: 10.0),
                           child: Text(AppLocalizations.of(context)!.latitude,
                               textAlign: TextAlign.right),
                         ),
-                      ),
-                      CustomToggleButtons(
-                        focusNode: [
-                          _latNegFieldFocusNode,
-                          _latPosFieldFocusNode
-                        ],
-                        value: _latitude?.isNegative ?? false,
-                        negativeLabel: 'N',
-                        positiveLabel: 'S',
-                        onPressed: (int index) {
-                          setState(() {
-                            _latitude = (_latitude ?? DmsAngle.zero)
-                                .copyWith(isNegative: index == 1);
-                          });
-                        },
-                      ),
-                      SizedBox(
+                        CustomToggleButtons(
+                          focusNode: [
+                            _latNegFieldFocusNode,
+                            _latPosFieldFocusNode
+                          ],
+                          value: _latitude?.isNegative ?? false,
+                          negativeLabel: !_usesLocationCoordinates ||
+                                  !(_latitude?.isNegative ?? false)
+                              ? 'N'
+                              : '',
+                          positiveLabel: !_usesLocationCoordinates ||
+                                  (_latitude?.isNegative ?? false)
+                              ? 'S'
+                              : '',
+                          onPressed: _usesLocationCoordinates
+                              ? null
+                              : (int index) {
+                                  setState(() {
+                                    _latitude = (_latitude ?? DmsAngle.zero)
+                                        .copyWith(isNegative: index == 1);
+                                  });
+                                },
+                        ),
+                        SizedBox(
+                            width: 50,
+                            child: CustomTextFormField(
+                              enabled: !_usesLocationCoordinates,
+                              controller: _latDegFieldController,
+                              focusNode: _latDegFieldFocusNode,
+                              nextNode: _latMinFieldFocusNode,
+                              validator: validatorTwoDigitUnder90,
+                              maxLength: 2,
+                              unitSign: degSign,
+                            )),
+                        SizedBox(
+                            width: 50,
+                            child: CustomTextFormField(
+                              enabled: !_usesLocationCoordinates,
+                              controller: _latMinFieldController,
+                              focusNode: _latMinFieldFocusNode,
+                              nextNode: _latSecFieldFocusNode,
+                              validator: validatorTwoDigitUnder60,
+                              maxLength: 2,
+                              unitSign: minSign,
+                            )),
+                        SizedBox(
                           width: 50,
                           child: CustomTextFormField(
-                            controller: _latDegFieldController,
-                            focusNode: _latDegFieldFocusNode,
-                            nextNode: _latMinFieldFocusNode,
-                            validator: validatorTwoDigitUnder90,
-                            maxLength: 2,
-                            unitSign: degSign,
-                          )),
-                      SizedBox(
-                          width: 50,
-                          child: CustomTextFormField(
-                            controller: _latMinFieldController,
-                            focusNode: _latMinFieldFocusNode,
-                            nextNode: _latSecFieldFocusNode,
+                            enabled: !_usesLocationCoordinates,
+                            controller: _latSecFieldController,
+                            focusNode: _latSecFieldFocusNode,
+                            nextNode: _longNegFieldFocusNode,
                             validator: validatorTwoDigitUnder60,
                             maxLength: 2,
-                            unitSign: minSign,
-                          )),
-                      SizedBox(
-                        width: 50,
-                        child: CustomTextFormField(
-                          controller: _latSecFieldController,
-                          focusNode: _latSecFieldFocusNode,
-                          nextNode: _longNegFieldFocusNode,
-                          validator: validatorTwoDigitUnder60,
-                          maxLength: 2,
-                          unitSign: secSign,
+                            unitSign: secSign,
+                          ),
                         ),
-                      ),
-                    ]),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: <Widget>[
-                    SizedBox(
-                      width: 80,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 10.0),
-                        child: Text(AppLocalizations.of(context)!.longitude,
-                            textAlign: TextAlign.right),
+                      ]),
+                    ),
+                    ListTile(
+                      title: Row(
+                        children: <Widget>[
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10.0),
+                            child: Text(AppLocalizations.of(context)!.longitude,
+                                textAlign: TextAlign.right),
+                          ),
+                          CustomToggleButtons(
+                            focusNode: [
+                              _longNegFieldFocusNode,
+                              _longPosFieldFocusNode
+                            ],
+                            value: _longitude?.isNegative ?? false,
+                            negativeLabel: !_usesLocationCoordinates ||
+                                    !(_longitude?.isNegative ?? false)
+                                ? 'E'
+                                : '',
+                            positiveLabel: !_usesLocationCoordinates ||
+                                    (_longitude?.isNegative ?? false)
+                                ? 'W'
+                                : '',
+                            onPressed: _usesLocationCoordinates
+                                ? null
+                                : (int index) {
+                                    setState(() {
+                                      _longitude = (_longitude ?? DmsAngle.zero)
+                                          .copyWith(isNegative: index == 1);
+                                    });
+                                  },
+                          ),
+                          SizedBox(
+                              width: 50,
+                              child: CustomTextFormField(
+                                enabled: !_usesLocationCoordinates,
+                                controller: _longDegFieldController,
+                                focusNode: _longDegFieldFocusNode,
+                                nextNode: _longMinFieldFocusNode,
+                                validator: validatorThreeDigit,
+                                maxLength: 3,
+                                unitSign: degSign,
+                              )),
+                          SizedBox(
+                              width: 50,
+                              child: CustomTextFormField(
+                                enabled: !_usesLocationCoordinates,
+                                controller: _longMinFieldController,
+                                focusNode: _longMinFieldFocusNode,
+                                nextNode: _longSecFieldFocusNode,
+                                validator: validatorTwoDigitUnder60,
+                                maxLength: 2,
+                                unitSign: minSign,
+                              )),
+                          SizedBox(
+                              width: 50,
+                              child: CustomTextFormField(
+                                enabled: !_usesLocationCoordinates,
+                                controller: _longSecFieldController,
+                                focusNode: _longSecFieldFocusNode,
+                                nextNode: _latNegFieldFocusNode,
+                                validator: validatorTwoDigitUnder60,
+                                maxLength: 2,
+                                unitSign: secSign,
+                              )),
+                        ],
                       ),
                     ),
-                    CustomToggleButtons(
-                      focusNode: [
-                        _longNegFieldFocusNode,
-                        _longPosFieldFocusNode
-                      ],
-                      value: _longitude?.isNegative ?? false,
-                      negativeLabel: 'E',
-                      positiveLabel: 'W',
-                      onPressed: (int index) {
+                    const Divider(),
+                    SwitchListTile(
+                      title: Text(
+                          AppLocalizations.of(context)!.useLocationTimeZone),
+                      value: _usesLocationTimeZone,
+                      onChanged: (bool? value) {
                         setState(() {
-                          _longitude = (_longitude ?? DmsAngle.zero)
-                              .copyWith(isNegative: index == 1);
+                          _usesLocationTimeZone = value!;
                         });
                       },
                     ),
-                    SizedBox(
-                        width: 50,
-                        child: CustomTextFormField(
-                          controller: _longDegFieldController,
-                          focusNode: _longDegFieldFocusNode,
-                          nextNode: _longMinFieldFocusNode,
-                          validator: validatorThreeDigit,
-                          maxLength: 3,
-                          unitSign: degSign,
-                        )),
-                    SizedBox(
-                        width: 50,
-                        child: CustomTextFormField(
-                          controller: _longMinFieldController,
-                          focusNode: _longMinFieldFocusNode,
-                          nextNode: _longSecFieldFocusNode,
-                          validator: validatorTwoDigitUnder60,
-                          maxLength: 2,
-                          unitSign: minSign,
-                        )),
-                    SizedBox(
-                        width: 50,
-                        child: CustomTextFormField(
-                          controller: _longSecFieldController,
-                          focusNode: _longSecFieldFocusNode,
-                          nextNode: _latNegFieldFocusNode,
-                          validator: validatorTwoDigitUnder60,
-                          maxLength: 2,
-                          unitSign: secSign,
-                        )),
+                    ListTile(
+                        title: Text('$timeZoneName, '
+                            '${TimeZoneOffset(timeZoneOffset)}')),
+                    const Divider(),
+                    ListTile(
+                      title: Row(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(right: 10.0),
+                            child: Text(
+                                AppLocalizations.of(context)!.mapOrientation,
+                                textAlign: TextAlign.right),
+                          ),
+                          ToggleButtons(
+                            direction: Axis.horizontal,
+                            onPressed: (int index) {
+                              setState(() {
+                                _mapOrientation = MapOrientation.values[index];
+                              });
+                            },
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(8)),
+                            selectedBorderColor: Colors.tealAccent,
+                            selectedColor: Colors.white,
+                            fillColor: Colors.teal,
+                            color: Colors.teal,
+                            constraints: const BoxConstraints(
+                                minHeight: 40.0, minWidth: 80.0),
+                            isSelected: isSelectedOrientation,
+                            children: mapOrientationTypes,
+                          ),
+                        ],
+                      ),
+                    )
                   ],
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    SizedBox(
-                      width: 160,
-                      child: Padding(
-                        padding: const EdgeInsets.only(right: 10.0),
-                        child: Text(
-                            AppLocalizations.of(context)!.mapOrientation,
-                            textAlign: TextAlign.right),
-                      ),
-                    ),
-                    ToggleButtons(
-                      direction: Axis.horizontal,
-                      onPressed: (int index) {
-                        setState(() {
-                          _mapOrientation = MapOrientation.values[index];
-                        });
-                      },
-                      borderRadius: const BorderRadius.all(Radius.circular(8)),
-                      selectedBorderColor: Colors.tealAccent,
-                      // , .green[700],
-                      selectedColor: Colors.white,
-                      fillColor: Colors.teal,
-                      // .green[200],
-                      color: Colors.teal,
-                      // .green[400],
-                      constraints: const BoxConstraints(
-                        minHeight: 40.0,
-                        minWidth: 80.0,
-                      ),
-                      isSelected: isSelectedOrientation,
-                      children: mapOrientationTypes,
-                    ),
-                  ],
-                )
-              ],
+              ),
             ),
           )),
     );
@@ -502,6 +666,7 @@ class CustomTextFormField extends StatelessWidget {
   final String? Function(String?) validator;
   final int maxLength;
   final String unitSign;
+  final bool enabled;
 
   const CustomTextFormField({
     super.key,
@@ -511,11 +676,13 @@ class CustomTextFormField extends StatelessWidget {
     required this.validator,
     required this.maxLength,
     required this.unitSign,
+    required this.enabled,
   });
 
   @override
   Widget build(BuildContext context) {
     return TextField(
+      enabled: enabled,
       textInputAction: TextInputAction.next,
       controller: controller,
       focusNode: focusNode,
@@ -541,7 +708,7 @@ class CustomToggleButtons extends StatelessWidget {
   final bool value;
   final String negativeLabel;
   final String positiveLabel;
-  final void Function(int) onPressed;
+  final void Function(int)? onPressed;
 
   const CustomToggleButtons({
     super.key,
@@ -558,11 +725,11 @@ class CustomToggleButtons extends StatelessWidget {
       focusNodes: focusNode,
       direction: Axis.horizontal,
       constraints: const BoxConstraints(minHeight: 10, minWidth: 20),
-      borderWidth: 0.5,
+      borderRadius: const BorderRadius.all(Radius.circular(4)),
+      selectedBorderColor: Colors.tealAccent,
       selectedColor: Colors.white,
-      selectedBorderColor: Colors.white,
-      color: Colors.grey,
-      borderColor: Colors.grey,
+      fillColor: Colors.teal,
+      color: Colors.teal,
       isSelected: [!value, value],
       onPressed: onPressed,
       children: [

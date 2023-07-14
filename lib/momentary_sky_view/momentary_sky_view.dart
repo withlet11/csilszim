@@ -25,6 +25,7 @@ import 'package:csilszim/astronomical/grs80.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:vector_math/vector_math_64.dart';
@@ -35,9 +36,9 @@ import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/astronomical_object/sun.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
-import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
+import '../essential_data.dart';
 import '../gui/date_time_chooser_dial.dart';
 import '../provider/base_settings_provider.dart';
 import 'configs.dart';
@@ -47,7 +48,7 @@ import 'stereographic_projection.dart';
 
 /// A view that shows a momentary sky map.
 class MomentarySkyView extends ConsumerStatefulWidget {
-  final StarCatalogue starCatalogue;
+  final EssentialData starCatalogue;
 
   const MomentarySkyView({super.key, required this.starCatalogue});
 
@@ -72,11 +73,17 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   late final Sun _sun;
   late final Moon _moon;
 
+  late Ticker _ticker;
+  var _elapsed = Duration.zero;
+
   @override
   void initState() {
+    super.initState();
+
     _timeModel =
         TimeModel.fromLocalTime(DateTime.now().add(_settings.dateTimeOffset));
-    _earth = PlanetEarth()..update(_timeModel.jd, Vector3.zero());
+    final jd = _timeModel.jd;
+    _earth = PlanetEarth()..update(jd, Vector3.zero());
     _planetList = [
       PlanetMercury(),
       PlanetVenus(),
@@ -87,12 +94,22 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
       PlanetNeptune(),
     ];
     for (final planet in _planetList) {
-      planet.update(_timeModel.jd, _earth.heliocentric!);
+      planet.update(jd, _earth.heliocentric!);
     }
-    _sun = Sun()..update(_timeModel.jd, _earth.heliocentric!);
+    _sun = Sun()..update(jd, _earth.heliocentric!);
     _moon = Moon(widget.starCatalogue.elp82b2);
 
-    super.initState();
+    // For Ticker. It should be disposed when this widget is disposed.
+    // Ticker is also paused when the widget is paused. It is good for
+    // refreshing display.
+    _ticker = createTicker((elapsed) {
+      if ((elapsed - _elapsed).inMilliseconds > 1e3) {
+        setState(() {
+          _elapsed = elapsed;
+        });
+      }
+    });
+    _ticker.start();
   }
 
   @override
@@ -104,16 +121,24 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
   }
 
   @override
+  void dispose() {
+    _ticker.dispose(); // For Ticker.
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     _timeModel =
         TimeModel.fromLocalTime(DateTime.now().add(_settings.dateTimeOffset));
-    final locationData = ref.watch(baseSettingsProvider).toGeographic();
+    final baseSettings = ref.watch(baseSettingsProvider);
+    final locationData = baseSettings.toGeographic();
     final displaySettings = ref.watch(momentarySkyViewSettingProvider);
-    _earth.update(_timeModel.jd, Vector3.zero());
+    final jd = _timeModel.jd;
+    _earth.update(jd, Vector3.zero());
     for (final planet in _planetList) {
-      planet.update(_timeModel.jd, _earth.heliocentric!);
+      planet.update(jd, _earth.heliocentric!);
     }
-    _sun.update(_timeModel.jd, _earth.heliocentric!);
+    _sun.update(jd, _earth.heliocentric!);
     _moon.observationPosition = Grs80.fromGeographic(locationData);
     _moon.update(_timeModel, _earth.heliocentric!, _sun);
     final localizations = AppLocalizations.of(context)!;
@@ -141,7 +166,7 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
     ];
 
     final sphereModel =
-        SphereModel(location: locationData, gmstMicroseconds: _timeModel.gmst);
+        SphereModel(location: locationData, timeModel: _timeModel);
     return Stack(
       fit: StackFit.expand,
       children: [
@@ -180,6 +205,9 @@ class _MomentarySkyViewState extends ConsumerState<MomentarySkyView>
               _settings.isDateMode = isDateMode;
             },
             isDateMode: _settings.isDateMode,
+            // tzLocation: baseSettings.usesLocationTimeZone
+                // ? baseSettings.tzLocation
+                // : null,
           ),
         ),
       ],

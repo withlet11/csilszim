@@ -25,9 +25,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../astronomical/time_model.dart';
 import '../provider/base_settings_provider.dart';
+import '../utilities/time_zone_offset.dart';
 import 'analog_clock.dart';
 import 'configs.dart';
 
@@ -67,13 +69,10 @@ class _ClockViewState extends ConsumerState<ClockView>
   @override
   Widget build(BuildContext context) {
     final baseSettings = ref.watch(baseSettingsProvider);
+    final longitude = baseSettings.long.toRadians();
     final utc = timeModel.utc;
-    final localTime = timeModel.localTime;
-    final localMeanTime =
-        timeModel.localMeanTime(baseSettings.long.toDegrees());
-    final lmst = DateTime.fromMicrosecondsSinceEpoch(timeModel.gmst +
-            (baseSettings.long.toDegrees() / 360 * 86400e6).toInt())
-        .toUtc();
+    final localMeanTime = timeModel.localMeanTime(longitude);
+    final lmst = timeModel.lmstAsDateTime(longitude);
 
     final screenSize = MediaQuery.of(context).size;
     final clockSize = min(screenSize.width * 0.45, screenSize.height * 0.4);
@@ -85,7 +84,12 @@ class _ClockViewState extends ConsumerState<ClockView>
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: <Widget>[
               _utcClock(utc, clockSize),
-              _localTimeClock(localTime, clockSize),
+              _localTimeClock(
+                  timeModel,
+                  baseSettings.usesLocationTimeZone
+                      ? baseSettings.tzLocation
+                      : null,
+                  clockSize),
             ]),
         Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -120,16 +124,21 @@ class _ClockViewState extends ConsumerState<ClockView>
     );
   }
 
-  Widget _localTimeClock(DateTime localTime, double clockSize) {
+  Widget _localTimeClock(
+      TimeModel timeModel, tz.Location? tzLocation, double clockSize) {
+    final localTime = timeModel.localTime(tzLocation);
+    final timeZoneName = timeModel.timeZoneName(tzLocation);
+    final timeZoneOffset = timeModel.timeZoneOffset(tzLocation);
     return AnalogClock(
         hour: localTime.hour,
         minute: localTime.minute,
         second: localTime.second,
         upperLabel: AppLocalizations.of(context)!.standardTime,
-        lowerLabel:
-            '${localTime.toString().replaceFirst(RegExp(r'\.[0-9]*$'), '')}\n'
-            '${AppLocalizations.of(context)!.timeZone}: ${timeModel.localTime.timeZoneName}\n'
-            '${AppLocalizations.of(context)!.timeOffset}: ${timeModel.localTime.timeZoneOffset.toString().replaceFirst(RegExp(r'\.[0-9]*$'), '')}',
+        lowerLabel: '${localTime.toString().substring(0, 19)}\n'
+            '${AppLocalizations.of(context)!.timeZone}: '
+            '$timeZoneName\n'
+            '${AppLocalizations.of(context)!.timeOffset}: '
+            '${TimeZoneOffset(timeZoneOffset)}',
         is24hours: false,
         width: clockSize,
         height: clockSize);

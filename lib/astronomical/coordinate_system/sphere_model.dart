@@ -22,6 +22,7 @@
 import 'dart:math';
 
 import '../../constants.dart';
+import '../time_model.dart';
 import 'equatorial_coordinate.dart';
 import 'geographic_coordinate.dart';
 import 'horizontal_coordinate.dart';
@@ -30,9 +31,6 @@ import 'horizontal_coordinate.dart';
 class SphereModel {
   /// [location] is the observation location.
   final Geographic location;
-
-  /// [gmst] is the Greenwich Mean Sidereal Time (GMST) in radians.
-  final double gmst;
 
   /// [lmst] is the Local Mean Sidereal Time (LMST) in radians.
   final double lmst;
@@ -45,17 +43,16 @@ class SphereModel {
   final List<double> decBelowHorizonList;
   final List<Equatorial> eclipticLine;
 
-  const SphereModel._internal(this.location, this.gmst, this.lmst, this._cosLat,
+  const SphereModel._internal(this.location, this.lmst, this._cosLat,
       this._sinLat, this.decOnHorizonList, this.decBelowHorizonList, this.eclipticLine);
 
   factory SphereModel(
       {required Geographic location,
-      gmstMicroseconds = 0,
+      required TimeModel timeModel,
       List<Equatorial> eclipticLine = const <Equatorial>[]}) {
     return SphereModel._internal(
         location,
-        gmstMicroseconds / 86400e6 * fullTurn,
-        (gmstMicroseconds / 86400e6 * fullTurn) + location.long,
+        timeModel.lmst(location.long) / 86400e6 * fullTurn,
         cos(location.lat),
         sin(location.lat),
         _prepareHorizonLine(location.lat),

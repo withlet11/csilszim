@@ -24,10 +24,12 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:timezone/data/latest.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
-import 'astronomical/star_catalogue.dart';
 import 'clock_view/clock_view.dart';
 import 'configs.dart';
+import 'essential_data.dart';
 import 'momentary_sky_view/momentary_sky_view.dart';
 import 'object_list_view/object_list_view.dart';
 import 'orbit_view/orbit_view.dart';
@@ -52,10 +54,14 @@ const _keyLongDeg = 'longDeg';
 const _keyLongMin = 'longMin';
 const _keyLongSec = 'longSec';
 const _keyMapOrientation = 'mapOrientation';
+const _keyTzLocation = 'tzLocation';
+const _keyUsesLocationCoordinates = 'usesLocationCoordinates';
+const _keyUsesLocationTimeZone = 'usesLocationTimeZone';
 const _keyLang = 'lang';
 const _messageError = 'Error';
 
 void main() {
+  tz.initializeTimeZones();
   runApp(const ProviderScope(child: MyApp()));
 }
 
@@ -97,7 +103,7 @@ class HomePage extends ConsumerStatefulWidget {
 
 class _HomePageState extends ConsumerState<HomePage>
     with TickerProviderStateMixin {
-  late Future<StarCatalogue> starCatalogue;
+  late Future<EssentialData> starCatalogue;
   late TabController _tabController;
 
   @override
@@ -105,7 +111,7 @@ class _HomePageState extends ConsumerState<HomePage>
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
     // _tabController.animateTo(2);
-    starCatalogue = StarCatalogue.make();
+    starCatalogue = EssentialData.make();
     loadLocationData();
   }
 
@@ -114,7 +120,7 @@ class _HomePageState extends ConsumerState<HomePage>
     final baseSettings = ref.watch(baseSettingsProvider);
     final viewSelect = ref.watch(csilszim.viewSelectProvider);
 
-    return FutureBuilder<StarCatalogue>(
+    return FutureBuilder<EssentialData>(
         future: starCatalogue,
         builder: (context, snapshot) {
           if (snapshot.hasError) {
@@ -148,17 +154,17 @@ class _HomePageState extends ConsumerState<HomePage>
                 csilszim.View.clock => const ClockView(),
                 csilszim.View.momentary => MomentarySkyView(
                     key: const PageStorageKey<String>(_keyMomentarySkyView),
-                    starCatalogue: snapshot.data as StarCatalogue,
+                    starCatalogue: snapshot.data as EssentialData,
                   ),
                 csilszim.View.orbit =>
                   const OrbitView(key: PageStorageKey<String>(_keyOrbitView)),
                 csilszim.View.wholeNight => WholeNightSkyView(
                     key: const PageStorageKey<String>(_keyWholeNightSkyView),
-                    starCatalogue: snapshot.data as StarCatalogue,
+                    starCatalogue: snapshot.data as EssentialData,
                   ),
                 _ => ObjectListView(
                     tabController: _tabController,
-                    starCatalogue: snapshot.data as StarCatalogue)
+                    starCatalogue: snapshot.data as EssentialData)
               },
             );
           } else {
@@ -191,10 +197,19 @@ class _HomePageState extends ConsumerState<HomePage>
     final longSec = prefs.getInt(_keyLongSec) ?? defaultLongSec;
     final mapOrientation = MapOrientation
         .values[prefs.getInt(_keyMapOrientation) ?? MapOrientation.auto.index];
+    final tzLocation = prefs.getString(_keyTzLocation) ?? '';
+    final usesLocationCoordinates =
+        prefs.getBool(_keyUsesLocationCoordinates) ?? false;
+    final usesLocationTimeZone =
+        prefs.getBool(_keyUsesLocationTimeZone) ?? false;
     final baseSettings = BaseSettings(
         lat: DmsAngle(isSouth, latDeg, latMin, latSec),
         long: DmsAngle(isWest, longDeg, longMin, longSec),
-        mapOrientation: mapOrientation);
+        tzLocation: tzLocation.isEmpty ? null : tz.getLocation(tzLocation),
+        mapOrientation: mapOrientation,
+        usesLocationCoordinates: usesLocationCoordinates,
+        usesLocationTimeZone: usesLocationTimeZone);
+
     final lang = Locale(prefs.getString(_keyLang) ?? 'en');
 
     setState(() {
@@ -208,6 +223,7 @@ class _HomePageState extends ConsumerState<HomePage>
     final latitude = baseSettings.lat;
     final longitude = baseSettings.long;
     final mapOrientation = baseSettings.mapOrientation;
+    final tzLocation = baseSettings.tzLocation?.name ?? '';
     prefs.setBool(_keyIsSouth, latitude.isNegative);
     prefs.setInt(_keyLatDeg, latitude.deg);
     prefs.setInt(_keyLatMin, latitude.min);
@@ -217,6 +233,10 @@ class _HomePageState extends ConsumerState<HomePage>
     prefs.setInt(_keyLongMin, longitude.min);
     prefs.setInt(_keyLongSec, longitude.sec);
     prefs.setInt(_keyMapOrientation, mapOrientation.index);
+    prefs.setString(_keyTzLocation, tzLocation);
+    prefs.setBool(_keyUsesLocationCoordinates, baseSettings.usesLocationCoordinates);
+    prefs.setBool(_keyUsesLocationTimeZone, baseSettings.usesLocationTimeZone);
+
     setState(() {});
   }
 

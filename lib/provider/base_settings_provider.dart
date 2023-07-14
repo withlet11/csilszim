@@ -20,6 +20,7 @@
  */
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:timezone/timezone.dart' as tz;
 
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../configs.dart';
@@ -35,13 +36,19 @@ class BaseSettings {
   final DmsAngle lat;
   final DmsAngle long;
   final double height;
+  final tz.Location? tzLocation;
   final MapOrientation mapOrientation;
+  final bool usesLocationCoordinates;
+  final bool usesLocationTimeZone;
 
   const BaseSettings({
     required this.lat,
     required this.long,
     this.height = 0.0,
+    required this.tzLocation,
     this.mapOrientation = MapOrientation.auto,
+    required this.usesLocationCoordinates,
+    required this.usesLocationTimeZone,
   });
 
   Geographic toGeographic() => Geographic.fromDegrees(
@@ -54,12 +61,11 @@ class BaseSettingsProvider extends StateNotifier<BaseSettings> {
           lat: DmsAngle(
               defaultLatNeg, defaultLatDeg, defaultLatMin, defaultLatSec),
           long: DmsAngle(
-              defaultLongNeg, defaultLongDeg, defaultLongMin, defaultLongSec))])
+              defaultLongNeg, defaultLongDeg, defaultLongMin, defaultLongSec),
+          tzLocation: null,
+          usesLocationCoordinates: false,
+          usesLocationTimeZone: false)])
       : super(baseSettings);
-
-  void setLocation({lat = DmsAngle, long = DmsAngle}) {
-    state = BaseSettings(lat: lat.toDegrees(), long: long.toDegrees());
-  }
 
   void set(BaseSettings baseSettings) {
     state = baseSettings;

@@ -170,12 +170,12 @@ class _ProjectionRenderer extends CustomPainter {
     list.add(_PositionAndColor(pos, color, sunSize));
   }
 
-  void _calculatePlanetPosition(TimeModel time, double interval, int repetition,
-      List<_PositionAndColor> list) {
+  void _calculatePlanetPosition(TimeModel timeModel, double interval,
+      int repetition, List<_PositionAndColor> list) {
     final planetList = SolarSystem.planets;
     for (var i = 0; i < repetition; ++i) {
       final orbitCalculation =
-          OrbitCalculationWithMeanLongitude(time + interval * i);
+          OrbitCalculationWithMeanLongitude(timeModel + interval * i);
       for (final planet in planetList) {
         if (planetVisibility[planet.id] ?? false) {
           final pos = projection.transform(
@@ -452,8 +452,9 @@ class _ProjectionRenderer extends CustomPainter {
     const scale = 1.0e5;
 
     for (var i = 0; i < 21; ++i) {
-      final start =
-          projection.transform(vector.Vector3(i * 0.5, 0, 0)).toXy(center, scale);
+      final start = projection
+          .transform(vector.Vector3(i * 0.5, 0, 0))
+          .toXy(center, scale);
       final end = projection
           .transform(vector.Vector3(i * 0.5 + 0.25, 0, 0))
           .toXy(center, scale);

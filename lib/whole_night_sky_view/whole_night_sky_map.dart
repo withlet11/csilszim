@@ -30,9 +30,9 @@ import '../astronomical/astronomical_object/planet.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/horizontal_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
-import '../astronomical/star_catalogue.dart';
 import '../configs.dart';
 import '../constants.dart';
+import '../essential_data.dart';
 import '../utilities/sexagesimal_angle.dart';
 import '../utilities/star_size_on_screen.dart';
 import 'configs.dart';
@@ -43,7 +43,7 @@ import 'whole_night_sky_view_setting_provider.dart';
 class WholeNightSkyMap extends StatelessWidget {
   final MercatorProjection projectionModel;
   final SphereModel sphereModel;
-  final StarCatalogue starCatalogue;
+  final EssentialData starCatalogue;
   final WholeNightSkyViewSettings displaySettings;
   final Equatorial centerEquatorial;
   final Equatorial sunEquatorial;
@@ -84,7 +84,7 @@ class WholeNightSkyMap extends StatelessWidget {
 class _ProjectionRenderer extends CustomPainter {
   final MercatorProjection projectionModel;
   final SphereModel sphereModel;
-  final StarCatalogue starCatalogue;
+  final EssentialData starCatalogue;
   final WholeNightSkyViewSettings displaySettings;
   final Equatorial centerEquatorial;
   final Equatorial sunEquatorial;
@@ -138,6 +138,7 @@ class _ProjectionRenderer extends CustomPainter {
       _drawFOV(canvas, size);
     }
 
+    // TODO: Drawing of twilight zone is not good in case of South up, northern hemisphere.
     _drawAstronomicalTwilight(canvas, size, sunEquatorial);
     _drawNauticalTwilight(canvas, size, sunEquatorial);
     _drawCivilTwilight(canvas, size, sunEquatorial);
@@ -464,18 +465,16 @@ class _ProjectionRenderer extends CustomPainter {
     if (zoneGridList.isEmpty) {
       if (sphereModel.isNorthernHemisphere) {
         if (sun.dec > 0) {
-          final gridList = [
-            size.topLeft(Offset.zero),
-            size.topRight(Offset.zero)
-          ];
+          final gridList = projectionModel.isSouthUp
+              ? [size.bottomRight(Offset.zero), size.bottomLeft(Offset.zero)]
+              : [size.topLeft(Offset.zero), size.topRight(Offset.zero)];
           _drawPathOnSphere(canvas, size, zonePaint, gridList);
         }
       } else {
         if (sun.dec.isNegative) {
-          final gridList = [
-            size.bottomLeft(Offset.zero),
-            size.bottomRight(Offset.zero)
-          ];
+          final gridList = projectionModel.isSouthUp
+              ? [size.topRight(Offset.zero), size.topLeft(Offset.zero)]
+              : [size.bottomLeft(Offset.zero), size.bottomRight(Offset.zero)];
           _drawPathOnSphere(canvas, size, zonePaint, gridList);
         }
       }
@@ -496,16 +495,29 @@ class _ProjectionRenderer extends CustomPainter {
       List<Offset> points1, List<Offset> points2) {
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
-    final firstX = points1.first.dx % lengthOfFullTurn - lengthOfFullTurn;
-    var shift = firstX - points1.first.dx;
 
     final width = size.width;
-    for (; points1.first.dx + shift < width; shift += lengthOfFullTurn) {
-      for (var i = 0; i < points1.length; ++i) {
-        final point1 = points1[i] + Offset(shift, 0);
-        final point2 = points2[(i + 2) % points1.length] + Offset(shift, 0);
-        if (point1.dy.isNaN || point2.dy.isNaN) continue;
-        canvas.drawLine(point1, point2, paint);
+    if (projectionModel.isSouthUp) {
+      final firstX = points1.first.dx % lengthOfFullTurn + lengthOfFullTurn;
+      var shift = firstX - points1.first.dx;
+      for (; points1.first.dx + shift > 0; shift -= lengthOfFullTurn) {
+        for (var i = 0; i < points1.length; ++i) {
+          final point1 = points1[i] + Offset(shift, 0);
+          final point2 = points2[(i + 2) % points1.length] + Offset(shift, 0);
+          if (point1.dy.isNaN || point2.dy.isNaN) continue;
+          canvas.drawLine(point1, point2, paint);
+        }
+      }
+    } else {
+      final firstX = points1.first.dx % lengthOfFullTurn - lengthOfFullTurn;
+      var shift = firstX - points1.first.dx;
+      for (; points1.first.dx + shift < width; shift += lengthOfFullTurn) {
+        for (var i = 0; i < points1.length; ++i) {
+          final point1 = points1[i] + Offset(shift, 0);
+          final point2 = points2[(i + 2) % points1.length] + Offset(shift, 0);
+          if (point1.dy.isNaN || point2.dy.isNaN) continue;
+          canvas.drawLine(point1, point2, paint);
+        }
       }
     }
   }

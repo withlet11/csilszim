@@ -29,9 +29,9 @@ import '../astronomical/astronomical_object/star.dart';
 import '../astronomical/coordinate_system/equatorial_coordinate.dart';
 import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
-import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
+import '../essential_data.dart';
 import '../provider/base_settings_provider.dart';
 import '../utilities/degree_angle.dart';
 import '../utilities/sexagesimal_angle.dart';
@@ -39,7 +39,7 @@ import 'common_header_part.dart';
 import 'configs.dart';
 
 class ObjectListView extends ConsumerStatefulWidget {
-  final StarCatalogue starCatalogue;
+  final EssentialData starCatalogue;
   final TabController tabController;
 
   const ObjectListView(
@@ -87,7 +87,7 @@ class _ObjectListView extends ConsumerState<ObjectListView>
     _timeModel = TimeModel.fromLocalTime();
 
     final sphereModel =
-        SphereModel(location: locationData, gmstMicroseconds: _timeModel.gmst);
+        SphereModel(location: locationData, timeModel: _timeModel);
 
     final localizations = AppLocalizations.of(context)!;
     final messierList = widget.starCatalogue.messierList as List<DeepSkyObject>;
@@ -285,17 +285,16 @@ class _ObjectListView extends ConsumerState<ObjectListView>
 
   List<List<Widget>> prepareTableRows1(SphereModel sphereModel,
       Geographic locationData, List<DeepSkyObject> messierList) {
+    final lmstAsHour = _timeModel.lmst(locationData.long) / 3600e6;
     return messierList.map((DeepSkyObject object) {
       final altAz = sphereModel.equatorialToHorizontal(Equatorial.fromRadians(
           dec: object.position.dec, ra: object.position.ra));
       final decAsDms =
           DmsAngle.fromDegrees(object.position.decInDegrees()).toDmsWithSign();
       final decAsDm = decAsDms.substring(0, decAsDms.length - 3);
-      final haAsHms = HmsAngle.fromHours((_timeModel.gmst / 3600e6 +
-                  locationData.long * radInHour -
-                  object.position.raInHours()) %
-              24.0)
-          .toHms();
+      final haAsHms =
+          HmsAngle.fromHours((lmstAsHour - object.position.raInHours()) % 24.0)
+              .toHms();
       final haAsHm = haAsHms.substring(0, haAsHms.length - 3);
       final color = switch (altAz.alt) {
         > highAltitude => highAltitudeColor,
@@ -319,17 +318,16 @@ class _ObjectListView extends ConsumerState<ObjectListView>
 
   List<List<Widget>> prepareTableRows2(SphereModel sphereModel,
       Geographic locationData, List<Star> brightestStarList) {
+    final lmstAsHour = _timeModel.lmst(locationData.long) / 3600e6;
     return brightestStarList.map((Star star) {
       final altAz = sphereModel.equatorialToHorizontal(
           Equatorial.fromRadians(dec: star.position.dec, ra: star.position.ra));
       final decAsDms =
           DmsAngle.fromDegrees(star.position.decInDegrees()).toDmsWithSign();
       final decAsDm = decAsDms.substring(0, decAsDms.length - 3);
-      final haAsHms = HmsAngle.fromHours((_timeModel.gmst / 3600e6 +
-                  locationData.long * radInHour -
-                  star.position.raInHours()) %
-              24.0)
-          .toHms();
+      final haAsHms =
+          HmsAngle.fromHours((lmstAsHour - star.position.raInHours()) % 24.0)
+              .toHms();
       final haAsHm = haAsHms.substring(0, haAsHms.length - 3);
       final color = switch (altAz.alt) {
         > highAltitude => highAltitudeColor,

@@ -22,6 +22,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
@@ -35,9 +36,9 @@ import '../astronomical/coordinate_system/geographic_coordinate.dart';
 import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/grs80.dart';
 import '../astronomical/orbit_calculation/orbit_calculation.dart';
-import '../astronomical/star_catalogue.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
+import '../essential_data.dart';
 import '../gui/date_time_chooser_dial.dart';
 import '../provider/base_settings_provider.dart';
 import 'configs.dart';
@@ -47,7 +48,7 @@ import 'whole_night_sky_view_setting_provider.dart';
 
 /// A view that shows a whole night sky map.
 class WholeNightSkyView extends ConsumerStatefulWidget {
-  final StarCatalogue starCatalogue;
+  final EssentialData starCatalogue;
 
   const WholeNightSkyView({super.key, required this.starCatalogue});
 
@@ -55,7 +56,8 @@ class WholeNightSkyView extends ConsumerStatefulWidget {
   ConsumerState createState() => _WholeNightSkyViewState();
 }
 
-class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
+class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView>
+  with SingleTickerProviderStateMixin {
   final _wholeNightSkyViewKey = GlobalKey();
   var _settings = _Settings.defaultValue();
   var _sunEquatorial = Equatorial.zero;
@@ -74,11 +76,27 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
   double? _scale;
   Offset? _pointerPosition;
 
+  late Ticker _ticker;
+  var _elapsed = Duration.zero;
+
   @override
   void initState() {
+    super.initState();
+
     _moon = Moon(widget.starCatalogue.elp82b2);
     eclipticLine = Ecliptic.prepareEclipticLine();
-    super.initState();
+
+    // For Ticker. It should be disposed when this widget is disposed.
+    // Ticker is also paused when the widget is paused. It is good for
+    // refreshing display.
+    _ticker = createTicker((elapsed) {
+      if ((elapsed - _elapsed).inMilliseconds > 1e3) {
+        setState(() {
+          _elapsed = elapsed;
+        });
+      }
+    });
+    _ticker.start();
   }
 
   @override
@@ -87,6 +105,12 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     _settings = pageStorage.readState(context) as _Settings? ??
         _Settings.defaultValue();
     super.didChangeDependencies();
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose(); // For Ticker.
+    super.dispose();
   }
 
   @override
@@ -118,14 +142,14 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     };
 
     DateTime dateTime = DateTime.now().add(_settings.dateTimeOffset);
-    final time = TimeModel.fromLocalTime(dateTime);
+    final timeModel = TimeModel.fromLocalTime(dateTime);
 
     final sphereModel = SphereModel(
         location: locationData,
-        gmstMicroseconds: time.gmst,
+        timeModel: timeModel,
         eclipticLine: eclipticLine);
 
-    _updateSolarSystem(locationData, time);
+    _updateSolarSystem(locationData, timeModel);
 
     return Stack(fit: StackFit.expand, children: [
       ClipRect(
@@ -160,6 +184,9 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
               _settings.isDateMode = isDateMode;
             },
             isDateMode: _settings.isDateMode),
+            // tzLocation: baseSettings.usesLocationTimeZone
+                // ? baseSettings.tzLocation
+                // : null),
       ),
     ]);
   }
@@ -269,17 +296,18 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView> {
     _scale = details.scale;
   }
 
-  void _updateSolarSystem(Geographic locationData, TimeModel time) {
+  void _updateSolarSystem(Geographic locationData, TimeModel timeModel) {
+    final jd = timeModel.jd;
     _moon.observationPosition = Grs80.fromGeographic(locationData);
-    final orbitCalculation = OrbitCalculationWithMeanLongitude(time);
-    final earthPosition = // PlanetEarth().calculateWithVsop87(time.jd);
+    final orbitCalculation = OrbitCalculationWithMeanLongitude(timeModel);
+    final earthPosition = // PlanetEarth().calculateWithVsop87(jd);
         orbitCalculation.calculatePosition(PlanetEarth().orbitalElement);
-    final sun = Sun()..update(time.jd, earthPosition);
+    final sun = Sun()..update(jd, earthPosition);
     _sunEquatorial = sun.equatorial;
     for (final planet in _planetList) {
-      planet.update(time.jd, earthPosition);
+      planet.update(jd, earthPosition);
     }
-    _moon.update(time, earthPosition, sun);
+    _moon.update(timeModel, earthPosition, sun);
   }
 }
 

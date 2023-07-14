@@ -326,7 +326,7 @@ class _OrbitViewState extends State<OrbitView> {
   }
 
   Future _pickDate(BuildContext context) async {
-    final initialDate = _settings.timeModel.localTime;
+    final initialDate = _settings.timeModel.localTime(null);
     final today = DateTime.now();
     final selectedDate = await showDatePicker(
         context: context,
