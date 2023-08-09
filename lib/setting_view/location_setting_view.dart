@@ -223,7 +223,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
       });
 
     _timeZoneList = TimeZone.list
-        .where((element) => element.name.contains(_selectedArea))
+        .where((element) => element.name.indexOf(_selectedArea) == 0)
         .toList()
       ..sort((TimeZone a, TimeZone b) => a.name.compareTo(b.name));
     _selectedTimeZone = _timeZoneList.first;
@@ -272,7 +272,7 @@ class _LocationSettingViewState extends State<LocationSettingView> {
             TimeZone.list.firstWhere((TimeZone e) => e.name == tzLocation.name);
         _selectedArea = _selectedTimeZone.name.split('/').first;
         _timeZoneList = TimeZone.list
-            .where((element) => element.name.contains(_selectedArea))
+            .where((element) => element.name.indexOf(_selectedArea) == 0)
             .toList()
           ..sort((TimeZone a, TimeZone b) => a.name.compareTo(b.name));
       }
@@ -344,8 +344,10 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                                     setState(() {
                                       _selectedArea = value!;
                                       _timeZoneList = TimeZone.list
-                                          .where((element) => element.name
-                                              .contains(_selectedArea))
+                                          .where((element) =>
+                                              element.name
+                                                  .indexOf(_selectedArea) ==
+                                              0)
                                           .toList()
                                         ..sort((TimeZone a, TimeZone b) =>
                                             a.name.compareTo(b.name));
@@ -576,31 +578,31 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                             '${TimeZoneOffset(timeZoneOffset)}')),
                     const Divider(),
                     ListTile(
-                      title: Row(
+                      title: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Padding(
-                            padding: const EdgeInsets.only(right: 10.0),
-                            child: Text(
-                                AppLocalizations.of(context)!.mapOrientation,
-                                textAlign: TextAlign.right),
-                          ),
-                          ToggleButtons(
-                            direction: Axis.horizontal,
-                            onPressed: (int index) {
-                              setState(() {
-                                _mapOrientation = MapOrientation.values[index];
-                              });
-                            },
-                            borderRadius:
-                                const BorderRadius.all(Radius.circular(8)),
-                            selectedBorderColor: Colors.tealAccent,
-                            selectedColor: Colors.white,
-                            fillColor: Colors.teal,
-                            color: Colors.teal,
-                            constraints: const BoxConstraints(
-                                minHeight: 40.0, minWidth: 80.0),
-                            isSelected: isSelectedOrientation,
-                            children: mapOrientationTypes,
+                          Text(AppLocalizations.of(context)!.mapOrientation,
+                              textAlign: TextAlign.right),
+                          Align(
+                            alignment: Alignment.bottomCenter,
+                            child: ToggleButtons(
+                              direction: Axis.horizontal,
+                              onPressed: (int index) {
+                                setState(() {
+                                  _mapOrientation = MapOrientation.values[index];
+                                });
+                              },
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(8)),
+                              selectedBorderColor: Colors.tealAccent,
+                              selectedColor: Colors.white,
+                              fillColor: Colors.teal,
+                              color: Colors.teal,
+                              constraints: const BoxConstraints(
+                                  minHeight: 40.0, minWidth: 80.0),
+                              isSelected: isSelectedOrientation,
+                              children: mapOrientationTypes,
+                            ),
                           ),
                         ],
                       ),

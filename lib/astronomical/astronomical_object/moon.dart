@@ -55,11 +55,14 @@ class Moon implements AstronomicalObject {
   var equatorial = const Equatorial.fromRadians(dec: 0.0, ra: 0.0);
 
   void update(TimeModel timeModel, Vector3 earthPosition, Sun sun) {
-    this.timeModel = timeModel;
-    geocentric = elp82b2.calculate(timeModel.jd);
-    heliocentric = geocentric! + earthPosition * auInKm;
-    _updateEquatorial();
-    _updatePhaseAngleAndTilt(earthPosition, sun);
+    final jd = timeModel.jd;
+    if (this.timeModel == null || (this.timeModel!.jd - jd).abs() > 5 / 86400) {
+      this.timeModel = timeModel;
+      geocentric = elp82b2.calculate(timeModel.jd);
+      heliocentric = geocentric! + earthPosition * auInKm;
+      _updateEquatorial();
+      _updatePhaseAngleAndTilt(earthPosition, sun);
+    }
   }
 
   void _updateEquatorial() {

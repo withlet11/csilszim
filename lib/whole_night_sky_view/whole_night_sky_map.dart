@@ -138,7 +138,6 @@ class _ProjectionRenderer extends CustomPainter {
       _drawFOV(canvas, size);
     }
 
-    // TODO: Drawing of twilight zone is not good in case of South up, northern hemisphere.
     _drawAstronomicalTwilight(canvas, size, sunEquatorial);
     _drawNauticalTwilight(canvas, size, sunEquatorial);
     _drawCivilTwilight(canvas, size, sunEquatorial);
@@ -324,7 +323,7 @@ class _ProjectionRenderer extends CustomPainter {
       final origin = Offset(0.0, point.dy);
       points = [origin, size.topRight(origin)];
     }
-    final path = _preparePathOfZone(size, points);
+    final path = _preparePathOfZone(size, points, true);
     canvas.drawPath(path, horizonPaint);
   }
 
@@ -347,7 +346,7 @@ class _ProjectionRenderer extends CustomPainter {
           projectionModel.convertToOffset(equatorial2, center, unitLength);
     }
 
-    _drawPathOnSphere(canvas, size, momentaryHorizonLinePaint, lineOfHorizon);
+    _drawPathOnSphere(canvas, size, momentaryHorizonLinePaint, lineOfHorizon, true);
     _drawHatchOnSphere(canvas, size, momentaryHorizonHatchPaint, lineOfHorizon,
         lineBelowHorizon);
   }
@@ -468,26 +467,26 @@ class _ProjectionRenderer extends CustomPainter {
           final gridList = projectionModel.isSouthUp
               ? [size.bottomRight(Offset.zero), size.bottomLeft(Offset.zero)]
               : [size.topLeft(Offset.zero), size.topRight(Offset.zero)];
-          _drawPathOnSphere(canvas, size, zonePaint, gridList);
+          _drawPathOnSphere(canvas, size, zonePaint, gridList, true);
         }
       } else {
         if (sun.dec.isNegative) {
           final gridList = projectionModel.isSouthUp
               ? [size.topRight(Offset.zero), size.topLeft(Offset.zero)]
               : [size.bottomLeft(Offset.zero), size.bottomRight(Offset.zero)];
-          _drawPathOnSphere(canvas, size, zonePaint, gridList);
+          _drawPathOnSphere(canvas, size, zonePaint, gridList, true);
         }
       }
     } else {
       final lineGridList = lineGridList2 + lineGridList1;
-      _drawPathOnSphere(canvas, size, zonePaint, zoneGridList);
-      _drawPathOnSphere(canvas, size, linePaint, lineGridList);
+      _drawPathOnSphere(canvas, size, zonePaint, zoneGridList, true);
+      _drawPathOnSphere(canvas, size, linePaint, lineGridList, false);
     }
   }
 
-  void _drawPathOnSphere(
-      Canvas canvas, Size size, Paint paint, List<Offset> points) {
-    final path = _preparePathOfZone(size, points);
+  void _drawPathOnSphere(Canvas canvas, Size size, Paint paint,
+      List<Offset> points, bool isClose) {
+    final path = _preparePathOfZone(size, points, isClose);
     canvas.drawPath(path, paint);
   }
 
@@ -522,7 +521,7 @@ class _ProjectionRenderer extends CustomPainter {
     }
   }
 
-  Path _preparePathOfZone(Size size, List<Offset> points) {
+  Path _preparePathOfZone(Size size, List<Offset> points, bool isClose) {
     final unitLength = _getUnitLength(size);
     final lengthOfFullTurn = projectionModel.lengthOfFullTurn(unitLength);
 
@@ -539,10 +538,12 @@ class _ProjectionRenderer extends CustomPainter {
         }
       }
 
-      final top = sphereModel.isNorthernHemisphere ? 0.0 : size.height;
       path.lineTo(0, points.last.dy);
-      path.lineTo(0, top);
-      path.lineTo(width, top);
+      if (isClose) {
+        final top = sphereModel.isNorthernHemisphere ? 0.0 : size.height;
+        path.lineTo(0, top);
+        path.lineTo(width, top);
+      }
     } else {
       final firstX = points.first.dx % lengthOfFullTurn - lengthOfFullTurn;
       var shift = firstX - points.first.dx;
@@ -553,10 +554,12 @@ class _ProjectionRenderer extends CustomPainter {
         }
       }
 
-      final bottom = sphereModel.isNorthernHemisphere ? size.height : 0.0;
       path.lineTo(width, points.last.dy);
-      path.lineTo(width, bottom);
-      path.lineTo(0, bottom);
+      if (isClose) {
+        final bottom = sphereModel.isNorthernHemisphere ? size.height : 0.0;
+        path.lineTo(width, bottom);
+        path.lineTo(0, bottom);
+      }
     }
 
     return path;
