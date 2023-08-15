@@ -44,7 +44,7 @@ const _monthNumberSize = 10.0;
 const _hourNumberSize = 10.0;
 const _dateTimeFontSize = 14.0;
 const _timeZoneOffsetFontSize = 10.0;
-const _buttonSize = 14.0;
+const _buttonSize = 18.0;
 const _marginForLabel = 25.0;
 const _markerPosition = -40.0;
 const _dialSize = _dialOuterBorderSize + _marginForLabel * 2;
@@ -425,8 +425,7 @@ class _DateTimeChooserDial extends ConsumerState<DateTimeChooserDial> {
     final position = event.localPosition;
     final offset = position - _dialCenter;
     final distance = offset.distance;
-    if (distance > _dialInnerBorderSize * 0.25 &&
-        distance < _dialOuterBorderSize * 0.6) {
+    if (distance > _dialInnerBorderSize * 0.25) {
       _rotatesDial = true;
       _updateWithPosition(position);
     }
