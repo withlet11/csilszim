@@ -1,7 +1,7 @@
 /*
  * mercator_projection.dart
  *
- * Copyright 2023 Yasuhiro Yamakawa <withlet11@gmail.com>
+ * Copyright 2023-2024 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
