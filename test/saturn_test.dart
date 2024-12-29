@@ -1,6 +1,5 @@
 import 'package:csilszim/astronomical/astronomical_object/planet.dart';
 import 'package:csilszim/astronomical/time_model.dart';
-import 'package:csilszim/constants.dart';
 import 'package:test/test.dart';
 import 'package:vector_math/vector_math_64.dart';
 
@@ -15,9 +14,9 @@ void main() {
     earth.forceUpdateWithVsop87(time.jd, Vector3.zero());
     final saturn = PlanetSaturn();
     saturn.forceUpdateWithVsop87(time.jd, earth.heliocentric!);
-    print("year: ${earth.jd}, ring: ${saturn.saturnRingAngle()}");
-    print("x: ${saturn.heliocentric!.x}, y: ${saturn.heliocentric!.y}, z: ${saturn.heliocentric!.z}");
-    print("dec: ${saturn.equatorial.dec * radInDeg}, ra: ${saturn.equatorial.ra * radInHour}");
+    // print("year: ${earth.jd}, ring: ${saturn.saturnRingAngle()}");
+    // print("x: ${saturn.heliocentric!.x}, y: ${saturn.heliocentric!.y}, z: ${saturn.heliocentric!.z}");
+    // print("dec: ${saturn.equatorial.dec * radInDeg}, ra: ${saturn.equatorial.ra * radInHour}");
   }
   test('test: Vector3, constructor', () {
     expect(1, 1);

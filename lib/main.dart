@@ -84,8 +84,8 @@ class MyApp extends ConsumerWidget {
       locale: locale,
       supportedLocales: localeList,
       theme: ThemeData(
-        brightness: Brightness.dark,
-        // primaryColor: Colors.lightBlue[800],
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.teal, brightness: Brightness.dark),
       ),
       debugShowCheckedModeBanner: false,
       title: appName,
@@ -105,6 +105,7 @@ class _HomePageState extends ConsumerState<HomePage>
     with TickerProviderStateMixin {
   late Future<EssentialData> starCatalogue;
   late TabController _tabController;
+  final _prefs = SharedPreferencesAsync();
 
   @override
   void initState() {
@@ -112,7 +113,7 @@ class _HomePageState extends ConsumerState<HomePage>
     _tabController = TabController(length: 2, vsync: this);
     // _tabController.animateTo(2);
     starCatalogue = EssentialData.make();
-    loadLocationData();
+    loadLocationData(_prefs);
   }
 
   @override
@@ -137,7 +138,7 @@ class _HomePageState extends ConsumerState<HomePage>
                         onPressed: () async {
                           final newOne =
                               await pushAndPopLocationData(baseSettings);
-                          saveLocationData(newOne);
+                          saveLocationData(newOne, _prefs);
                         })
                   ],
                   bottom: viewSelect == csilszim.View.objectList
@@ -185,23 +186,22 @@ class _HomePageState extends ConsumerState<HomePage>
         });
   }
 
-  Future<void> loadLocationData() async {
-    final prefs = await SharedPreferences.getInstance();
-    final isSouth = prefs.getBool(_keyIsSouth) ?? defaultLatNeg;
-    final latDeg = prefs.getInt(_keyLatDeg) ?? defaultLatDeg;
-    final latMin = prefs.getInt(_keyLatMin) ?? defaultLatMin;
-    final latSec = prefs.getInt(_keyLatSec) ?? defaultLatSec;
-    final isWest = prefs.getBool(_keyLongNeg) ?? defaultLongNeg;
-    final longDeg = prefs.getInt(_keyLongDeg) ?? defaultLongDeg;
-    final longMin = prefs.getInt(_keyLongMin) ?? defaultLongMin;
-    final longSec = prefs.getInt(_keyLongSec) ?? defaultLongSec;
+  Future<void> loadLocationData(SharedPreferencesAsync prefs) async {
+    final isSouth = await prefs.getBool(_keyIsSouth) ?? defaultLatNeg;
+    final latDeg = await prefs.getInt(_keyLatDeg) ?? defaultLatDeg;
+    final latMin = await prefs.getInt(_keyLatMin) ?? defaultLatMin;
+    final latSec = await prefs.getInt(_keyLatSec) ?? defaultLatSec;
+    final isWest = await prefs.getBool(_keyLongNeg) ?? defaultLongNeg;
+    final longDeg = await prefs.getInt(_keyLongDeg) ?? defaultLongDeg;
+    final longMin = await prefs.getInt(_keyLongMin) ?? defaultLongMin;
+    final longSec = await prefs.getInt(_keyLongSec) ?? defaultLongSec;
     final mapOrientation = MapOrientation
-        .values[prefs.getInt(_keyMapOrientation) ?? MapOrientation.auto.index];
-    final tzLocation = prefs.getString(_keyTzLocation) ?? '';
+        .values[await prefs.getInt(_keyMapOrientation) ?? MapOrientation.auto.index];
+    final tzLocation = await prefs.getString(_keyTzLocation) ?? '';
     final usesLocationCoordinates =
-        prefs.getBool(_keyUsesLocationCoordinates) ?? false;
+        await prefs.getBool(_keyUsesLocationCoordinates) ?? false;
     final usesLocationTimeZone =
-        prefs.getBool(_keyUsesLocationTimeZone) ?? false;
+        await prefs.getBool(_keyUsesLocationTimeZone) ?? false;
     final baseSettings = BaseSettings(
         lat: DmsAngle(isSouth, latDeg, latMin, latSec),
         long: DmsAngle(isWest, longDeg, longMin, longSec),
@@ -210,7 +210,7 @@ class _HomePageState extends ConsumerState<HomePage>
         usesLocationCoordinates: usesLocationCoordinates,
         usesLocationTimeZone: usesLocationTimeZone);
 
-    final lang = Locale(prefs.getString(_keyLang) ?? 'en');
+    final lang = Locale(await prefs.getString(_keyLang) ?? 'en');
 
     setState(() {
       ref.read(languageSelectProvider.notifier).state = lang;
@@ -218,24 +218,24 @@ class _HomePageState extends ConsumerState<HomePage>
     });
   }
 
-  void saveLocationData(BaseSettings baseSettings) async {
-    final prefs = await SharedPreferences.getInstance();
+  void saveLocationData(BaseSettings baseSettings, SharedPreferencesAsync prefs) async {
     final latitude = baseSettings.lat;
     final longitude = baseSettings.long;
     final mapOrientation = baseSettings.mapOrientation;
     final tzLocation = baseSettings.tzLocation?.name ?? '';
-    prefs.setBool(_keyIsSouth, latitude.isNegative);
-    prefs.setInt(_keyLatDeg, latitude.deg);
-    prefs.setInt(_keyLatMin, latitude.min);
-    prefs.setInt(_keyLatSec, latitude.sec);
-    prefs.setBool(_keyLongNeg, longitude.isNegative);
-    prefs.setInt(_keyLongDeg, longitude.deg);
-    prefs.setInt(_keyLongMin, longitude.min);
-    prefs.setInt(_keyLongSec, longitude.sec);
-    prefs.setInt(_keyMapOrientation, mapOrientation.index);
-    prefs.setString(_keyTzLocation, tzLocation);
-    prefs.setBool(_keyUsesLocationCoordinates, baseSettings.usesLocationCoordinates);
-    prefs.setBool(_keyUsesLocationTimeZone, baseSettings.usesLocationTimeZone);
+    await prefs.setBool(_keyIsSouth, latitude.isNegative);
+    await prefs.setInt(_keyLatDeg, latitude.deg);
+    await prefs.setInt(_keyLatMin, latitude.min);
+    await prefs.setInt(_keyLatSec, latitude.sec);
+    await prefs.setBool(_keyLongNeg, longitude.isNegative);
+    await prefs.setInt(_keyLongDeg, longitude.deg);
+    await prefs.setInt(_keyLongMin, longitude.min);
+    await prefs.setInt(_keyLongSec, longitude.sec);
+    await prefs.setInt(_keyMapOrientation, mapOrientation.index);
+    await prefs.setString(_keyTzLocation, tzLocation);
+    await prefs.setBool(
+        _keyUsesLocationCoordinates, baseSettings.usesLocationCoordinates);
+    await prefs.setBool(_keyUsesLocationTimeZone, baseSettings.usesLocationTimeZone);
 
     setState(() {});
   }

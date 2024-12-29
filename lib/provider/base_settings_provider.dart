@@ -57,15 +57,14 @@ class BaseSettings {
 
 class BaseSettingsProvider extends StateNotifier<BaseSettings> {
   BaseSettingsProvider(
-      [BaseSettings baseSettings = const BaseSettings(
+      [super.baseSettings = const BaseSettings(
           lat: DmsAngle(
               defaultLatNeg, defaultLatDeg, defaultLatMin, defaultLatSec),
           long: DmsAngle(
               defaultLongNeg, defaultLongDeg, defaultLongMin, defaultLongSec),
           tzLocation: null,
           usesLocationCoordinates: false,
-          usesLocationTimeZone: false)])
-      : super(baseSettings);
+          usesLocationTimeZone: false)]);
 
   void set(BaseSettings baseSettings) {
     state = baseSettings;

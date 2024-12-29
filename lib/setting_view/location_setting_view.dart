@@ -21,6 +21,7 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:get/get.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../astronomical/time_zone.dart';
@@ -298,9 +299,15 @@ class _LocationSettingViewState extends State<LocationSettingView> {
     final timeZoneOffset = dateTime.timeZoneOffset;
 
     return Theme(
-      data: ThemeData.dark(),
-      child: WillPopScope(
-          onWillPop: () async {
+      data: ThemeData(
+          colorScheme: ColorScheme.fromSeed(
+              seedColor: Colors.teal, brightness: Brightness.dark)),
+      child: PopScope(
+          canPop: false,
+          onPopInvokedWithResult: (bool didPop, Object? result) async {
+            if (didPop) {
+              return;
+            }
             Navigator.pop(
                 context,
                 BaseSettings(
@@ -314,7 +321,6 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                     mapOrientation: _mapOrientation,
                     usesLocationCoordinates: _usesLocationCoordinates,
                     usesLocationTimeZone: _usesLocationTimeZone));
-            return Future.value(false);
           },
           child: Scaffold(
             appBar: AppBar(
@@ -455,7 +461,10 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                               : (int index) {
                                   setState(() {
                                     _latitude = (_latitude ?? DmsAngle.zero)
-                                        .copyWith(isNegative: index == 1);
+                                        .copyWith(
+                                            isNegative:
+                                                !(_latitude?.isNegative ??
+                                                    index == 0));
                                   });
                                 },
                         ),
@@ -522,7 +531,10 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                                 : (int index) {
                                     setState(() {
                                       _longitude = (_longitude ?? DmsAngle.zero)
-                                          .copyWith(isNegative: index == 1);
+                                          .copyWith(
+                                              isNegative:
+                                                  !(_longitude?.isNegative ??
+                                                      index == 0));
                                     });
                                   },
                           ),
@@ -589,7 +601,8 @@ class _LocationSettingViewState extends State<LocationSettingView> {
                               direction: Axis.horizontal,
                               onPressed: (int index) {
                                 setState(() {
-                                  _mapOrientation = MapOrientation.values[index];
+                                  _mapOrientation =
+                                      MapOrientation.values[index];
                                 });
                               },
                               borderRadius:
@@ -735,8 +748,8 @@ class CustomToggleButtons extends StatelessWidget {
       isSelected: [!value, value],
       onPressed: onPressed,
       children: [
-        Text(negativeLabel, style: const TextStyle(fontSize: 18.0)),
-        Text(positiveLabel, style: const TextStyle(fontSize: 18.0))
+        Text(negativeLabel, style: context.textTheme.bodyLarge),
+        Text(positiveLabel, style: context.textTheme.bodyLarge),
       ],
     );
   }

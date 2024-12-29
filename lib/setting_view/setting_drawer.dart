@@ -22,6 +22,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../configs.dart';
@@ -46,6 +47,8 @@ class SettingDrawer extends ConsumerStatefulWidget {
 }
 
 class _SettingDrawerState extends ConsumerState<SettingDrawer> {
+  final _prefs = SharedPreferencesAsync();
+
   @override
   Widget build(BuildContext context) {
     final baseSettings = ref.watch(baseSettingsProvider);
@@ -70,9 +73,9 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
           DrawerHeader(
               child: Column(
             children: [
-              const Text(appName, style: TextStyle(fontSize: 24.0)),
+              Text(appName, style: context.textTheme.headlineSmall),
               Text(appLocalization.shortIntroduction,
-                  style: const TextStyle(fontSize: 12.0)),
+                  style: context.textTheme.titleSmall),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -88,7 +91,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                             if (value != null) {
                               ref.read(languageSelectProvider.notifier).state =
                                   Locale(value);
-                              saveLanguageData(value);
+                              saveLanguageData(value, _prefs);
                             }
                           },
                           value: languageSelect.languageCode)),
@@ -101,9 +104,13 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
                   Column(
                     children: [
                       Text(
-                          '${appLocalization.latitude} ${baseSettings.lat.toDmsWithNS()}'),
+                        '${appLocalization.latitude} ${baseSettings.lat.toDmsWithNS()}',
+                        style: context.textTheme.bodySmall,
+                      ),
                       Text(
-                          '${appLocalization.longitude} ${baseSettings.long.toDmsWithEW()}'),
+                        '${appLocalization.longitude} ${baseSettings.long.toDmsWithEW()}',
+                        style: context.textTheme.bodySmall,
+                      ),
                     ],
                   )
                 ],
@@ -643,8 +650,7 @@ class _SettingDrawerState extends ConsumerState<SettingDrawer> {
     );
   }
 
-  void saveLanguageData(String language) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString(_keyLang, language);
+  void saveLanguageData(String language, SharedPreferencesAsync prefs) async {
+    await prefs.setString(_keyLang, language);
   }
 }
