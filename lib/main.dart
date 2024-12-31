@@ -170,7 +170,10 @@ class _HomePageState extends ConsumerState<HomePage>
             );
           } else {
             return Theme(
-                data: ThemeData.dark(),
+                data: ThemeData(
+                  colorScheme: ColorScheme.fromSeed(
+                      seedColor: Colors.blue, brightness: Brightness.dark),
+                ),
                 child: Scaffold(
                     backgroundColor: const Color(0xff263e66),
                     body: Center(
