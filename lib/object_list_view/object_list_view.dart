@@ -21,7 +21,6 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../astronomical/astronomical_object/deep_sky_object.dart';
@@ -32,6 +31,7 @@ import '../astronomical/coordinate_system/sphere_model.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../essential_data.dart';
+import '../l10n/app_localizations.dart';
 import '../provider/base_settings_provider.dart';
 import '../utilities/degree_angle.dart';
 import '../utilities/sexagesimal_angle.dart';

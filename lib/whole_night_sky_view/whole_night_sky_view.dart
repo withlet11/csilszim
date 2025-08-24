@@ -24,7 +24,6 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/moon.dart';
@@ -40,6 +39,7 @@ import '../astronomical/time_model.dart';
 import '../constants.dart';
 import '../essential_data.dart';
 import '../gui/date_time_chooser_dial.dart';
+import '../l10n/app_localizations.dart';
 import '../provider/base_settings_provider.dart';
 import 'configs.dart';
 import 'mercator_projection.dart';

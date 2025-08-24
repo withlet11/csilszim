@@ -22,7 +22,6 @@
 import 'dart:math';
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vector_math/vector_math_64.dart' as vector;
 
@@ -31,6 +30,7 @@ import '../astronomical/orbit_calculation/orbit_calculation.dart';
 import '../astronomical/solar_system.dart';
 import '../astronomical/time_model.dart';
 import '../constants.dart';
+import '../l10n/app_localizations.dart';
 import 'configs.dart';
 import 'graphical_projection/graphical_projection.dart';
 import 'graphical_projection/perspective.dart';

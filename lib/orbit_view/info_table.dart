@@ -20,11 +20,11 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/time_model.dart';
+import '../l10n/app_localizations.dart';
 import 'configs.dart';
 import 'orbit_view_setting_provider.dart';
 

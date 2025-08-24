@@ -24,10 +24,11 @@ import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:vector_math/vector_math_64.dart';
+
 import '../astronomical/time_model.dart';
 import '../constants.dart';
+import '../l10n/app_localizations.dart';
 import 'graphical_projection/graphical_projection.dart';
 import 'info_table.dart';
 import 'orbit_plot.dart';

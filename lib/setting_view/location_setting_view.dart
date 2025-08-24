@@ -20,13 +20,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:get/get.dart';
 import 'package:timezone/timezone.dart' as tz;
 
 import '../astronomical/time_zone.dart';
 import '../configs.dart';
 import '../constants.dart';
+import '../l10n/app_localizations.dart';
 import '../provider/base_settings_provider.dart';
 import '../utilities/sexagesimal_angle.dart';
 import '../utilities/time_zone_offset.dart';

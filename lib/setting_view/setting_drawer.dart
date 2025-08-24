@@ -20,13 +20,13 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../configs.dart';
 import '../constants.dart';
+import '../l10n/app_localizations.dart';
 import '../orbit_view/orbit_view_setting_provider.dart';
 import '../provider/language_select_provider.dart';
 import '../momentary_sky_view/momentary_sky_view_setting_provider.dart';

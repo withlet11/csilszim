@@ -20,7 +20,6 @@
  */
 
 import 'package:flutter/material.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,6 +29,7 @@ import 'package:timezone/timezone.dart' as tz;
 import 'clock_view/clock_view.dart';
 import 'configs.dart';
 import 'essential_data.dart';
+import 'l10n/app_localizations.dart';
 import 'momentary_sky_view/momentary_sky_view.dart';
 import 'object_list_view/object_list_view.dart';
 import 'orbit_view/orbit_view.dart';
