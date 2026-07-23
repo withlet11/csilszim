@@ -27,11 +27,11 @@ class DegreeAngle {
 
   const DegreeAngle(this.angle);
 
-  String withSign([fractionDigits = 0]) =>
+  String withSign([int fractionDigits = 0]) =>
       (angle.isNegative ? minusSign : '+') +
       angle.abs().toStringAsFixed(fractionDigits) +
       degSign;
 
-  String withoutSign([fractionDigits = 0]) =>
+  String withoutSign([int fractionDigits = 0]) =>
       (angle % 360.0).toStringAsFixed(fractionDigits) + degSign;
 }
