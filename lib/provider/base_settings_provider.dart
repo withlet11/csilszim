@@ -55,23 +55,24 @@ class BaseSettings {
       lat: lat.toDegrees(), long: long.toDegrees(), h: height);
 }
 
-class BaseSettingsProvider extends StateNotifier<BaseSettings> {
-  BaseSettingsProvider(
-      [super.baseSettings = const BaseSettings(
-          lat: DmsAngle(
-              defaultLatNeg, defaultLatDeg, defaultLatMin, defaultLatSec),
-          long: DmsAngle(
-              defaultLongNeg, defaultLongDeg, defaultLongMin, defaultLongSec),
-          tzLocation: null,
-          usesLocationCoordinates: false,
-          usesLocationTimeZone: false)]);
+class BaseSettingsProvider extends Notifier<BaseSettings> {
+  @override
+  BaseSettings build() {
+    return const BaseSettings(
+      lat: DmsAngle(defaultLatNeg, defaultLatDeg, defaultLatMin, defaultLatSec),
+      long: DmsAngle(
+          defaultLongNeg, defaultLongDeg, defaultLongMin, defaultLongSec),
+      tzLocation: null,
+      usesLocationCoordinates: false,
+      usesLocationTimeZone: false,
+    );
+  }
 
   void set(BaseSettings baseSettings) {
     state = baseSettings;
   }
 }
 
-final baseSettingsProvider =
-    StateNotifierProvider<BaseSettingsProvider, BaseSettings>((ref) {
-  return BaseSettingsProvider();
-});
+final baseSettingsProvider = NotifierProvider<BaseSettingsProvider, BaseSettings>(
+  BaseSettingsProvider.new,
+);

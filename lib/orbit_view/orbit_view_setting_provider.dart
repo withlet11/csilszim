@@ -22,8 +22,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-class OrbitViewSettingProvider extends StateNotifier<OrbitViewSettings> {
-  OrbitViewSettingProvider() : super(const OrbitViewSettings());
+class OrbitViewSettingProvider extends Notifier<OrbitViewSettings> {
+  @override
+  OrbitViewSettings build() {
+    return const OrbitViewSettings();
+  }
+
+  void updateSettings(OrbitViewSettings newSettings) {
+    state = newSettings;
+  }
 
   set mercuryVisibility(bool visibility) {
     state = state.copyWith(isMercuryVisible: visibility);
@@ -206,7 +213,7 @@ class OrbitViewSettings {
       );
 }
 
-final orbitViewSettingProvider =
-    StateNotifierProvider<OrbitViewSettingProvider, OrbitViewSettings>((ref) {
-  return OrbitViewSettingProvider();
-});
+final orbitViewSettingProvider = NotifierProvider<
+    OrbitViewSettingProvider, OrbitViewSettings>(
+  OrbitViewSettingProvider.new,
+);

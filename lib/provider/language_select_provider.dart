@@ -23,4 +23,13 @@ import 'dart:ui';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-final languageSelectProvider = StateProvider<Locale>((ref) => const Locale('en'));
+class LanguageSelectNotifier extends Notifier<Locale> {
+  @override
+  Locale build() => const Locale('en');
+
+  void setLocale(Locale locale) => state = locale;
+}
+
+final languageSelectProvider = NotifierProvider<LanguageSelectNotifier, Locale>(
+  LanguageSelectNotifier.new,
+);

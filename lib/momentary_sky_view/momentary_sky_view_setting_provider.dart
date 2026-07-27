@@ -25,8 +25,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'configs.dart';
 
 class MomentarySkyViewSettingProvider
-    extends StateNotifier<MomentarySkyViewSettings> {
-  MomentarySkyViewSettingProvider() : super(const MomentarySkyViewSettings());
+    extends Notifier<MomentarySkyViewSettings> {
+  @override
+  MomentarySkyViewSettings build() {
+    return const MomentarySkyViewSettings(); // Initial state goes here
+  }
+
+  void updateSettings(MomentarySkyViewSettings newSettings) {
+    state = newSettings;
+  }
 
   set horizontalGridVisibility(bool visibility) {
     state = state.copyWith(isHorizontalGridVisible: visibility);
@@ -102,7 +109,7 @@ class MomentarySkyViewSettings {
       );
 }
 
-final momentarySkyViewSettingProvider = StateNotifierProvider<
-    MomentarySkyViewSettingProvider, MomentarySkyViewSettings>((ref) {
-  return MomentarySkyViewSettingProvider();
-});
+final momentarySkyViewSettingProvider = NotifierProvider<
+    MomentarySkyViewSettingProvider, MomentarySkyViewSettings>(
+  MomentarySkyViewSettingProvider.new,
+);

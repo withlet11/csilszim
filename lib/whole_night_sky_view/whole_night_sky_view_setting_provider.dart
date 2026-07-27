@@ -25,8 +25,15 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'configs.dart';
 
 class WholeNightSkyViewSettingProvider
-    extends StateNotifier<WholeNightSkyViewSettings> {
-  WholeNightSkyViewSettingProvider() : super(const WholeNightSkyViewSettings());
+    extends Notifier<WholeNightSkyViewSettings> {
+  @override
+  WholeNightSkyViewSettings build() {
+    return const WholeNightSkyViewSettings();
+  }
+
+  void updateSettings(WholeNightSkyViewSettings newSettings) {
+    state = newSettings;
+  }
 
   set equatorialGridVisibility(bool visibility) {
     state = state.copyWith(isEquatorialGridVisible: visibility);
@@ -101,7 +108,7 @@ class WholeNightSkyViewSettings {
       );
 }
 
-final wholeNightSkyViewSettingProvider = StateNotifierProvider<
-    WholeNightSkyViewSettingProvider, WholeNightSkyViewSettings>((ref) {
-  return WholeNightSkyViewSettingProvider();
-});
+final wholeNightSkyViewSettingProvider = NotifierProvider<
+    WholeNightSkyViewSettingProvider, WholeNightSkyViewSettings>(
+  WholeNightSkyViewSettingProvider.new,
+);

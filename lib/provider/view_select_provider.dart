@@ -29,4 +29,13 @@ enum View {
   objectList,
 }
 
-final viewSelectProvider = StateProvider<View>((ref) => View.clock);
+class ViewSelectNotifier extends Notifier<View> {
+  @override
+  View build() => View.clock;
+
+  void setView(View view) => state = view;
+}
+
+final viewSelectProvider = NotifierProvider<ViewSelectNotifier, View>(
+  ViewSelectNotifier.new,
+);

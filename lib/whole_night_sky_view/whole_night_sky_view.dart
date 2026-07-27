@@ -120,7 +120,7 @@ class _WholeNightSkyViewState extends ConsumerState<WholeNightSkyView>
     _settings.projection.isSouthUp = switch (baseSettings.mapOrientation) {
       MapOrientation.southUp => true,
       MapOrientation.northUp => false,
-      MapOrientation.auto => locationData.lat.isNegative
+      _ => locationData.lat.isNegative
     };
     final displaySettings = ref.watch(wholeNightSkyViewSettingProvider);
     final localizations = AppLocalizations.of(context)!;
