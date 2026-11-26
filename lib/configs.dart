@@ -21,7 +21,7 @@
 
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 const appName = 'Csilszim';
 const applicationVersion = '0.0.1';

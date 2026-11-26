@@ -21,7 +21,7 @@
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 const highAltitudeColor = Color(0xffffdede);
 const middleAltitudeColor = Color(0xffdfb7b7);

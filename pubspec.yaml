@@ -47,6 +47,8 @@ dependencies:
   timezone: any
   vector_math: any
 
+  material_ui: any
+  cupertino_ui: any
 dev_dependencies:
   flutter_test:
     sdk: flutter

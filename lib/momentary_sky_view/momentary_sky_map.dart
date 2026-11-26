@@ -21,7 +21,7 @@
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 import '../astronomical/astronomical_object/celestial_id.dart';
 import '../astronomical/astronomical_object/deep_sky_object.dart';

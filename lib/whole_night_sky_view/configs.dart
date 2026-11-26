@@ -21,7 +21,7 @@
 
 import 'dart:math';
 
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 const minScale = 1.0;
 const maxScale = 20.0;

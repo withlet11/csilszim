@@ -1,7 +1,7 @@
 /*
  * main.dart
  *
- * Copyright 2023-2024 Yasuhiro Yamakawa <withlet11@gmail.com>
+ * Copyright 2023-2026 Yasuhiro Yamakawa <withlet11@gmail.com>
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy of this software
  * and associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -19,8 +19,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-import 'package:flutter/material.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' as cupertino_localizations;
+import 'package:material_ui/material_ui.dart';
+import 'package:flutter_localizations/flutter_localizations.dart'
+    as flutter_localizations;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:timezone/data/latest.dart' as tz;
@@ -78,8 +80,8 @@ class MyApp extends ConsumerWidget {
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-        GlobalCupertinoLocalizations.delegate,
+        flutter_localizations.GlobalWidgetsLocalizations.delegate,
+        cupertino_localizations.GlobalCupertinoLocalizations.delegate,
       ],
       locale: locale,
       supportedLocales: localeList,
@@ -198,8 +200,8 @@ class _HomePageState extends ConsumerState<HomePage>
     final longDeg = await prefs.getInt(_keyLongDeg) ?? defaultLongDeg;
     final longMin = await prefs.getInt(_keyLongMin) ?? defaultLongMin;
     final longSec = await prefs.getInt(_keyLongSec) ?? defaultLongSec;
-    final mapOrientation = MapOrientation
-        .values[await prefs.getInt(_keyMapOrientation) ?? MapOrientation.auto.index];
+    final mapOrientation = MapOrientation.values[
+        await prefs.getInt(_keyMapOrientation) ?? MapOrientation.auto.index];
     final tzLocation = await prefs.getString(_keyTzLocation) ?? '';
     final usesLocationCoordinates =
         await prefs.getBool(_keyUsesLocationCoordinates) ?? false;
@@ -215,13 +217,12 @@ class _HomePageState extends ConsumerState<HomePage>
 
     final lang = Locale(await prefs.getString(_keyLang) ?? 'en');
 
-    setState(() {
-      ref.read(languageSelectProvider.notifier).state = lang;
-      ref.read(baseSettingsProvider.notifier).set(baseSettings);
-    });
+    ref.read(languageSelectProvider.notifier).setLocale(lang);
+    ref.read(baseSettingsProvider.notifier).set(baseSettings);
   }
 
-  void saveLocationData(BaseSettings baseSettings, SharedPreferencesAsync prefs) async {
+  void saveLocationData(
+      BaseSettings baseSettings, SharedPreferencesAsync prefs) async {
     final latitude = baseSettings.lat;
     final longitude = baseSettings.long;
     final mapOrientation = baseSettings.mapOrientation;
@@ -238,7 +239,8 @@ class _HomePageState extends ConsumerState<HomePage>
     await prefs.setString(_keyTzLocation, tzLocation);
     await prefs.setBool(
         _keyUsesLocationCoordinates, baseSettings.usesLocationCoordinates);
-    await prefs.setBool(_keyUsesLocationTimeZone, baseSettings.usesLocationTimeZone);
+    await prefs.setBool(
+        _keyUsesLocationTimeZone, baseSettings.usesLocationTimeZone);
 
     setState(() {});
   }
